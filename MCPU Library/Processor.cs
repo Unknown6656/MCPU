@@ -1,11 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics.Contracts;
-using System.Linq;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Text;
+using System.Diagnostics.Contracts;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Diagnostics;
+using System.Linq;
+using System.Text;
+using System;
 
 namespace MCPU
 {
@@ -17,19 +18,28 @@ namespace MCPU
     {
         #region FIELDS + CONSTANTS
 
-        public const int EIP_OFFS = 0x04;
+        public const int IP_OFFS = 0x04;
         public const int FLAG_OFFS = 0x08;
         public const int RESV_OFFS = 0x0a;
         public const int MEMS_OFFS = 0x10;
+        public const int INSZ_OFFS = 0x14;
+        public const int STACK_BASE_OFFS = 0x18;
+        public const int STACK_PTR_OFFS = 0x1c;
         public const int IO_OFFS = 0x20;
         public const int IO_COUNT = 0x20;
         public const int MEM_OFFS = 0x40;
-
-        internal Instruction[] ins = null;
+#if DEBUG
+        public const int MAX_MEMSZ = 1024;
+        public const int MAX_STACKSZ = 256;
+#else
+        public const int MAX_MEMSZ = 0x10000000; // 1GB of memory
+        public const int MAX_STACKSZ = 0x400000; // 16MB of stack space
+#endif
+        internal int _dev_null = 0; //dev/null
         internal bool disposed = false;
         internal byte* raw;
 
-        #endregion
+    #endregion
         #region PROPERTIES
 
         /// <summary>
@@ -46,10 +56,10 @@ namespace MCPU
         /// </summary>
         public int IP
         {
-            get => *((int*)(raw + EIP_OFFS));
-            internal set => *((int*)(raw + EIP_OFFS)) = value;
+            get => KernelSpace[IP_OFFS / 4];
+            internal set => KernelSpace[IP_OFFS / 4] = value;
         }
-
+        
         /// <summary>
         /// The userspace memory size (in 4-byte-blocks)
         /// </summary>
@@ -57,6 +67,15 @@ namespace MCPU
         {
             get => *((int*)(raw + MEMS_OFFS));
             private set => *((int*)(raw + MEMS_OFFS)) = value;
+        }
+
+        /// <summary>
+        /// The total (kernelspace) memory size (in bytes)
+        /// </summary>
+        public int RawSize
+        {
+            get => KernelSpace[STACK_BASE_OFFS / 4];
+            internal set => KernelSpace[STACK_BASE_OFFS / 4] = value;
         }
 
         /// <summary>
@@ -94,32 +113,232 @@ namespace MCPU
         public IOPorts IO { get; }
 
         /// <summary>
-        /// TODO
+        /// Returns the current instruction
         /// </summary>
-        public Instruction[] Instructions => null;
+        public Instruction CurrentInstruction => (IP < 0) || (IP >= Instructions.Length) ? new HALT() : Instructions[IP];
 
+        /// <summary>
+        /// Returns a list of all instructions
+        /// </summary>
+        public Instruction[] Instructions { get; }
+
+        /// <summary>
+        /// The stack size (in 4-byte blocks)
+        /// </summary>
+        public int StackSize
+        {
+            get => KernelSpace[STACK_PTR_OFFS / 4];
+            internal set => KernelSpace[STACK_PTR_OFFS / 4] = value;
+        }
+
+        /// <summary>
+        /// The stack pointer address inside the kernelspace memory
+        /// </summary>
+        public int StackPointerAddress => (int)(StackPointer - KernelSpace);
+
+        /// <summary>
+        /// The stack base pointer address inside the kernelspace memory
+        /// </summary>
+        public int StackBaseAddress => (int)(StackBasePointer - KernelSpace);
+
+        /// <summary>
+        /// The stack base pointer, which points to the top-most 4-byte memory adress of the stack
+        /// </summary>
+        public int* StackBasePointer => KernelSpace + RawSize / 4;
+
+        /// <summary>
+        /// The stack pointer, which points to the bottom-most 4-byte memory adress of the stack
+        /// </summary>
+        public int* StackPointer => StackBasePointer - StackSize;
+        
         /// <summary>
         /// Returns the byte-offset of the instruction region
         /// </summary>
         public int InstructionOffset => Size * 4 + MEM_OFFS;
 
+        /// <summary>
+        /// Returns a kernel memory pointer which points to the processor's kernel memory region
+        /// </summary>
+        public int* KernelSpace => (int*)raw;
+
+        /// <summary>
+        /// Returns a user memory pointer which points to the processor's user memory region
+        /// </summary>
+        public byte* UserSpace => raw + MEM_OFFS;
+
         #endregion
         #region METHODS
 
-
-
-        public void MoveNext()
+        /// <summary>
+        /// Halts the processor
+        /// </summary>
+        public void Halt()
         {
-
+            // TODO
         }
 
+        /// <summary>
+        /// Moves the instruction pointer to the next instruction
+        /// </summary>
+        public void MoveNext() => MoveRelative(1);
+
+        /// <summary>
+        /// Moves the instruction pointer to the instruction which has the given relative offset
+        /// </summary>
+        public void MoveRelative(int offset) => MoveTo(IP + offset);
+
+        /// <summary>
+        /// Moves the instruction pointer to the given instruction index
+        /// </summary>
+        /// <param name="insndx">New instruction index</param>
+        public void MoveTo(int insndx) =>
+            IP = (insndx< 0) || (insndx >= Instructions.Length) ? throw new InvalidOperationException("The IP is out of range") : insndx;
+
+        /// <summary>
+        /// Processes the given instruction
+        /// </summary>
+        /// <param name="ins">Instruction</param>
         public void Process(Instruction ins)
         {
             if (ins != null)
-            {
+                ins.Process(this);
 
+            // TODO
+        }
+
+        /// <summary>
+        /// Pushes the given function call onto the callstack
+        /// </summary>
+        /// <param name="call">Function call</param>
+        public void PushCall(FunctionCall call)
+        {
+            if (StackSize + call.Size > MAX_STACKSZ)
+                throw new StackException("The callstack is not big enough to hold the given element (aka StackOverflowException).");
+
+            foreach (int a in call.Arguments)
+                Push(a);
+
+            Push(call.Arguments.Length);
+            Push(call.ReturnAddress);
+        }
+
+        /// <summary>
+        /// Peeks the inner-most function call from the callstack and returns it
+        /// </summary>
+        /// <returns>Inner-most function call</returns>
+        public FunctionCall PeekCall()
+        {
+            FunctionCall call = PopCall();
+
+            PushCall(call);
+
+            return call;
+        }
+
+        /// <summary>
+        /// Pops the inner-most function call from the callstack and returns it
+        /// </summary>
+        /// <returns>Inner-most function call</returns>
+        public FunctionCall PopCall()
+        {
+            FunctionCall call = new FunctionCall();
+
+            call.ReturnAddress = Pop();
+            call.Arguments = new int[Pop()];
+
+            for (int l = call.Arguments.Length, i = l - 1; i >= 0; i--)
+                call.Arguments[i] = Pop();
+
+            return call;
+        }
+
+        /// <summary>
+        /// Returns the byte-representation of the current processor's memory
+        /// </summary>
+        /// <returns>Memory byte representation</returns>
+        public byte[] ToBytes()
+        {
+            int size = RawSize;
+            byte[] targ = new byte[size];
+
+            fixed (byte* ptr = targ)
+                for (int i = 0; i < size; i++)
+                    ptr[i] = raw[i];
+
+            return targ;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="arg"></param>
+        /// <returns></returns>
+        public int* TranslateAddress(InstructionArgument arg)
+        {
+            int val = arg.Value;
+
+            if (arg.Type.HasFlag(ArgumentType.Parameter))
+            {
+                FunctionCall call = PeekCall();
+                int argc = call.Arguments.Length;
+
+                val = val < argc ? call.Arguments[val] : throw new ArgumentOutOfRangeException($"The current function call has not {val} arguments. Please provide an arument index between 0 and {argc}.");
+            }
+            
+
+            // TODO
+
+
+            bool kernel = arg.Type.HasFlag(ArgumentType.KernelMode);
+
+            if (kernel)
+                ;
+
+            return &val;
+        }
+
+        /// <summary>
+        /// Pops an integer from the MCPU callstack (UNSAFE!)
+        /// </summary>
+        /// <returns>Popped integer</returns>
+        public int Pop()
+        {
+            if (StackSize <= 0)
+                throw new StackException("There is no element on the stack (aka StackUnderflowException).");
+            else
+            {
+                int val = *StackPointer;
+
+                --StackSize;
+
+                return val;
             }
         }
+
+        /// <summary>
+        /// Peeks an integer from the MCPU callstack (UNSAFE!)
+        /// </summary>
+        /// <returns>Peeked integer</returns>
+        public int Peek()
+            => StackSize > 0 ? *StackPointer : throw new StackException("There is no element on the stack (aka StackUnderflowException).");
+
+        /// <summary>
+        /// Pushes the given integer onto the MCPU callstack (UNSAFE!)
+        /// </summary>
+        /// <param name="val">Integer value to be pushed</param>
+        public void Push(int val)
+        {
+            if (StackSize < MAX_STACKSZ)
+            {
+                ++StackSize;
+
+                *StackPointer = val;
+            }
+            else
+                throw new InsufficientExecutionStackException("There is no element on the stack (aka StackUnderflowException).");
+        }
+
+        internal int UserToKernel(int addr) => VerifyUserspaceAddr(addr, addr + MEM_OFFS);
 
         internal void VerifyUserspaceAddr(int addr) => VerifyUserspaceAddr<object>(addr, null);
 
@@ -142,6 +361,14 @@ namespace MCPU
         }
 
         /// <summary>
+        /// Creates a new MCPU-processor instance with the maximum userspace memory size
+        /// </summary>
+        public Processor()
+            : this(MAX_MEMSZ)
+        {
+        }
+
+        /// <summary>
         /// Creates a new MCPU-processor instance with the given userspace-size (in 4-byte-blocks)
         /// </summary>
         /// <param name="size">Userspace size</param>
@@ -157,13 +384,42 @@ namespace MCPU
         /// <param name="cpuid">CPU ID</param>
         public Processor(int size, int cpuid)
         {
-            raw = (byte*)Marshal.AllocHGlobal(4 * size + MEM_OFFS);
+            if (size > MAX_MEMSZ)
+                throw new OutOfMemoryException($"The (currently) maximum supported memory size are {MAX_MEMSZ * 4} bytes.");
+
+            int raw_size = 4 * size + MEM_OFFS + MAX_STACKSZ * 4;
+
+            raw = (byte*)Marshal.AllocHGlobal(raw_size);
+
+            for (int i = 0; i < raw_size; i++)
+                raw[i] = 0;
+
             IO = new IOPorts(raw);
             Size = size;
             CPUID = cpuid;
+            StackSize = 0;
+            RawSize = raw_size;
+
+            Contract.Assert(StackPointer == StackBasePointer);
         }
 
         #endregion
+    }
+
+    /// <summary>
+    /// Represents an exception, which occures while processing the MCPU-(call)stack
+    /// </summary>
+    public class StackException
+        : Exception
+    {
+        /// <summary>
+        /// Creates a new StackException with the given message
+        /// </summary>
+        /// <param name="message">Exception message</param>
+        public StackException(string message)
+            : base(message)
+        {
+        }
     }
 
     /// <summary>
