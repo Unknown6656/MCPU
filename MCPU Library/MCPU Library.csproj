@@ -69,6 +69,6 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>cshgencli32.exe "$(TargetPath)"</PostBuildEvent>
+    <PostBuildEvent>"$(SolutionDir)Tools\cshgencli32.exe" "$(TargetPath)"</PostBuildEvent>
   </PropertyGroup>
 </Project>
