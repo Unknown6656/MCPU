@@ -149,6 +149,70 @@ namespace MCPU
         /// </summary>
         public static @bool BOOL { get; }        = new @bool();       
         /// <summary>
+        /// Represents the OP code "POW" (0x00000021)
+        /// </summary>
+        public static pow POW { get; }           = new pow();         
+        /// <summary>
+        /// Represents the OP code "SHR" (0x00000022)
+        /// </summary>
+        public static shr SHR { get; }           = new shr();         
+        /// <summary>
+        /// Represents the OP code "SHL" (0x00000023)
+        /// </summary>
+        public static shl SHL { get; }           = new shl();         
+        /// <summary>
+        /// Represents the OP code "ROR" (0x00000024)
+        /// </summary>
+        public static ror ROR { get; }           = new ror();         
+        /// <summary>
+        /// Represents the OP code "ROL" (0x00000025)
+        /// </summary>
+        public static rol ROL { get; }           = new rol();         
+        /// <summary>
+        /// Represents the OP code "CMP" (0x00000026)
+        /// </summary>
+        public static cmp CMP { get; }           = new cmp();         
+        /// <summary>
+        /// Represents the OP code "JLE" (0x00000027)
+        /// </summary>
+        public static jle JLE { get; }           = new jle();         
+        /// <summary>
+        /// Represents the OP code "JL" (0x00000028)
+        /// </summary>
+        public static jl JL { get; }             = new jl();          
+        /// <summary>
+        /// Represents the OP code "JGE" (0x00000029)
+        /// </summary>
+        public static jge JGE { get; }           = new jge();         
+        /// <summary>
+        /// Represents the OP code "JG" (0x0000002a)
+        /// </summary>
+        public static jg JG { get; }             = new jg();          
+        /// <summary>
+        /// Represents the OP code "JE" (0x0000002b)
+        /// </summary>
+        public static je JE { get; }             = new je();          
+        /// <summary>
+        /// Represents the OP code "JNE" (0x0000002c)
+        /// </summary>
+        public static jne JNE { get; }           = new jne();         
+        /// <summary>
+        /// Represents the OP code "JZ" (0x0000002d)
+        /// </summary>
+        public static jz JZ { get; }             = new jz();          
+        /// <summary>
+        /// Represents the OP code "JNZ" (0x0000002e)
+        /// </summary>
+        public static jnz JNZ { get; }           = new jnz();         
+        /// <summary>
+        /// Represents the OP code "JPOS" (0x0000002f)
+        /// </summary>
+        public static jpos JPOS { get; }         = new jpos();        
+        /// <summary>
+        /// Represents the OP code "JNEG" (0x00000030)
+        /// </summary>
+        public static jneg JNEG { get; }         = new jneg();        
+        /// <summary>
         /// Represents the OP code "KERNEL" (0x000000ff)
         /// </summary>
         public static kernel KERNEL { get; }     = new kernel();      
@@ -191,6 +255,22 @@ namespace MCPU
             { 30, NXOR },   // [mcpu.corelib] MCPU.Instructions.nxor
             { 31, ABS },   // [mcpu.corelib] MCPU.Instructions.abs
             { 32, BOOL },   // [mcpu.corelib] MCPU.Instructions.bool
+            { 33, POW },   // [mcpu.corelib] MCPU.Instructions.pow
+            { 34, SHR },   // [mcpu.corelib] MCPU.Instructions.shr
+            { 35, SHL },   // [mcpu.corelib] MCPU.Instructions.shl
+            { 36, ROR },   // [mcpu.corelib] MCPU.Instructions.ror
+            { 37, ROL },   // [mcpu.corelib] MCPU.Instructions.rol
+            { 38, CMP },   // [mcpu.corelib] MCPU.Instructions.cmp
+            { 39, JLE },   // [mcpu.corelib] MCPU.Instructions.jle
+            { 40, JL },   // [mcpu.corelib] MCPU.Instructions.jl
+            { 41, JGE },   // [mcpu.corelib] MCPU.Instructions.jge
+            { 42, JG },   // [mcpu.corelib] MCPU.Instructions.jg
+            { 43, JE },   // [mcpu.corelib] MCPU.Instructions.je
+            { 44, JNE },   // [mcpu.corelib] MCPU.Instructions.jne
+            { 45, JZ },   // [mcpu.corelib] MCPU.Instructions.jz
+            { 46, JNZ },   // [mcpu.corelib] MCPU.Instructions.jnz
+            { 47, JPOS },   // [mcpu.corelib] MCPU.Instructions.jpos
+            { 48, JNEG },   // [mcpu.corelib] MCPU.Instructions.jneg
             { 255, KERNEL },   // [mcpu.corelib] MCPU.Instructions.kernel
         };
 	}

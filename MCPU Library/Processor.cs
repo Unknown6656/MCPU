@@ -708,6 +708,40 @@ namespace MCPU
         : ushort
     {
         /// <summary>
+        /// Indicates that the first comparison input is zero
+        /// </summary>
+        Zero1 = 0b1000_0000_0000_0000,
+        /// <summary>
+        /// Indicates that the second comparison input is zero
+        /// </summary>
+        Zero2 = 0b0100_0000_0000_0000,
+        /// <summary>
+        /// Indicates that the first comparison input is negative
+        /// </summary>
+        Sign1 = 0b0010_0000_0000_0000,
+        /// <summary>
+        /// Indicates that the second comparison input is negative
+        /// </summary>
+        Sign2 = 0b0001_0000_0000_0000,
+        /// <summary>
+        /// Indicates that both comparison inputs are equal
+        /// </summary>
+        Equal = 0b0000_1000_0000_0000,
+        /// <summary>
+        /// Indicates that the fist comarison input is smaller than the second input
+        /// </summary>
+        Lower = 0b0000_0100_0000_0000,
+        /// <summary>
+        /// Indicates that the fist comarison input is greater than the second input
+        /// </summary>
+        Greater = 0b0000_0010_0000_0000,
+        /// <summary>
+        /// Indicates that the comparison had only one input (meaning that the first input is zero, and the second one is the 'real' input)
+        /// </summary>
+        Unary = 0b0000_0001_0000_0000,
+
+
+        /// <summary>
         /// Represents no flag
         /// </summary>
         Empty = 0b0000_0000_0000_0000,

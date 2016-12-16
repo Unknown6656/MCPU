@@ -482,6 +482,210 @@ namespace MCPU.Instructions
         }
     }
 
+    [OPCodeNumber(0x0026)]
+    public sealed class cmp
+        : OPCode
+    {
+        public cmp()
+            : base(1, (p, _) => {
+                StatusFlags f = StatusFlags.Empty;
+
+                if (_.Length < 2)
+                {
+                    _ = new InstructionArgument[] { 0, _[0] };
+                    f |= StatusFlags.Unary;
+                }
+
+                AssertNotInstructionSpace(0, _);
+                AssertNotInstructionSpace(1, _);
+
+                int c1 = p.TranslateConstant(_[0]);
+                int c2 = p.TranslateConstant(_[1]);
+
+                if (c1 == 0) f |= StatusFlags.Zero1;
+                if (c2 == 0) f |= StatusFlags.Zero2;
+
+                if (c1 < 0) f |= StatusFlags.Sign1;
+                if (c2 < 0) f |= StatusFlags.Sign2;
+
+                f |= c1 < c2 ? StatusFlags.Lower
+                   : c1 > c2 ? StatusFlags.Greater : StatusFlags.Equal;
+
+                p.Flags = f;
+            })
+        {
+        }
+    }
+
+    [OPCodeNumber(0x0027), SpecialIPHandling]
+    public sealed class jle
+        : OPCode
+    {
+        public jle()
+            : base(1, (p, _) => {
+                AssertLabel(0, _);
+                
+                if (p.Flags.HasFlag(StatusFlags.Lower | StatusFlags.Equal))
+                    p.MoveTo(_[0]);
+                else
+                    p.MoveNext();
+            })
+        {
+        }
+    }
+
+    [OPCodeNumber(0x0028), SpecialIPHandling]
+    public sealed class jl
+        : OPCode
+    {
+        public jl()
+            : base(1, (p, _) => {
+                AssertLabel(0, _);
+
+                if (p.Flags.HasFlag(StatusFlags.Lower))
+                    p.MoveTo(_[0]);
+                else
+                    p.MoveNext();
+            })
+        {
+        }
+    }
+
+    [OPCodeNumber(0x0029), SpecialIPHandling]
+    public sealed class jge
+        : OPCode
+    {
+        public jge()
+            : base(1, (p, _) => {
+                AssertLabel(0, _);
+
+                if (p.Flags.HasFlag(StatusFlags.Greater | StatusFlags.Equal))
+                    p.MoveTo(_[0]);
+                else
+                    p.MoveNext();
+            })
+        {
+        }
+    }
+
+    [OPCodeNumber(0x002a), SpecialIPHandling]
+    public sealed class jg
+        : OPCode
+    {
+        public jg()
+            : base(1, (p, _) => {
+                AssertLabel(0, _);
+
+                if (p.Flags.HasFlag(StatusFlags.Greater))
+                    p.MoveTo(_[0]);
+                else
+                    p.MoveNext();
+            })
+        {
+        }
+    }
+
+    [OPCodeNumber(0x002b), SpecialIPHandling]
+    public sealed class je
+        : OPCode
+    {
+        public je()
+            : base(1, (p, _) => {
+                AssertLabel(0, _);
+
+                if (p.Flags.HasFlag(StatusFlags.Equal))
+                    p.MoveTo(_[0]);
+                else
+                    p.MoveNext();
+            })
+        {
+        }
+    }
+
+    [OPCodeNumber(0x002c), SpecialIPHandling]
+    public sealed class jne
+        : OPCode
+    {
+        public jne()
+            : base(1, (p, _) => {
+                AssertLabel(0, _);
+
+                if (!p.Flags.HasFlag(StatusFlags.Equal))
+                    p.MoveTo(_[0]);
+                else
+                    p.MoveNext();
+            })
+        {
+        }
+    }
+
+    [OPCodeNumber(0x002d), SpecialIPHandling]
+    public sealed class jz
+        : OPCode
+    {
+        public jz()
+            : base(1, (p, _) => {
+                AssertLabel(0, _);
+                
+                if (p.Flags.HasFlag(StatusFlags.Zero2) & (p.Flags.HasFlag(StatusFlags.Unary) | p.Flags.HasFlag(StatusFlags.Zero1)))
+                    p.MoveTo(_[0]);
+                else
+                    p.MoveNext();
+            })
+        {
+        }
+    }
+
+    [OPCodeNumber(0x002e), SpecialIPHandling]
+    public sealed class jnz
+        : OPCode
+    {
+        public jnz()
+            : base(1, (p, _) => {
+                AssertLabel(0, _);
+
+                if (p.Flags.HasFlag(StatusFlags.Zero2) | (p.Flags.HasFlag(StatusFlags.Unary) & p.Flags.HasFlag(StatusFlags.Zero1)))
+                    p.MoveNext();
+                else
+                    p.MoveTo(_[0]);
+            })
+        {
+        }
+    }
+
+    [OPCodeNumber(0x002f), SpecialIPHandling]
+    public sealed class jneg
+        : OPCode
+    {
+        public jneg()
+            : base(1, (p, _) => {
+                AssertLabel(0, _);
+
+                if (p.Flags.HasFlag(StatusFlags.Sign2) & (p.Flags.HasFlag(StatusFlags.Unary) | p.Flags.HasFlag(StatusFlags.Sign1)))
+                    p.MoveTo(_[0]);
+                else
+                    p.MoveNext();
+            })
+        {
+        }
+    }
+
+    [OPCodeNumber(0x0030), SpecialIPHandling]
+    public sealed class jpos
+        : OPCode
+    {
+        public jpos()
+            : base(1, (p, _) => {
+                AssertLabel(0, _);
+
+                if (p.Flags.HasFlag(StatusFlags.Sign2) | (p.Flags.HasFlag(StatusFlags.Unary) & p.Flags.HasFlag(StatusFlags.Sign1)))
+                    p.MoveNext();
+                else
+                    p.MoveTo(_[0]);
+            })
+        {
+        }
+    }
 
 
     [OPCodeNumber(0x00ff)]
