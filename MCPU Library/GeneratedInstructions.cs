@@ -49,17 +49,17 @@ namespace MCPU
         /// </summary>
         public static ret RET { get; }           = new ret();         
         /// <summary>
-        /// Represents the OP code "IO" (0x00000008)
-        /// </summary>
-        public static io IO { get; }             = new io();          
-        /// <summary>
-        /// Represents the OP code "COPY" (0x00000009)
+        /// Represents the OP code "COPY" (0x00000008)
         /// </summary>
         public static copy COPY { get; }         = new copy();        
         /// <summary>
-        /// Represents the OP code "CLEAR" (0x0000000a)
+        /// Represents the OP code "CLEAR" (0x00000009)
         /// </summary>
         public static clear CLEAR { get; }       = new clear();       
+        /// <summary>
+        /// Represents the OP code "IO" (0x0000000a)
+        /// </summary>
+        public static io IO { get; }             = new io();          
         /// <summary>
         /// Represents the OP code "IN" (0x0000000b)
         /// </summary>
@@ -205,15 +205,63 @@ namespace MCPU
         /// </summary>
         public static jnz JNZ { get; }           = new jnz();         
         /// <summary>
-        /// Represents the OP code "JPOS" (0x0000002f)
-        /// </summary>
-        public static jpos JPOS { get; }         = new jpos();        
-        /// <summary>
-        /// Represents the OP code "JNEG" (0x00000030)
+        /// Represents the OP code "JNEG" (0x0000002f)
         /// </summary>
         public static jneg JNEG { get; }         = new jneg();        
         /// <summary>
-        /// Represents the OP code "KERNEL" (0x000000ff)
+        /// Represents the OP code "JPOS" (0x00000030)
+        /// </summary>
+        public static jpos JPOS { get; }         = new jpos();        
+        /// <summary>
+        /// Represents the OP code "FAC" (0x00000031)
+        /// </summary>
+        public static fac FAC { get; }           = new fac();         
+        /// <summary>
+        /// Represents the OP code "INCR" (0x00000032)
+        /// </summary>
+        public static incr INCR { get; }         = new incr();        
+        /// <summary>
+        /// Represents the OP code "DECR" (0x00000033)
+        /// </summary>
+        public static decr DECR { get; }         = new decr();        
+        /// <summary>
+        /// Represents the OP code "SWAP" (0x0000003d)
+        /// </summary>
+        public static swap SWAP { get; }         = new swap();        
+        /// <summary>
+        /// Represents the OP code "CPUID" (0x0000003e)
+        /// </summary>
+        public static cpuid CPUID { get; }       = new cpuid();       
+        /// <summary>
+        /// Represents the OP code "WAIT" (0x0000003f)
+        /// </summary>
+        public static wait WAIT { get; }         = new wait();        
+        /// <summary>
+        /// Represents the OP code "PUSH" (0x00000040)
+        /// </summary>
+        public static push PUSH { get; }         = new push();        
+        /// <summary>
+        /// Represents the OP code "POP" (0x00000041)
+        /// </summary>
+        public static pop POP { get; }           = new pop();         
+        /// <summary>
+        /// Represents the OP code "PUSHF" (0x00000042)
+        /// </summary>
+        public static pushf PUSHF { get; }       = new pushf();       
+        /// <summary>
+        /// Represents the OP code "POPF" (0x00000043)
+        /// </summary>
+        public static popf POPF { get; }         = new popf();        
+        /// <summary>
+        /// Represents the OP code "PUSHI" (0x00000044)
+        /// </summary>
+        public static pushi PUSHI { get; }       = new pushi();       
+        /// <summary>
+        /// Represents the OP code "POPI" (0x00000045)
+        /// </summary>
+        public static popi POPI { get; }         = new popi();        
+        /// <summary>
+        /// Represents the OP code "KERNEL" (0x0000ffff)
         /// </summary>
         public static kernel KERNEL { get; }     = new kernel();      
 
@@ -230,9 +278,9 @@ namespace MCPU
             { 5, SYSCALL },   // [mcpu.corelib] MCPU.Instructions.syscall
             { 6, CALL },   // [mcpu.corelib] MCPU.Instructions.call
             { 7, RET },   // [mcpu.corelib] MCPU.Instructions.ret
-            { 8, IO },   // [mcpu.corelib] MCPU.Instructions.io
-            { 9, COPY },   // [mcpu.corelib] MCPU.Instructions.copy
-            { 10, CLEAR },   // [mcpu.corelib] MCPU.Instructions.clear
+            { 8, COPY },   // [mcpu.corelib] MCPU.Instructions.copy
+            { 9, CLEAR },   // [mcpu.corelib] MCPU.Instructions.clear
+            { 10, IO },   // [mcpu.corelib] MCPU.Instructions.io
             { 11, IN },   // [mcpu.corelib] MCPU.Instructions.in
             { 12, OUT },   // [mcpu.corelib] MCPU.Instructions.out
             { 13, CLEARFLAGS },   // [mcpu.corelib] MCPU.Instructions.clearflags
@@ -269,9 +317,21 @@ namespace MCPU
             { 44, JNE },   // [mcpu.corelib] MCPU.Instructions.jne
             { 45, JZ },   // [mcpu.corelib] MCPU.Instructions.jz
             { 46, JNZ },   // [mcpu.corelib] MCPU.Instructions.jnz
-            { 47, JPOS },   // [mcpu.corelib] MCPU.Instructions.jpos
-            { 48, JNEG },   // [mcpu.corelib] MCPU.Instructions.jneg
-            { 255, KERNEL },   // [mcpu.corelib] MCPU.Instructions.kernel
+            { 47, JNEG },   // [mcpu.corelib] MCPU.Instructions.jneg
+            { 48, JPOS },   // [mcpu.corelib] MCPU.Instructions.jpos
+            { 49, FAC },   // [mcpu.corelib] MCPU.Instructions.fac
+            { 50, INCR },   // [mcpu.corelib] MCPU.Instructions.incr
+            { 51, DECR },   // [mcpu.corelib] MCPU.Instructions.decr
+            { 61, SWAP },   // [mcpu.corelib] MCPU.Instructions.swap
+            { 62, CPUID },   // [mcpu.corelib] MCPU.Instructions.cpuid
+            { 63, WAIT },   // [mcpu.corelib] MCPU.Instructions.wait
+            { 64, PUSH },   // [mcpu.corelib] MCPU.Instructions.push
+            { 65, POP },   // [mcpu.corelib] MCPU.Instructions.pop
+            { 66, PUSHF },   // [mcpu.corelib] MCPU.Instructions.pushf
+            { 67, POPF },   // [mcpu.corelib] MCPU.Instructions.popf
+            { 68, PUSHI },   // [mcpu.corelib] MCPU.Instructions.pushi
+            { 69, POPI },   // [mcpu.corelib] MCPU.Instructions.popi
+            { 65535, KERNEL },   // [mcpu.corelib] MCPU.Instructions.kernel
         };
 	}
 }

@@ -25,7 +25,7 @@ namespace MCPU
 	public static class OPCodes
 	{
 <#
-Assembly asm = Assembly.LoadFile(Host.ResolvePath(@".\bin\Debug") + @"\mcpu.corelib.dll");
+Assembly asm = Assembly.LoadFrom(Host.ResolvePath(@".\bin\Debug") + @"\mcpu.corelib.dll");
 Type ot = asm.GetType("MCPU.OPCode");
 StringBuilder sb = new StringBuilder();
 

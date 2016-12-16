@@ -45,7 +45,7 @@ namespace MCPU
         internal void __process(Processor p, params InstructionArgument[] arguments)
         {
             if ((RequiredArguments > 0) && (arguments.Length < RequiredArguments))
-                throw new ArgumentException($"The intruction {Token} requires at least {RequiredArguments} arguments.", nameof(arguments));
+                throw new ArgumentException($"The instruction {Token} requires at least {RequiredArguments} arguments.", nameof(arguments));
             else if (!p.IsElevated && RequiresEleveation)
                 throw new MissingPrivilegeException();
             else
@@ -167,7 +167,7 @@ namespace MCPU
         /// <param name="func">Unary arithmetic function</param>
         public ArithmeticUnaryOPCode(Func<int, int> func)
             : base(1, (p, _) => {
-                AssertNotInstructionSpace(0, _);
+                AssertAddress(0, _);
 
                 *p.TranslateAddress(_[0]) = func(*p.TranslateAddress(_[0]));
             })
@@ -187,7 +187,7 @@ namespace MCPU
         /// <param name="func">Binary arithmetic function</param>
         public ArithmeticBinaryOPCode(Func<int, int, int> func)
             : base(2, (p, _) => {
-                AssertNotInstructionSpace(0, _);
+                AssertAddress(0, _);
                 AssertNotInstructionSpace(1, _);
                 
                 *p.TranslateAddress(_[0]) = func(*p.TranslateAddress(_[0]), *p.TranslateAddress(_[1]));
@@ -312,6 +312,10 @@ namespace MCPU
         /// </summary>
         public int ReturnAddress { get; internal set; }
         /// <summary>
+        /// The saved status flags
+        /// </summary>
+        public StatusFlags SavedFlags { get; internal set; }
+        /// <summary>
         /// The call's arguments
         /// </summary>
         public int[] Arguments { get; internal set; }
@@ -319,27 +323,29 @@ namespace MCPU
         /// Returns the unmanaged size of the current function call
         /// </summary>
         public int Size => 2 + Arguments.Length;
+        
 
         /// <summary>
         /// Creates a new instance
         /// </summary>
         /// <param name="ret">Return address</param>
         /// <param name="args">Call arguments</param>
-        public FunctionCall(int ret, params int[] args)
+        public FunctionCall(int ret, StatusFlags flags, params int[] args)
         {
             Arguments = args;
+            SavedFlags = flags;
             ReturnAddress = ret;
         }
         /// <summary>
         /// Returns the string representation of the current function call
         /// </summary>
         /// <returns>String representation</returns>
-        public override string ToString() => $"ret: {ReturnAddress:x}, args: ({string.Join(", ", Arguments)})";
+        public override string ToString() => $"ret: {ReturnAddress:x}, flags: {SavedFlags}, args: ({string.Join(", ", Arguments)})";
 
 
-        public static implicit operator int[] (FunctionCall call) => new int[] { call.ReturnAddress, call.Arguments.Length }.Concat(call.Arguments).ToArray();
+        public static implicit operator int[] (FunctionCall call) => new int[] { call.ReturnAddress, (int)call.SavedFlags, call.Arguments.Length }.Concat(call.Arguments).ToArray();
 
-        public static implicit operator FunctionCall(int[] raw) => new FunctionCall { ReturnAddress = raw[0], Arguments = raw.Skip(2).Take(raw[1]).ToArray() };
+        public static implicit operator FunctionCall(int[] raw) => new FunctionCall { ReturnAddress = raw[0], SavedFlags = (StatusFlags)raw[1], Arguments = raw.Skip(3).Take(raw[2]).ToArray() };
     }
 
     /// <summary>

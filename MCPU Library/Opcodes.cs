@@ -92,6 +92,7 @@ namespace MCPU.Instructions
 
                 FunctionCall call = new FunctionCall
                 {
+                    SavedFlags = p.Flags,
                     ReturnAddress = p.IP + 1,
                     Arguments = new int[_.Length - 1],
                 };
@@ -101,6 +102,7 @@ namespace MCPU.Instructions
 
                 p.PushCall(call);
                 p.MoveTo(_[0]);
+                p.Flags = StatusFlags.Empty;
             })
         {
         }
@@ -113,7 +115,8 @@ namespace MCPU.Instructions
         public ret()
             : base(0, (p, _) => {
                 FunctionCall call = p.PopCall();
-                
+
+                p.Flags = call.SavedFlags;
                 p.MoveTo(call.ReturnAddress);
             })
         {
@@ -121,21 +124,6 @@ namespace MCPU.Instructions
     }
 
     [OPCodeNumber(0x0008)]
-    public sealed unsafe class io
-        : OPCode
-    {
-        public io()
-            : base(2, (p, _) => {
-                AssertNotInstructionSpace(0, _);
-                AssertNotInstructionSpace(1, _);
-
-                p.IO.SetDirection(p.TranslateConstant(_[0]), p.TranslateConstant(_[1]) != 0 ? IODirection.In : IODirection.Out);
-            })
-        {
-        }
-    }
-
-    [OPCodeNumber(0x0009)]
     public sealed unsafe class copy
         : OPCode
     {
@@ -148,7 +136,7 @@ namespace MCPU.Instructions
                 int* src = p.TranslateAddress(_[0]);
                 int* dst = p.TranslateAddress(_[1]);
                 int size = p.TranslateConstant(_[2]);
-                
+
                 for (int i = 0; i < size; i++)
                     dst[i] = src[i];
             })
@@ -156,7 +144,7 @@ namespace MCPU.Instructions
         }
     }
 
-    [OPCodeNumber(0x000a)]
+    [OPCodeNumber(0x0009)]
     public sealed unsafe class clear
         : OPCode
     {
@@ -175,6 +163,21 @@ namespace MCPU.Instructions
         }
     }
 
+    [OPCodeNumber(0x000a)]
+    public sealed unsafe class io
+        : OPCode
+    {
+        public io()
+            : base(2, (p, _) => {
+                AssertNotInstructionSpace(0, _);
+                AssertNotInstructionSpace(1, _);
+
+                p.IO.SetDirection(p.TranslateConstant(_[0]), p.TranslateConstant(_[1]) != 0 ? IODirection.In : IODirection.Out);
+            })
+        {
+        }
+    }
+
     [OPCodeNumber(0x000b)]
     public sealed unsafe class @in
         : OPCode
@@ -182,7 +185,7 @@ namespace MCPU.Instructions
         public @in()
             : base(2, (p, _) => {
                 AssertNotInstructionSpace(0, _);
-                AssertNotInstructionSpace(1, _);
+                AssertAddress(1, _);
 
                 *p.TranslateAddress(_[1]) = p.IO[p.TranslateConstant(_[0])].Value;
             })
@@ -687,8 +690,235 @@ namespace MCPU.Instructions
         }
     }
 
+    [OPCodeNumber(0x0031)]
+    public sealed class fac
+        : ArithmeticUnaryOPCode
+    {
+        public fac()
+            : base(a => {
+                int r = 1;
 
-    [OPCodeNumber(0x00ff)]
+                for (int i = 2; i < a; i++)
+                    r *= i;
+
+                return r;
+            })
+        {
+        }
+    }
+
+    [OPCodeNumber(0x0032)]
+    public sealed class incr
+        : ArithmeticUnaryOPCode
+    {
+        public incr()
+            : base(a => a + 1)
+        {
+        }
+    }
+
+    [OPCodeNumber(0x0033)]
+    public sealed class decr
+        : ArithmeticUnaryOPCode
+    {
+        public decr()
+            : base(a => a - 1)
+        {
+        }
+    }
+
+
+
+    [OPCodeNumber(0x003c)]
+    public sealed unsafe class swap
+        : OPCode
+    {
+        public swap()
+            : base(2, (p, _) => {
+                AssertNotInstructionSpace(0, _);
+                AssertNotInstructionSpace(1, _);
+
+                int* addr1 = p.TranslateAddress(_[0]);
+                int* addr2 = p.TranslateAddress(_[1]);
+
+                int tmp = *addr1;
+
+                *addr1 = *addr2;
+                *addr2 = tmp;
+            })
+        {
+        }
+    }
+
+    [OPCodeNumber(0x003d)]
+    public sealed unsafe class cpuid
+        : OPCode
+    {
+        public cpuid()
+            : base(1, (p, _) => {
+                AssertAddress(0, _);
+
+                *p.TranslateAddress(_[0]) = p.CPUID;
+            })
+        {
+        }
+    }
+
+    [OPCodeNumber(0x003e)]
+    public sealed class wait
+        : OPCode
+    {
+        public wait()
+            : base(1, (p, _) => {
+                AssertNotInstructionSpace(0, _);
+
+                p.Sleep(p.TranslateConstant(_[0]));
+            })
+        {
+        }
+    }
+
+    [OPCodeNumber(0x003f), RequiresPrivilege]
+    public sealed class reset
+        : OPCode
+    {
+        public reset()
+            : base(1, (p, _) => p.Reset())
+        {
+        }
+    }
+
+    [OPCodeNumber(0x0040), RequiresPrivilege]
+    public sealed class push
+        : OPCode
+    {
+        public push()
+            : base(1, (p, _) => {
+                AssertNotInstructionSpace(0, _);
+
+                int val = p.TranslateConstant(_[0]);
+
+                p.Push(val);
+            })
+        {
+        }
+    }
+
+    [OPCodeNumber(0x0041), RequiresPrivilege]
+    public sealed unsafe class pop
+        : OPCode
+    {
+        public pop()
+            : base(1, (p, _) => {
+                AssertAddress(0, _);
+
+                int val = p.Pop();
+
+                *p.TranslateAddress(_[0]) = val;
+            })
+        {
+        }
+    }
+
+    [OPCodeNumber(0x0042), RequiresPrivilege]
+    public sealed unsafe class peek
+        : OPCode
+    {
+        public peek()
+            : base(1, (p, _) => {
+                AssertAddress(0, _);
+
+                int val = p.Peek();
+
+                *p.TranslateAddress(_[0]) = val;
+            })
+        {
+        }
+    }
+
+    [OPCodeNumber(0x0043), RequiresPrivilege]
+    public sealed class sswap
+        : OPCode
+    {
+        public sswap()
+            : base(0, (p, _) => {
+                int val1 = p.Pop();
+                int val2 = p.Pop();
+
+                p.Push(val1);
+                p.Push(val2);
+            })
+        {
+        }
+    }
+
+    [OPCodeNumber(0x0044), RequiresPrivilege]
+    public sealed class pushf
+        : OPCode
+    {
+        public pushf()
+            : base(0, (p, _) => p.Push((int)p.Flags))
+        {
+        }
+    }
+
+    [OPCodeNumber(0x0045), RequiresPrivilege]
+    public sealed class popf
+        : OPCode
+    {
+        public popf()
+            : base(0, (p, _) => p.Flags = (StatusFlags)p.Pop())
+        {
+        }
+    }
+
+    [OPCodeNumber(0x0046), RequiresPrivilege]
+    public sealed class peekf
+        : OPCode
+    {
+        public peekf()
+            : base(0, (p, _) => p.Flags = (StatusFlags)p.Peek())
+        {
+        }
+    }
+
+    [OPCodeNumber(0x0047), RequiresPrivilege]
+    public sealed class pushi
+        : OPCode
+    {
+        public pushi()
+            : base(0, (p, _) => p.Push(p.IP))
+        {
+        }
+    }
+
+    [OPCodeNumber(0x0048), RequiresPrivilege]
+    public sealed class popi
+        : OPCode
+    {
+        public popi()
+            : base(0, (p, _) => p.IP = p.Pop())
+        {
+        }
+    }
+
+    [OPCodeNumber(0x0049), RequiresPrivilege]
+    public sealed class peeki
+        : OPCode
+    {
+        public peeki()
+            : base(0, (p, _) => p.IP = p.Peek())
+        {
+        }
+    }
+
+
+
+    // TODO : ADD FLOATING POINT OPERATIONS ?
+
+
+
+    [OPCodeNumber(0xffff)]
     public sealed unsafe class kernel
         : OPCode
     {

@@ -204,10 +204,37 @@ namespace MCPU
             // TODO
         }
 
+        /// <summary>
+        /// Suspends the processor for the given time interval
+        /// </summary>
+        /// <param name="ms">Time interval (in ms)</param>
+        public void Sleep(int ms)
+        {
+            if (ms > 0)
+            {
+
+
+                // TODO
+
+            }
+        }
+
+        /// <summary>
+        /// Resets the processor into its original state
+        /// </summary>
         public void Reset()
         {
             Halt();
 
+            IP = 0;
+            StackSize = 0;
+            KernelSpace[3] = 0;
+            Flags = StatusFlags.Empty;
+            InformationFlags = InformationFlags.Empty;
+            Instructions = new Instruction[0];
+            
+            for (int i = IO_OFFS, s = RawSize; i < s; i++)
+                raw[i] = 0;
         }
 
         /// <summary>
@@ -269,7 +296,7 @@ namespace MCPU
         /// <param name="ins"></param>
         public void ProcessWithoutReset(params Instruction[] ins)
         {
-            Instructions = ins.Concat(new Instruction[] { OPCodes.HALT }).ToArray();
+            Instructions = ins.Concat(new Instruction[] { OPCodes.HALT, OPCodes.HALT }).ToArray();
             IsRunning = true;
 
             Exception res;
@@ -312,6 +339,7 @@ namespace MCPU
                 Push(a);
 
             Push(call.Arguments.Length);
+            Push((int)call.SavedFlags);
             Push(call.ReturnAddress);
         }
 
@@ -336,6 +364,7 @@ namespace MCPU
         {
             FunctionCall call = new FunctionCall {
                 ReturnAddress = Pop(),
+                SavedFlags = (StatusFlags)Pop(),
                 Arguments = new int[Pop()]
             };
 
