@@ -21,7 +21,7 @@ namespace MCPU
 
         internal readonly Dictionary<int, Action<InstructionArgument[]>> __syscalltable = new Dictionary<int, Action<InstructionArgument[]>> {
             { -1, delegate { /*  ABK INSTRUCTION  */ } },
-
+            { 0, _ => Console.WriteLine("MCPU created by Unknown6656") },
             // TODO : SYSCALLS
         };
 
@@ -107,8 +107,8 @@ namespace MCPU
         /// </summary>
         public StatusFlags Flags
         {
-            get => *((StatusFlags*)(raw + MEMS_OFFS));
-            private set => *((StatusFlags*)(raw + MEMS_OFFS)) = value;
+            get => *((StatusFlags*)(raw + FLAG_OFFS));
+            internal set => *((StatusFlags*)(raw + FLAG_OFFS)) = value;
         }
 
         /// <summary>
@@ -117,7 +117,7 @@ namespace MCPU
         public InformationFlags InformationFlags
         {
             get => *((InformationFlags*)(raw + RESV_OFFS));
-            private set => *((InformationFlags*)(raw + RESV_OFFS)) = value;
+            internal set => *((InformationFlags*)(raw + RESV_OFFS)) = value;
         }
 
         /// <summary>
@@ -139,7 +139,7 @@ namespace MCPU
         /// <summary>
         /// Returns the current instruction
         /// </summary>
-        public Instruction CurrentInstruction => (IP < 0) || (IP >= Instructions.Length) ? new halt() : Instructions[IP];
+        public Instruction CurrentInstruction => (IP < 0) || (IP >= Instructions.Length) ? OPCodes.HALT : Instructions[IP];
 
         /// <summary>
         /// Returns a list of all instructions
@@ -239,7 +239,7 @@ namespace MCPU
         {
             Instruction ins = Instructions[IP];
 
-            if ((ins != null) && (ins.GetType() != typeof(halt)))
+            if ((ins != null) && (ins.GetType() != typeof(Instructions.halt)))
             {
                 ins.Process(this);
 
@@ -269,7 +269,7 @@ namespace MCPU
         /// <param name="ins"></param>
         public void ProcessWithoutReset(params Instruction[] ins)
         {
-            Instructions = ins.Concat(new Instruction[] { new halt() }).ToArray();
+            Instructions = ins.Concat(new Instruction[] { OPCodes.HALT }).ToArray();
             IsRunning = true;
 
             Exception res;
@@ -384,6 +384,8 @@ namespace MCPU
                 {
                     if (!arg.IsKernel)
                         val += MEM_OFFS;
+                    else if (!IsElevated)
+                        throw new MissingPrivilegeException();
 
                     return KernelSpace + (arg.Type.HasFlag(ArgumentType.Indirect) ? KernelSpace[val] : val);
                 }
@@ -392,6 +394,13 @@ namespace MCPU
             }
             else throw new ArgumentException("The given argument must not be a function or a label.");
         }
+
+        /// <summary>
+        /// 'Translates' the given argument into a constant which is the value of the pointer, to which the given argument points
+        /// </summary>
+        /// <param name="arg">Instruction argument</param>
+        /// <returns>'Translated' constant</returns>
+        public int TranslateConstant(InstructionArgument arg) => *TranslateAddress(arg);
 
         /// <summary>
         /// Pops an integer from the MCPU callstack (UNSAFE!)
@@ -433,6 +442,20 @@ namespace MCPU
             else
                 throw new InsufficientExecutionStackException("There is no element on the stack (aka StackUnderflowException).");
         }
+        
+        /// <summary>
+        /// Translates the given int*-pointer to a user-space address and returns the address as integer
+        /// </summary>
+        /// <param name="addr">Address pointer</param>
+        /// <returns>Address</returns>
+        public int GetUserAddress(int* addr) => GetKernelAddress(addr) - MEM_OFFS;
+
+        /// <summary>
+        /// Translates the given int*-pointer to a kernel-space address and returns the address as integer
+        /// </summary>
+        /// <param name="addr">Address pointer</param>
+        /// <returns>Address</returns>
+        public int GetKernelAddress(int* addr) => (int)(addr - KernelSpace);
 
         internal int UserToKernel(int addr) => VerifyUserspaceAddr(addr, addr + MEM_OFFS);
 
@@ -684,6 +707,10 @@ namespace MCPU
     public enum StatusFlags
         : ushort
     {
+        /// <summary>
+        /// Represents no flag
+        /// </summary>
+        Empty = 0b0000_0000_0000_0000,
     }
     
     /// <summary>
@@ -701,5 +728,9 @@ namespace MCPU
         /// Indicates, that the processor is currently running
         /// </summary>
         Running = 0b0100_0000_0000_0000,
+        /// <summary>
+        /// Represents no flag
+        /// </summary>
+        Empty = 0b0000_0000_0000_0000,
     }
 }

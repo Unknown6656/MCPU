@@ -4,7 +4,9 @@ using System.Linq;
 using System.Text;
 using System;
 
-namespace MCPU
+using static System.Math;
+
+namespace MCPU.Instructions
 {
 #pragma warning disable IDE1006 // DISABLE CLASS NAMING CONVENTION WARNING (THE INSTRUCTION NAMES DO NOT FOLLOW THE PASCAL CONVENTION)
 
@@ -50,7 +52,7 @@ namespace MCPU
             : base(1, (p, _) => {
                 AssertNotInstructionSpace(0, _);
 
-                p.MoveRelative(_[0]);
+                p.MoveRelative(p.TranslateConstant(_[0]));
             })
         {
         }
@@ -72,16 +74,16 @@ namespace MCPU
     {
         public syscall()
             : base(1, (p, _) => {
-                AssertNotInstructionSpace(0, _);
+                AssertConstant(0, _);
 
-                p.__syscalltable[_[0]](_.Skip(1).ToArray());
+                p.__syscalltable[p.TranslateConstant(_[0])](_.Skip(1).ToArray());
             })
         {
         }
     }
 
     [OPCodeNumber(0x0006), SpecialIPHandling]
-    public unsafe sealed class call
+    public sealed unsafe class call
         : OPCode
     {
         public call()
@@ -117,23 +119,36 @@ namespace MCPU
         {
         }
     }
-    
-
 
     [OPCodeNumber(0x0008)]
+    public sealed unsafe class io
+        : OPCode
+    {
+        public io()
+            : base(2, (p, _) => {
+                AssertNotInstructionSpace(0, _);
+                AssertNotInstructionSpace(1, _);
+
+                p.IO.SetDirection(p.TranslateConstant(_[0]), p.TranslateConstant(_[1]) != 0 ? IODirection.In : IODirection.Out);
+            })
+        {
+        }
+    }
+
+    [OPCodeNumber(0x0009)]
     public sealed unsafe class copy
         : OPCode
     {
         public copy()
             : base(3, (p, _) => {
-                AssertNotInstructionSpace(0, _);
-                AssertNotInstructionSpace(1, _);
+                AssertAddress(0, _);
+                AssertAddress(1, _);
                 AssertNotInstructionSpace(2, _);
 
-                int* src = (int*)p.UserSpace + *p.TranslateAddress(_[0]);
-                int* dst = (int*)p.UserSpace + *p.TranslateAddress(_[1]);
-                int size = *p.TranslateAddress(_[2]);
-
+                int* src = p.TranslateAddress(_[0]);
+                int* dst = p.TranslateAddress(_[1]);
+                int size = p.TranslateConstant(_[2]);
+                
                 for (int i = 0; i < size; i++)
                     dst[i] = src[i];
             })
@@ -141,20 +156,343 @@ namespace MCPU
         }
     }
 
-    [OPCodeNumber(0x0009)]
+    [OPCodeNumber(0x000a)]
     public sealed unsafe class clear
         : OPCode
     {
         public clear()
             : base(2, (p, _) => {
-                AssertNotInstructionSpace(0, _);
+                AssertAddress(0, _);
                 AssertNotInstructionSpace(1, _);
 
-                int* ptr = (int*)p.UserSpace + *p.TranslateAddress(_[0]);
-                int size = *p.TranslateAddress(_[1]);
+                int* ptr = p.TranslateAddress(_[0]);
+                int size = p.TranslateConstant(_[1]);
 
                 for (int i = 0; i < size; i++)
                     ptr[i] = 0;
+            })
+        {
+        }
+    }
+
+    [OPCodeNumber(0x000b)]
+    public sealed unsafe class @in
+        : OPCode
+    {
+        public @in()
+            : base(2, (p, _) => {
+                AssertNotInstructionSpace(0, _);
+                AssertNotInstructionSpace(1, _);
+
+                *p.TranslateAddress(_[1]) = p.IO[p.TranslateConstant(_[0])].Value;
+            })
+        {
+        }
+    }
+
+    [OPCodeNumber(0x000c)]
+    public sealed class @out
+        : OPCode
+    {
+        public @out()
+            : base(2, (p, _) => {
+                AssertNotInstructionSpace(0, _);
+                AssertNotInstructionSpace(1, _);
+
+                p.IO.SetValue(p.TranslateConstant(_[0]), (byte)(p.TranslateConstant(_[1]) & 0xff));
+            })
+        {
+        }
+    }
+
+    [OPCodeNumber(0x000d)]
+    public sealed class clearflags
+        : OPCode
+    {
+        public clearflags()
+            : base(0, (p, _) => p.Flags = StatusFlags.Empty)
+        {
+        }
+    }
+
+    [OPCodeNumber(0x000e)]
+    public sealed class setflags
+        : OPCode
+    {
+        public setflags()
+            : base(1, (p, _) => {
+                AssertNotInstructionSpace(0, _);
+
+                p.Flags = (StatusFlags)(p.TranslateConstant(_[0]) & 0xffff);
+            })
+        {
+        }
+    }
+
+    [OPCodeNumber(0x000f)]
+    public sealed unsafe class getflags
+        : OPCode
+    {
+        public getflags()
+            : base(1, (p, _) => {
+                AssertNotInstructionSpace(0, _);
+
+                *p.TranslateAddress(_[0]) = (int)p.Flags;
+            })
+        {
+        }
+    }
+
+    [OPCodeNumber(0x0010)]
+    public sealed unsafe class mov
+        : OPCode
+    {
+        public mov()
+            : base(2, (p, _) => {
+                AssertNotInstructionSpace(0, _);
+                AssertNotInstructionSpace(1, _);
+
+                *p.TranslateAddress(_[0]) = *p.TranslateAddress(_[1]);
+            })
+        {
+        }
+    }
+
+    [OPCodeNumber(0x0011), RequiresPrivilege]
+    public sealed unsafe class lea
+        : OPCode
+    {
+        public lea()
+            : base(2, (p, _) => {
+                AssertNotInstructionSpace(0, _);
+                AssertNotInstructionSpace(1, _);
+                AssertNotConstant(1, _);
+
+                *p.TranslateAddress(_[0]) = p.GetKernelAddress(p.TranslateAddress(_[1]));
+            })
+        {
+        }
+    }
+
+    [OPCodeNumber(0x0012)]
+    public sealed class add
+        : ArithmeticBinaryOPCode
+    {
+        public add()
+            : base((a, b) => a + b)
+        {
+        }
+    }
+
+    [OPCodeNumber(0x0013)]
+    public sealed class sub
+        : ArithmeticBinaryOPCode
+    {
+        public sub()
+            : base((a, b) => a - b)
+        {
+        }
+    }
+
+    [OPCodeNumber(0x0014)]
+    public sealed class mul
+        : ArithmeticBinaryOPCode
+    {
+        public mul()
+            : base((a, b) => a * b)
+        {
+        }
+    }
+
+    [OPCodeNumber(0x0015)]
+    public sealed class div
+        : ArithmeticBinaryOPCode
+    {
+        public div()
+            : base((a, b) => a / b)
+        {
+        }
+    }
+
+    [OPCodeNumber(0x0016)]
+    public sealed class mod
+        : ArithmeticBinaryOPCode
+    {
+        public mod()
+            : base((a, b) => a % b)
+        {
+        }
+    }
+
+    [OPCodeNumber(0x0017)]
+    public sealed class neg
+        : ArithmeticUnaryOPCode
+    {
+        public neg()
+            : base(a => -a)
+        {
+        }
+    }
+
+    [OPCodeNumber(0x0018)]
+    public sealed class not
+        : ArithmeticUnaryOPCode
+    {
+        public not()
+            : base(a => ~a)
+        {
+        }
+    }
+
+    [OPCodeNumber(0x0019)]
+    public sealed class or
+        : ArithmeticBinaryOPCode
+    {
+        public or()
+            : base((a, b) => a | b)
+        {
+        }
+    }
+
+    [OPCodeNumber(0x001a)]
+    public sealed class and
+        : ArithmeticBinaryOPCode
+    {
+        public and()
+            : base((a, b) => a & b)
+        {
+        }
+    }
+
+    [OPCodeNumber(0x001b)]
+    public sealed class xor
+        : ArithmeticBinaryOPCode
+    {
+        public xor()
+            : base((a, b) => a ^ b)
+        {
+        }
+    }
+
+    [OPCodeNumber(0x001c)]
+    public sealed class nor
+        : ArithmeticBinaryOPCode
+    {
+        public nor()
+            : base((a, b) => ~(a | b))
+        {
+        }
+    }
+
+    [OPCodeNumber(0x001d)]
+    public sealed class nand
+        : ArithmeticBinaryOPCode
+    {
+        public nand()
+            : base((a, b) => ~(a & b))
+        {
+        }
+    }
+
+    [OPCodeNumber(0x001e)]
+    public sealed class nxor
+        : ArithmeticBinaryOPCode
+    {
+        public nxor()
+            : base((a, b) => ~(a ^ b))
+        {
+        }
+    }
+
+    [OPCodeNumber(0x001f)]
+    public sealed class abs
+        : ArithmeticUnaryOPCode
+    {
+        public abs()
+            : base(a => Abs(a))
+        {
+        }
+    }
+
+    [OPCodeNumber(0x0020)]
+    public sealed class @bool
+        : ArithmeticUnaryOPCode
+    {
+        public @bool()
+            : base(a => a != 0 ? 1 : 0)
+        {
+        }
+    }
+
+    [OPCodeNumber(0x0021)]
+    public sealed class pow
+        : ArithmeticBinaryOPCode
+    {
+        public pow()
+            : base((a, b) => (int)Math.Pow(a, b))
+        {
+        }
+    }
+
+    [OPCodeNumber(0x0022)]
+    public sealed class shr
+        : ArithmeticBinaryOPCode
+    {
+        public shr()
+            : base((a, b) => (int)((uint)a >> b))
+        {
+        }
+    }
+
+    [OPCodeNumber(0x0023)]
+    public sealed class shl
+        : ArithmeticBinaryOPCode
+    {
+        public shl()
+            : base((a, b) => a << b)
+        {
+        }
+    }
+
+    [OPCodeNumber(0x0024)]
+    public sealed class ror
+        : ArithmeticBinaryOPCode
+    {
+        public ror()
+            : base((a, b) => {
+                b %= 32;
+
+                return (a >> b) | (a << (31 - b));
+            })
+        {
+        }
+    }
+
+    [OPCodeNumber(0x0025)]
+    public sealed class rol
+        : ArithmeticBinaryOPCode
+    {
+        public rol()
+            : base((a, b) => {
+                b %= 32;
+
+                return (a << b) | (a >> (31 - b));
+            })
+        {
+        }
+    }
+
+
+
+    [OPCodeNumber(0x00ff)]
+    public sealed unsafe class kernel
+        : OPCode
+    {
+        public kernel()
+            : base(1, (p, _) => {
+                AssertConstant(0, _);
+
+                p.SetInformationFlag(InformationFlags.Elevated, _[0] != 0);
             })
         {
         }

@@ -7,7 +7,11 @@ using System;
 
 namespace MCPU
 {
+    using IA = InstructionArgument;
+
     using static System.Console;
+    using static OPCodes;
+    using System.Reflection;
 
     public unsafe class Program
     {
@@ -33,8 +37,14 @@ namespace MCPU
 
             ConsoleExtensions.HexDump(proc.ToBytes());
 
-            proc.ProcessWithoutReset((OPCodes.COPY, new InstructionArgument[] { 0, 64, 32 }),
-                                     (new MOVE(), ));
+            proc.ProcessWithoutReset(
+                (COPY, new IA[] { (0, ArgumentType.Address), (64, ArgumentType.Address), 32 }),
+                (KERNEL, new IA[] { 1 }),
+                (SYSCALL, new IA[] { 0 }),
+                (KERNEL, new IA[] { 0 }),
+                (IO, new IA[] { 13 }),
+                (IN, new IA[] { 13 })
+            );
 
             WriteLine($"SBP: {proc.StackBaseAddress:x8}");
             WriteLine($"SP:  {proc.StackPointerAddress:x8}");

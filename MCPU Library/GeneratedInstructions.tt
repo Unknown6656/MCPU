@@ -1,4 +1,4 @@
-﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+﻿<#@ template debug="false" hostspecific="true" language="C#" #>
 <#@ assembly name="System.Core" #>
 <#@ import namespace="System" #>
 <#@ import namespace="System.Linq" #>
@@ -16,6 +16,8 @@ using System;
 
 namespace MCPU
 {
+	using Instructions;
+
     /// <summary>
     /// Contains all known OP codes
     /// </summary>
@@ -23,23 +25,38 @@ namespace MCPU
 	public static class OPCodes
 	{
 <#
-	Assembly asm = Assembly.LoadFrom(@"L:\Projects.VisualStudio\MCPU\MCPU Library\bin\Debug\mcpu.corelib.dll");
-	Type ot = asm.GetType("MCPU.OPCode");
+Assembly asm = Assembly.LoadFile(Host.ResolvePath(@".\bin\Debug") + @"\mcpu.corelib.dll");
+Type ot = asm.GetType("MCPU.OPCode");
+StringBuilder sb = new StringBuilder();
 
-	foreach (Type t in asm.GetTypes())
-		if (ot.IsAssignableFrom(t) && (ot != t))
-		{
-			var ins = Activator.CreateInstance(t);
-			var num = (int)ot.GetProperty("Number").GetValue(ins);
-			var name = t.Name.ToLower();
-			var tok = name.ToUpper();
+foreach (Type t in asm.GetTypes())
+	if (ot.IsAssignableFrom(t) && !t.IsAbstract)
+	{
+		var ins = Activator.CreateInstance(t);
+		var num = (int)t.GetProperty("Number").GetValue(ins);
+		var name = t.Name.ToLower();
+		var tok = name.ToUpper();
+
+		name = name == "in" ? "@in"
+			 : name == "out" ? "@out"
+			 : name == "bool" ? "@bool"
+	         : name;
+
+		sb.AppendLine($"            {{ {num}, {tok} }},   // [{asm.GetName().Name}] {t.FullName}");
 #>
         /// <summary>
-        /// Represents the OP code "<# Write(tok); #>" (0x<# Write(num.ToString("x8")); #>)
+        /// Represents the OP code "<#= tok #>" (0x<#= num.ToString("x8") #>)
         /// </summary>
 <#
-			WriteLine(($"        public static {name} {tok} {{ get; }}".PadRight(48, ' ') + $" = new {name}();").PadRight(70, ' ') + $" // [{asm.GetName().Name}] {t.FullName}");
-		}
+		WriteLine(($"        public static {name} {tok} {{ get; }}".PadRight(48, ' ') + $" = new {name}();").PadRight(70, ' '));
+	}
 #>
+
+
+        /// <summary>
+        /// A collection of all opcodes mapped to their code number
+        /// </summary>
+        public static Dictionary<int, OPCode> Codes { get; } = new Dictionary<int, OPCode>() {
+<#= sb.ToString() #>        };
 	}
 }

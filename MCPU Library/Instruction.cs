@@ -156,6 +156,47 @@ namespace MCPU
     }
 
     /// <summary>
+    /// Represents an OP code which performs a binary arithmetic function
+    /// </summary>
+    public abstract unsafe class ArithmeticUnaryOPCode
+        : OPCode
+    {
+        /// <summary>
+        /// Creates a new OP code using the given unary arithmetic function
+        /// </summary>
+        /// <param name="func">Unary arithmetic function</param>
+        public ArithmeticUnaryOPCode(Func<int, int> func)
+            : base(1, (p, _) => {
+                AssertNotInstructionSpace(0, _);
+
+                *p.TranslateAddress(_[0]) = func(*p.TranslateAddress(_[0]));
+            })
+        {
+        }
+    }
+
+    /// <summary>
+    /// Represents an OP code which performs an unary arithmetic function
+    /// </summary>
+    public abstract unsafe class ArithmeticBinaryOPCode
+        : OPCode
+    {
+        /// <summary>
+        /// Creates a new OP code using the given binary arithmetic function
+        /// </summary>
+        /// <param name="func">Binary arithmetic function</param>
+        public ArithmeticBinaryOPCode(Func<int, int, int> func)
+            : base(2, (p, _) => {
+                AssertNotInstructionSpace(0, _);
+                AssertNotInstructionSpace(1, _);
+                
+                *p.TranslateAddress(_[0]) = func(*p.TranslateAddress(_[0]), *p.TranslateAddress(_[1]));
+            })
+        {
+        }
+    }
+
+    /// <summary>
     /// 
     /// </summary>
     [Serializable]
@@ -196,11 +237,31 @@ namespace MCPU
             Arguments = args ?? new InstructionArgument[0];
         }
 
+        /// <summary>
+        /// Creates a new instruction based on the given OP code and arguments
+        /// </summary>
+        /// <param name="opcode">OP code</param>
+        /// <param name="args">Arguments</param>
+        /// <returns>Instruction</returns>
+        public static Instruction Create(int opcode, params InstructionArgument[] args) => Create(OPCodes.Codes[opcode], args);
+
+        /// <summary>
+        /// Creates a new instruction based on the given OP code and arguments
+        /// </summary>
+        /// <param name="opcode">OP code</param>
+        /// <param name="args">Arguments</param>
+        /// <returns>Instruction</returns>
+        public static Instruction Create(OPCode opcode, params InstructionArgument[] args) => (opcode, args);
+
         public static implicit operator Instruction(OPCode opc) => new Instruction(opc);
 
-        public static implicit operator Instruction((OPCode, InstructionArgument[]) ins) => new Instruction(ins.Item1, ins.Item2);
+        public static implicit operator Instruction((int, IEnumerable<InstructionArgument>) ins) => new Instruction(OPCodes.Codes[ins.Item1], ins.Item2?.ToArray());
+
+        public static implicit operator Instruction((OPCode, IEnumerable<InstructionArgument>) ins) => new Instruction(ins.Item1, ins.Item2?.ToArray());
 
         public static implicit operator (OPCode, InstructionArgument[]) (Instruction ins) => (ins.OPCode, ins.Arguments);
+
+        public static implicit operator (int, InstructionArgument[]) (Instruction ins) => (ins.OPCode.Number, ins.Arguments);
     }
 
     /// <summary>
@@ -329,6 +390,10 @@ namespace MCPU
         public static implicit operator int(InstructionArgument arg) => arg.Value;
 
         public static implicit operator InstructionArgument(int val) => new InstructionArgument { Value = val, Type = ArgumentType.Constant };
+
+        public static implicit operator (int, ArgumentType) (InstructionArgument arg) => (arg.Value, arg.Type);
+
+        public static implicit operator InstructionArgument((int, ArgumentType) val) => new InstructionArgument { Value = val.Item1, Type = val.Item2 };
     }
 
     /// <summary>
