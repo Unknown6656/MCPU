@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System;
+using System.Threading;
 
 namespace MCPU
 {
@@ -17,6 +18,12 @@ namespace MCPU
         : IDisposable
     {
         #region FIELDS + CONSTANTS
+
+        internal readonly Dictionary<int, Action<InstructionArgument[]>> __syscalltable = new Dictionary<int, Action<InstructionArgument[]>> {
+            { -1, delegate { /*  ABK INSTRUCTION  */ } },
+
+            // TODO : SYSCALLS
+        };
 
         public const int IP_OFFS = 0x04;
         public const int FLAG_OFFS = 0x08;
@@ -35,12 +42,29 @@ namespace MCPU
         public const int MAX_MEMSZ = 0x10000000; // 1GB of memory
         public const int MAX_STACKSZ = 0x400000; // 16MB of stack space
 #endif
-        internal int _dev_null = 0; //dev/null
         internal bool disposed = false;
         internal byte* raw;
 
-    #endregion
+        #endregion
         #region PROPERTIES
+
+        /// <summary>
+        /// Sets or gets whether the current processor is being executed using kernel privileges/kernel elevation
+        /// </summary>
+        public bool IsElevated
+        {
+            get => GetInformationFlag(InformationFlags.Elevated);
+            internal set => SetInformationFlag(InformationFlags.Elevated, value);
+        }
+
+        /// <summary>
+        /// Sets or gets whether the current processor is being executed using kernel privileges/kernel elevation
+        /// </summary>
+        public bool IsRunning
+        {
+            get => GetInformationFlag(InformationFlags.Running);
+            internal set => SetInformationFlag(InformationFlags.Running, value);
+        }
 
         /// <summary>
         /// The ID of the current MSCPU-processor
@@ -81,19 +105,19 @@ namespace MCPU
         /// <summary>
         /// The MCPU flag register
         /// </summary>
-        public Flags Flags
+        public StatusFlags Flags
         {
-            get => *((Flags*)(raw + MEMS_OFFS));
-            private set => *((Flags*)(raw + MEMS_OFFS)) = value;
+            get => *((StatusFlags*)(raw + MEMS_OFFS));
+            private set => *((StatusFlags*)(raw + MEMS_OFFS)) = value;
         }
 
         /// <summary>
-        /// TODO --- Reserved
+        /// The MCPU processor information flags register
         /// </summary>
-        internal ushort Reserved
+        public InformationFlags InformationFlags
         {
-            get => *((ushort*)(raw + RESV_OFFS));
-            private set => *((ushort*)(raw + RESV_OFFS)) = value;
+            get => *((InformationFlags*)(raw + RESV_OFFS));
+            private set => *((InformationFlags*)(raw + RESV_OFFS)) = value;
         }
 
         /// <summary>
@@ -115,12 +139,12 @@ namespace MCPU
         /// <summary>
         /// Returns the current instruction
         /// </summary>
-        public Instruction CurrentInstruction => (IP < 0) || (IP >= Instructions.Length) ? new HALT() : Instructions[IP];
+        public Instruction CurrentInstruction => (IP < 0) || (IP >= Instructions.Length) ? new halt() : Instructions[IP];
 
         /// <summary>
         /// Returns a list of all instructions
         /// </summary>
-        public Instruction[] Instructions { get; }
+        public Instruction[] Instructions { get; internal set; }
 
         /// <summary>
         /// The stack size (in 4-byte blocks)
@@ -174,7 +198,16 @@ namespace MCPU
         /// </summary>
         public void Halt()
         {
+            IsRunning = false;
+
+
             // TODO
+        }
+
+        public void Reset()
+        {
+            Halt();
+
         }
 
         /// <summary>
@@ -192,18 +225,78 @@ namespace MCPU
         /// </summary>
         /// <param name="insndx">New instruction index</param>
         public void MoveTo(int insndx) =>
-            IP = (insndx< 0) || (insndx >= Instructions.Length) ? throw new InvalidOperationException("The IP is out of range") : insndx;
+            IP = (insndx < 0) || (insndx >= Instructions.Length) ? throw new InvalidOperationException("The IP is out of range") : insndx;
 
         /// <summary>
-        /// Processes the given instruction
+        /// Processes the next instruction
         /// </summary>
-        /// <param name="ins">Instruction</param>
-        public void Process(Instruction ins)
+#if DEBUG
+        public
+#else
+        internal
+#endif
+        void ProcessNext()
         {
-            if (ins != null)
+            Instruction ins = Instructions[IP];
+
+            if ((ins != null) && (ins.GetType() != typeof(halt)))
+            {
                 ins.Process(this);
 
-            // TODO
+                if (!ins.OPCode.SpecialIPHandling)
+                    if (IP < Instructions.Length)
+                        MoveNext();
+                    else
+                        Halt();
+            }
+            else
+                Halt(); // TODO : ?
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="ins"></param>
+        public void Process(params Instruction[] ins)
+        {
+            Reset();
+            ProcessWithoutReset(ins);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="ins"></param>
+        public void ProcessWithoutReset(params Instruction[] ins)
+        {
+            Instructions = ins.Concat(new Instruction[] { new halt() }).ToArray();
+            IsRunning = true;
+
+            Exception res;
+            Task<Exception> t = new Task<Exception>(delegate {
+                try
+                {
+                    while (IsRunning)
+                        ProcessNext();
+
+                    return null;
+                }
+                catch (Exception ex)
+                {
+                    return ex;
+                }
+            });
+            t.Start();
+
+            while (!(t.IsCanceled || t.IsCompleted || t.IsFaulted))
+                Thread.Sleep(0);
+
+            res = t.Result; // CANNOT USE AWAIT, AS IT IS AN UNSAFE CONTEXT
+
+            if (res != null)
+                ; // TODO : HANDLER
+
+            Halt();
         }
 
         /// <summary>
@@ -241,10 +334,10 @@ namespace MCPU
         /// <returns>Inner-most function call</returns>
         public FunctionCall PopCall()
         {
-            FunctionCall call = new FunctionCall();
-
-            call.ReturnAddress = Pop();
-            call.Arguments = new int[Pop()];
+            FunctionCall call = new FunctionCall {
+                ReturnAddress = Pop(),
+                Arguments = new int[Pop()]
+            };
 
             for (int l = call.Arguments.Length, i = l - 1; i >= 0; i--)
                 call.Arguments[i] = Pop();
@@ -269,32 +362,35 @@ namespace MCPU
         }
 
         /// <summary>
-        /// 
+        /// 'Translates' the given argument into a int*-pointer pointing to the (indirect) memory address or constant, to which the given argument is referring
         /// </summary>
-        /// <param name="arg"></param>
-        /// <returns></returns>
+        /// <param name="arg">Instruction argument</param>
+        /// <returns>'Translated' address</returns>
         public int* TranslateAddress(InstructionArgument arg)
         {
-            int val = arg.Value;
-
-            if (arg.Type.HasFlag(ArgumentType.Parameter))
+            if (!arg.IsInstructionSpace)
             {
-                FunctionCall call = PeekCall();
-                int argc = call.Arguments.Length;
+                int val = arg.Value;
 
-                val = val < argc ? call.Arguments[val] : throw new ArgumentOutOfRangeException($"The current function call has not {val} arguments. Please provide an arument index between 0 and {argc}.");
+                if (arg.Type.HasFlag(ArgumentType.Parameter))
+                {
+                    FunctionCall call = PeekCall();
+                    int argc = call.Arguments.Length;
+
+                    val = val < argc ? call.Arguments[val] : throw new ArgumentOutOfRangeException($"The current function call has not {val} arguments. Please provide an arument index between 0 and {argc}.");
+                }
+
+                if (arg.IsAddress)
+                {
+                    if (!arg.IsKernel)
+                        val += MEM_OFFS;
+
+                    return KernelSpace + (arg.Type.HasFlag(ArgumentType.Indirect) ? KernelSpace[val] : val);
+                }
+                else
+                    return &val;
             }
-            
-
-            // TODO
-
-
-            bool kernel = arg.Type.HasFlag(ArgumentType.KernelMode);
-
-            if (kernel)
-                ;
-
-            return &val;
+            else throw new ArgumentException("The given argument must not be a function or a label.");
         }
 
         /// <summary>
@@ -346,10 +442,14 @@ namespace MCPU
 
         internal T VerifyUserspaceAddr<T>(int addr, Func<T> action) =>
             (addr >= 0) && (addr < Size) ? action() : throw new IndexOutOfRangeException($"The given memory address is invalid. It must be a positive integer value between 0 and {Size}");
-        
+
+        internal bool GetInformationFlag(InformationFlags flag) => InformationFlags.HasFlag(flag);
+
+        internal void SetInformationFlag(InformationFlags flag, bool value) => InformationFlags = (InformationFlags & ~flag) | (value ? flag : 0);
+
         #endregion
         #region .CTOR/.DTOR
-        
+
         ~Processor() => Dispose();
 
         public void Dispose()
@@ -399,11 +499,54 @@ namespace MCPU
             CPUID = cpuid;
             StackSize = 0;
             RawSize = raw_size;
+            Instructions = new Instruction[0];
 
             Contract.Assert(StackPointer == StackBasePointer);
         }
 
         #endregion
+    }
+
+    /// <summary>
+    /// Represents an exception, which occures if a 'regular' user tries to perform kernel actions
+    /// </summary>
+    public class MissingPrivilegeException
+        : InvalidOperationException
+    {
+        /// <summary>
+        /// Represents an exception, which occures if a 'regular' user tries to perform kernel actions
+        /// </summary>
+        public MissingPrivilegeException()
+            : base("The current task cannot be performed without kernel privileges.")
+        {
+        }
+
+        /// <summary>
+        /// Represents an exception, which occures if a 'regular' user tries to perform the given OP code
+        /// </summary>
+        /// <param name="opcode">OP code</param>
+        public MissingPrivilegeException(OPCode opcode)
+            : this(opcode.Token)
+        {
+        }
+
+        /// <summary>
+        /// Represents an exception, which occures if a 'regular' user tries to perform the given instruction
+        /// </summary>
+        /// <param name="ins">Instruction</param>
+        public MissingPrivilegeException(Instruction ins)
+            : this(ins.OPCode)
+        {
+        }
+
+        /// <summary>
+        /// Represents an exception, which occures if a 'regular' user tries to perform the action associated with the given token
+        /// </summary>
+        /// <param name="tokenname">Token name</param>
+        public MissingPrivilegeException(string tokenname)
+            : base($"The instruction or OP code '{tokenname}' could not be executed, as the current processor is not executed with kernel privileges")
+        {
+        }
     }
 
     /// <summary>
@@ -538,8 +681,25 @@ namespace MCPU
     /// MCPU status flags
     /// </summary>
     [Serializable, Flags]
-    public enum Flags
+    public enum StatusFlags
         : ushort
     {
+    }
+    
+    /// <summary>
+    /// MCPU processor information flags
+    /// </summary>
+    [Serializable, Flags]
+    public enum InformationFlags
+        : ushort
+    {
+        /// <summary>
+        /// Indicates, that the processor is running with kernel privileges
+        /// </summary>
+        Elevated = 0b1000_0000_0000_0000,
+        /// <summary>
+        /// Indicates, that the processor is currently running
+        /// </summary>
+        Running = 0b0100_0000_0000_0000,
     }
 }

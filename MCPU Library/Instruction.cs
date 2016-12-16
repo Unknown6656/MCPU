@@ -5,7 +5,6 @@ using System.Linq;
 using System.Text;
 using System;
 
-
 namespace MCPU
 {
     public delegate void ProcessingDelegate(Processor p, params InstructionArgument[] args);
@@ -15,35 +14,40 @@ namespace MCPU
     /// </summary>
     public abstract class OPCode
     {
-        internal ProcessingDelegate del;
-
-
-        /// <summary>
-        /// The OP code token
-        /// </summary>
-        public string Token { get; }
-
-        /// <summary>
-        /// Returns the argument count
-        /// </summary>
-        public int RequiredArguments { get; }
-
-        /// <summary>
-        /// Returns the OP code's number associated with the current instance
-        /// </summary>
-        public int Number { get; }
-
         /// <summary>
         /// Processes the current instruction on the given processor with the given arguments
         /// </summary>
         /// <param name="p">Processor</param>
         /// <param name="args">Instruction arguments</param>
         public ProcessingDelegate Process { get; }
-        
+        /// <summary>
+        /// Returns whether the OP code requires kernel privilege elevation
+        /// </summary>
+        public bool RequiresEleveation { get; }
+        /// <summary>
+        /// Returns whether the OP code performs special instruction pointer (IP) handling
+        /// </summary>
+        public bool SpecialIPHandling { get; }
+        /// <summary>
+        /// Returns the argument count
+        /// </summary>
+        public int RequiredArguments { get; }
+        /// <summary>
+        /// The OP code token
+        /// </summary>
+        public string Token { get; }
+        /// <summary>
+        /// Returns the OP code's number associated with the current instance
+        /// </summary>
+        public int Number { get; }
+
+
         internal void __process(Processor p, params InstructionArgument[] arguments)
         {
             if ((RequiredArguments > 0) && (arguments.Length < RequiredArguments))
                 throw new ArgumentException($"The intruction {Token} requires at least {RequiredArguments} arguments.", nameof(arguments));
+            else if (!p.IsElevated && RequiresEleveation)
+                throw new MissingPrivilegeException();
             else
                 Process(p ?? throw new ArgumentNullException("The processor must not be null."), RequiredArguments < 1 ? new InstructionArgument[0] : arguments.Take(RequiredArguments).ToArray());
         }
@@ -58,8 +62,7 @@ namespace MCPU
 
             Token = t.Name.ToUpper();
             RequiredArguments = argc;
-
-            this.del = del;
+            Process = del;
 
             if (t != typeof(OPCode))
             {
@@ -68,6 +71,8 @@ namespace MCPU
                                               select v as OPCodeNumberAttribute).FirstOrDefault();
 
                 Number = attr?.Number ?? throw new InvalidProgramException($"The OP-code {Token} must define an number using the {typeof(OPCodeNumberAttribute).FullName}");
+                RequiresEleveation = (from v in t.GetCustomAttributes(true) where v is RequiresPrivilegeAttribute select true).FirstOrDefault();
+                SpecialIPHandling = (from v in t.GetCustomAttributes(true) where v is SpecialIPHandlingAttribute select true).FirstOrDefault();
             }
         }
 
@@ -129,6 +134,24 @@ namespace MCPU
         public static bool AssertNotInstructionSpace(int argn, InstructionArgument[] argv)
             => argv[argn].IsInstructionSpace ? throw _assertexcp(argn, "as it must not be a jump label or a function.") : true;
 
+        /// <summary>
+        /// Asserts that the argument at the given index is a label
+        /// </summary>
+        /// <param name="argn">Argument index</param>
+        /// <param name="argv">Argument vector</param>
+        /// <returns>Assertion result</returns>
+        public static bool AssertLabel(int argn, InstructionArgument[] argv)
+            => argv[argn].Type == ArgumentType.Label ? true : throw _assertexcp(argn, "as it must be a jump label.");
+
+        /// <summary>
+        /// Asserts that the argument at the given index is a function
+        /// </summary>
+        /// <param name="argn">Argument index</param>
+        /// <param name="argv">Argument vector</param>
+        /// <returns>Assertion result</returns>
+        public static bool AssertFunction(int argn, InstructionArgument[] argv)
+            => argv[argn].Type == ArgumentType.Function ? true : throw _assertexcp(argn, "as it must be a function.");
+
         #endregion
     }
 
@@ -183,7 +206,7 @@ namespace MCPU
     /// <summary>
     /// Defines the OP code's internal number
     /// </summary>
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple =false, Inherited = true), Serializable]
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true), Serializable]
     public class OPCodeNumberAttribute
         : Attribute
     {
@@ -197,6 +220,24 @@ namespace MCPU
         /// </summary>
         /// <param name="number">The OP code's number</param>
         public OPCodeNumberAttribute(ushort number) => Number = number;
+    }
+
+    /// <summary>
+    /// Indicates that the targeting OP code requires kernel privileges to be executed
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
+    public class RequiresPrivilegeAttribute
+        : Attribute
+    {
+    }
+
+    /// <summary>
+    /// Indicates that the targeting OP code handles the instruction pointer (IP) specially
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
+    public class SpecialIPHandlingAttribute
+        : Attribute
+    {
     }
 
     /// <summary>
@@ -228,6 +269,12 @@ namespace MCPU
             Arguments = args;
             ReturnAddress = ret;
         }
+        /// <summary>
+        /// Returns the string representation of the current function call
+        /// </summary>
+        /// <returns>String representation</returns>
+        public override string ToString() => $"ret: {ReturnAddress:x}, args: ({string.Join(", ", Arguments)})";
+
 
         public static implicit operator int[] (FunctionCall call) => new int[] { call.ReturnAddress, call.Arguments.Length }.Concat(call.Arguments).ToArray();
 
@@ -267,11 +314,21 @@ namespace MCPU
         /// <summary>
         /// Returns, whether the argument is a constant
         /// </summary>
-        public bool IsConstant => (KernelInvariantType & KernelInvariantType).HasFlag(ArgumentType.Constant);
+        public bool IsConstant => (KernelInvariantType & KernelInvariantType) == ArgumentType.Constant;
         /// <summary>
         /// Returns, whether the argument resides inside the instruction segment (meaning it is a label or function)
         /// </summary>
         public bool IsInstructionSpace => Type.HasFlag(ArgumentType.Label);
+        /// <summary>
+        /// Returns the string representation of the current instruction argument
+        /// </summary>
+        /// <returns>String representation</returns>
+        public override string ToString() => $"({Type}: {Value})";
+
+
+        public static implicit operator int(InstructionArgument arg) => arg.Value;
+
+        public static implicit operator InstructionArgument(int val) => new InstructionArgument { Value = val, Type = ArgumentType.Constant };
     }
 
     /// <summary>

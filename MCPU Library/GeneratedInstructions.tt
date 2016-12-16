@@ -1,0 +1,45 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Reflection" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".cs" #>
+using System.Collections.Generic;
+using System.CodeDom.Compiler;
+using System.Threading.Tasks;
+using System.Diagnostics;
+using System.Linq;
+using System.Text;
+using System;
+
+namespace MCPU
+{
+    /// <summary>
+    /// Contains all known OP codes
+    /// </summary>
+    [DebuggerStepThrough, DebuggerNonUserCode, Serializable, GeneratedCode("Visual Studio T4 Template Generator", "15.0")]
+	public static class OPCodes
+	{
+<#
+	Assembly asm = Assembly.LoadFrom(@"L:\Projects.VisualStudio\MCPU\MCPU Library\bin\Debug\mcpu.corelib.dll");
+	Type ot = asm.GetType("MCPU.OPCode");
+
+	foreach (Type t in asm.GetTypes())
+		if (ot.IsAssignableFrom(t) && (ot != t))
+		{
+			var ins = Activator.CreateInstance(t);
+			var num = (int)ot.GetProperty("Number").GetValue(ins);
+			var name = t.Name.ToLower();
+			var tok = name.ToUpper();
+#>
+        /// <summary>
+        /// Represents the OP code "<# Write(tok); #>" (0x<# Write(num.ToString("x8")); #>)
+        /// </summary>
+<#
+			WriteLine(($"        public static {name} {tok} {{ get; }}".PadRight(48, ' ') + $" = new {name}();").PadRight(70, ' ') + $" // [{asm.GetName().Name}] {t.FullName}");
+		}
+#>
+	}
+}
