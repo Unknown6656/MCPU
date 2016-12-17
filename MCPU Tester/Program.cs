@@ -32,7 +32,9 @@ namespace MCPU
 
             // ConsoleExtensions.HexDump(proc.ToBytes());
 
-            proc.ProcessWithoutReset(
+
+            var instr = new Instruction[]
+            {
 /* 00 */        (JMP, new IA[] { (5, Label) }),
 /* ------------ FUNCTION @ 0x01 ------------ */
 /* 01 */        (KERNEL, new IA[] { 1 }),
@@ -46,8 +48,11 @@ namespace MCPU
 /* 08 */        (IN, new IA[] { 13, (0x6f, Address) }),
 /* 09 */        (CPUID, new IA[] { (0x7f, Address) }),
 /* 0a */        (CALL, new IA[] { (1, Function) }),
-/* 0b */        (CALL, new IA[] { (1, Function) })
-            );
+/* 0b */        (CALL, new IA[] { (1, Function) }),
+            };
+            ConsoleExtensions.HexDump(Instruction.SerializeMultiple(instr));
+            
+            proc.ProcessWithoutReset(instr);
 
             WriteLine($"SBP: {proc.StackBaseAddress:x8}");
             WriteLine($"SP:  {proc.StackPointerAddress:x8}");
