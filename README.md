@@ -13,7 +13,7 @@ This project is a microprocessor emulator, which comes with its own instruction 
 - [ ] Documentation &#160; **(Currently in process)**
 - [ ] Floating-point arithmetic &#160; **(Currently in process)**
 - [x] Instruction serialization
-- [ ] Instruction-space management
+- [x] Instruction-space management
 - [ ] Asynchronous instruction execution
 - [ ] Creation of handlers, which react to "hardware-interrupts"
 - [ ] String processing and support
