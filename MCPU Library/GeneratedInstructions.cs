@@ -169,73 +169,77 @@ namespace MCPU
         /// </summary>
         public static rol ROL { get; }           = new rol();         
         /// <summary>
-        /// Represents the OP code "CMP" (0x00000026)
-        /// </summary>
-        public static cmp CMP { get; }           = new cmp();         
-        /// <summary>
-        /// Represents the OP code "JLE" (0x00000027)
-        /// </summary>
-        public static jle JLE { get; }           = new jle();         
-        /// <summary>
-        /// Represents the OP code "JL" (0x00000028)
-        /// </summary>
-        public static jl JL { get; }             = new jl();          
-        /// <summary>
-        /// Represents the OP code "JGE" (0x00000029)
-        /// </summary>
-        public static jge JGE { get; }           = new jge();         
-        /// <summary>
-        /// Represents the OP code "JG" (0x0000002a)
-        /// </summary>
-        public static jg JG { get; }             = new jg();          
-        /// <summary>
-        /// Represents the OP code "JE" (0x0000002b)
-        /// </summary>
-        public static je JE { get; }             = new je();          
-        /// <summary>
-        /// Represents the OP code "JNE" (0x0000002c)
-        /// </summary>
-        public static jne JNE { get; }           = new jne();         
-        /// <summary>
-        /// Represents the OP code "JZ" (0x0000002d)
-        /// </summary>
-        public static jz JZ { get; }             = new jz();          
-        /// <summary>
-        /// Represents the OP code "JNZ" (0x0000002e)
-        /// </summary>
-        public static jnz JNZ { get; }           = new jnz();         
-        /// <summary>
-        /// Represents the OP code "JNEG" (0x0000002f)
-        /// </summary>
-        public static jneg JNEG { get; }         = new jneg();        
-        /// <summary>
-        /// Represents the OP code "JPOS" (0x00000030)
-        /// </summary>
-        public static jpos JPOS { get; }         = new jpos();        
-        /// <summary>
-        /// Represents the OP code "FAC" (0x00000031)
+        /// Represents the OP code "FAC" (0x00000026)
         /// </summary>
         public static fac FAC { get; }           = new fac();         
         /// <summary>
-        /// Represents the OP code "INCR" (0x00000032)
+        /// Represents the OP code "INCR" (0x00000027)
         /// </summary>
         public static incr INCR { get; }         = new incr();        
         /// <summary>
-        /// Represents the OP code "DECR" (0x00000033)
+        /// Represents the OP code "DECR" (0x00000028)
         /// </summary>
         public static decr DECR { get; }         = new decr();        
         /// <summary>
-        /// Represents the OP code "SWAP" (0x0000003d)
+        /// Represents the OP code "CMP" (0x00000029)
+        /// </summary>
+        public static cmp CMP { get; }           = new cmp();         
+        /// <summary>
+        /// Represents the OP code "JLE" (0x0000002a)
+        /// </summary>
+        public static jle JLE { get; }           = new jle();         
+        /// <summary>
+        /// Represents the OP code "JL" (0x0000002b)
+        /// </summary>
+        public static jl JL { get; }             = new jl();          
+        /// <summary>
+        /// Represents the OP code "JGE" (0x0000002c)
+        /// </summary>
+        public static jge JGE { get; }           = new jge();         
+        /// <summary>
+        /// Represents the OP code "JG" (0x0000002d)
+        /// </summary>
+        public static jg JG { get; }             = new jg();          
+        /// <summary>
+        /// Represents the OP code "JE" (0x0000002e)
+        /// </summary>
+        public static je JE { get; }             = new je();          
+        /// <summary>
+        /// Represents the OP code "JNE" (0x0000002f)
+        /// </summary>
+        public static jne JNE { get; }           = new jne();         
+        /// <summary>
+        /// Represents the OP code "JZ" (0x00000030)
+        /// </summary>
+        public static jz JZ { get; }             = new jz();          
+        /// <summary>
+        /// Represents the OP code "JNZ" (0x00000031)
+        /// </summary>
+        public static jnz JNZ { get; }           = new jnz();         
+        /// <summary>
+        /// Represents the OP code "JNEG" (0x00000032)
+        /// </summary>
+        public static jneg JNEG { get; }         = new jneg();        
+        /// <summary>
+        /// Represents the OP code "JPOS" (0x00000033)
+        /// </summary>
+        public static jpos JPOS { get; }         = new jpos();        
+        /// <summary>
+        /// Represents the OP code "SWAP" (0x0000003c)
         /// </summary>
         public static swap SWAP { get; }         = new swap();        
         /// <summary>
-        /// Represents the OP code "CPUID" (0x0000003e)
+        /// Represents the OP code "CPUID" (0x0000003d)
         /// </summary>
         public static cpuid CPUID { get; }       = new cpuid();       
         /// <summary>
-        /// Represents the OP code "WAIT" (0x0000003f)
+        /// Represents the OP code "WAIT" (0x0000003e)
         /// </summary>
         public static wait WAIT { get; }         = new wait();        
+        /// <summary>
+        /// Represents the OP code "RESET" (0x0000003f)
+        /// </summary>
+        public static reset RESET { get; }       = new reset();       
         /// <summary>
         /// Represents the OP code "PUSH" (0x00000040)
         /// </summary>
@@ -245,21 +249,161 @@ namespace MCPU
         /// </summary>
         public static pop POP { get; }           = new pop();         
         /// <summary>
-        /// Represents the OP code "PUSHF" (0x00000042)
+        /// Represents the OP code "PEEK" (0x00000042)
+        /// </summary>
+        public static peek PEEK { get; }         = new peek();        
+        /// <summary>
+        /// Represents the OP code "SSWAP" (0x00000043)
+        /// </summary>
+        public static sswap SSWAP { get; }       = new sswap();       
+        /// <summary>
+        /// Represents the OP code "PUSHF" (0x00000044)
         /// </summary>
         public static pushf PUSHF { get; }       = new pushf();       
         /// <summary>
-        /// Represents the OP code "POPF" (0x00000043)
+        /// Represents the OP code "POPF" (0x00000045)
         /// </summary>
         public static popf POPF { get; }         = new popf();        
         /// <summary>
-        /// Represents the OP code "PUSHI" (0x00000044)
+        /// Represents the OP code "PEEKF" (0x00000046)
+        /// </summary>
+        public static peekf PEEKF { get; }       = new peekf();       
+        /// <summary>
+        /// Represents the OP code "PUSHI" (0x00000047)
         /// </summary>
         public static pushi PUSHI { get; }       = new pushi();       
         /// <summary>
-        /// Represents the OP code "POPI" (0x00000045)
+        /// Represents the OP code "POPI" (0x00000048)
         /// </summary>
         public static popi POPI { get; }         = new popi();        
+        /// <summary>
+        /// Represents the OP code "PEEKI" (0x00000049)
+        /// </summary>
+        public static peeki PEEKI { get; }       = new peeki();       
+        /// <summary>
+        /// Represents the OP code "FICAST" (0x00000050)
+        /// </summary>
+        public static ficast FICAST { get; }     = new ficast();      
+        /// <summary>
+        /// Represents the OP code "IFCAST" (0x00000051)
+        /// </summary>
+        public static ifcast IFCAST { get; }     = new ifcast();      
+        /// <summary>
+        /// Represents the OP code "FADD" (0x00000052)
+        /// </summary>
+        public static fadd FADD { get; }         = new fadd();        
+        /// <summary>
+        /// Represents the OP code "FSUB" (0x00000053)
+        /// </summary>
+        public static fsub FSUB { get; }         = new fsub();        
+        /// <summary>
+        /// Represents the OP code "FMUL" (0x00000054)
+        /// </summary>
+        public static fmul FMUL { get; }         = new fmul();        
+        /// <summary>
+        /// Represents the OP code "FDIV" (0x00000055)
+        /// </summary>
+        public static fdiv FDIV { get; }         = new fdiv();        
+        /// <summary>
+        /// Represents the OP code "FMOD" (0x00000056)
+        /// </summary>
+        public static fmod FMOD { get; }         = new fmod();        
+        /// <summary>
+        /// Represents the OP code "FNEG" (0x00000057)
+        /// </summary>
+        public static fneg FNEG { get; }         = new fneg();        
+        /// <summary>
+        /// Represents the OP code "FINV" (0x00000058)
+        /// </summary>
+        public static finv FINV { get; }         = new finv();        
+        /// <summary>
+        /// Represents the OP code "FSQRT" (0x00000059)
+        /// </summary>
+        public static fsqrt FSQRT { get; }       = new fsqrt();       
+        /// <summary>
+        /// Represents the OP code "FROOT" (0x0000005a)
+        /// </summary>
+        public static froot FROOT { get; }       = new froot();       
+        /// <summary>
+        /// Represents the OP code "FLOG" (0x0000005b)
+        /// </summary>
+        public static flog FLOG { get; }         = new flog();        
+        /// <summary>
+        /// Represents the OP code "FLOGE" (0x0000005c)
+        /// </summary>
+        public static floge FLOGE { get; }       = new floge();       
+        /// <summary>
+        /// Represents the OP code "FEXP" (0x0000005d)
+        /// </summary>
+        public static fexp FEXP { get; }         = new fexp();        
+        /// <summary>
+        /// Represents the OP code "FPOW" (0x0000005e)
+        /// </summary>
+        public static fpow FPOW { get; }         = new fpow();        
+        /// <summary>
+        /// Represents the OP code "FFLOOR" (0x0000005f)
+        /// </summary>
+        public static ffloor FFLOOR { get; }     = new ffloor();      
+        /// <summary>
+        /// Represents the OP code "FCEIL" (0x00000060)
+        /// </summary>
+        public static fceil FCEIL { get; }       = new fceil();       
+        /// <summary>
+        /// Represents the OP code "FROUND" (0x00000061)
+        /// </summary>
+        public static fround FROUND { get; }     = new fround();      
+        /// <summary>
+        /// Represents the OP code "FMIN" (0x00000062)
+        /// </summary>
+        public static fmin FMIN { get; }         = new fmin();        
+        /// <summary>
+        /// Represents the OP code "FMAX" (0x00000063)
+        /// </summary>
+        public static fmax FMAX { get; }         = new fmax();        
+        /// <summary>
+        /// Represents the OP code "FSIGN" (0x00000064)
+        /// </summary>
+        public static fsign FSIGN { get; }       = new fsign();       
+        /// <summary>
+        /// Represents the OP code "FSIN" (0x00000065)
+        /// </summary>
+        public static fsin FSIN { get; }         = new fsin();        
+        /// <summary>
+        /// Represents the OP code "FCOS" (0x00000066)
+        /// </summary>
+        public static fcos FCOS { get; }         = new fcos();        
+        /// <summary>
+        /// Represents the OP code "FTAN" (0x00000067)
+        /// </summary>
+        public static ftan FTAN { get; }         = new ftan();        
+        /// <summary>
+        /// Represents the OP code "FSINH" (0x00000068)
+        /// </summary>
+        public static fsinh FSINH { get; }       = new fsinh();       
+        /// <summary>
+        /// Represents the OP code "FCOSH" (0x00000069)
+        /// </summary>
+        public static fcosh FCOSH { get; }       = new fcosh();       
+        /// <summary>
+        /// Represents the OP code "FTANH" (0x0000006a)
+        /// </summary>
+        public static ftanh FTANH { get; }       = new ftanh();       
+        /// <summary>
+        /// Represents the OP code "FASIN" (0x0000006b)
+        /// </summary>
+        public static fasin FASIN { get; }       = new fasin();       
+        /// <summary>
+        /// Represents the OP code "FACOS" (0x0000006c)
+        /// </summary>
+        public static facos FACOS { get; }       = new facos();       
+        /// <summary>
+        /// Represents the OP code "FATAN" (0x0000006d)
+        /// </summary>
+        public static fatan FATAN { get; }       = new fatan();       
+        /// <summary>
+        /// Represents the OP code "FATAN2" (0x0000006e)
+        /// </summary>
+        public static fatan2 FATAN2 { get; }     = new fatan2();      
         /// <summary>
         /// Represents the OP code "KERNEL" (0x0000ffff)
         /// </summary>
@@ -308,29 +452,65 @@ namespace MCPU
             { (ushort)35, SHL },   // [mcpu.corelib] MCPU.Instructions.shl
             { (ushort)36, ROR },   // [mcpu.corelib] MCPU.Instructions.ror
             { (ushort)37, ROL },   // [mcpu.corelib] MCPU.Instructions.rol
-            { (ushort)38, CMP },   // [mcpu.corelib] MCPU.Instructions.cmp
-            { (ushort)39, JLE },   // [mcpu.corelib] MCPU.Instructions.jle
-            { (ushort)40, JL },   // [mcpu.corelib] MCPU.Instructions.jl
-            { (ushort)41, JGE },   // [mcpu.corelib] MCPU.Instructions.jge
-            { (ushort)42, JG },   // [mcpu.corelib] MCPU.Instructions.jg
-            { (ushort)43, JE },   // [mcpu.corelib] MCPU.Instructions.je
-            { (ushort)44, JNE },   // [mcpu.corelib] MCPU.Instructions.jne
-            { (ushort)45, JZ },   // [mcpu.corelib] MCPU.Instructions.jz
-            { (ushort)46, JNZ },   // [mcpu.corelib] MCPU.Instructions.jnz
-            { (ushort)47, JNEG },   // [mcpu.corelib] MCPU.Instructions.jneg
-            { (ushort)48, JPOS },   // [mcpu.corelib] MCPU.Instructions.jpos
-            { (ushort)49, FAC },   // [mcpu.corelib] MCPU.Instructions.fac
-            { (ushort)50, INCR },   // [mcpu.corelib] MCPU.Instructions.incr
-            { (ushort)51, DECR },   // [mcpu.corelib] MCPU.Instructions.decr
-            { (ushort)61, SWAP },   // [mcpu.corelib] MCPU.Instructions.swap
-            { (ushort)62, CPUID },   // [mcpu.corelib] MCPU.Instructions.cpuid
-            { (ushort)63, WAIT },   // [mcpu.corelib] MCPU.Instructions.wait
+            { (ushort)38, FAC },   // [mcpu.corelib] MCPU.Instructions.fac
+            { (ushort)39, INCR },   // [mcpu.corelib] MCPU.Instructions.incr
+            { (ushort)40, DECR },   // [mcpu.corelib] MCPU.Instructions.decr
+            { (ushort)41, CMP },   // [mcpu.corelib] MCPU.Instructions.cmp
+            { (ushort)42, JLE },   // [mcpu.corelib] MCPU.Instructions.jle
+            { (ushort)43, JL },   // [mcpu.corelib] MCPU.Instructions.jl
+            { (ushort)44, JGE },   // [mcpu.corelib] MCPU.Instructions.jge
+            { (ushort)45, JG },   // [mcpu.corelib] MCPU.Instructions.jg
+            { (ushort)46, JE },   // [mcpu.corelib] MCPU.Instructions.je
+            { (ushort)47, JNE },   // [mcpu.corelib] MCPU.Instructions.jne
+            { (ushort)48, JZ },   // [mcpu.corelib] MCPU.Instructions.jz
+            { (ushort)49, JNZ },   // [mcpu.corelib] MCPU.Instructions.jnz
+            { (ushort)50, JNEG },   // [mcpu.corelib] MCPU.Instructions.jneg
+            { (ushort)51, JPOS },   // [mcpu.corelib] MCPU.Instructions.jpos
+            { (ushort)60, SWAP },   // [mcpu.corelib] MCPU.Instructions.swap
+            { (ushort)61, CPUID },   // [mcpu.corelib] MCPU.Instructions.cpuid
+            { (ushort)62, WAIT },   // [mcpu.corelib] MCPU.Instructions.wait
+            { (ushort)63, RESET },   // [mcpu.corelib] MCPU.Instructions.reset
             { (ushort)64, PUSH },   // [mcpu.corelib] MCPU.Instructions.push
             { (ushort)65, POP },   // [mcpu.corelib] MCPU.Instructions.pop
-            { (ushort)66, PUSHF },   // [mcpu.corelib] MCPU.Instructions.pushf
-            { (ushort)67, POPF },   // [mcpu.corelib] MCPU.Instructions.popf
-            { (ushort)68, PUSHI },   // [mcpu.corelib] MCPU.Instructions.pushi
-            { (ushort)69, POPI },   // [mcpu.corelib] MCPU.Instructions.popi
+            { (ushort)66, PEEK },   // [mcpu.corelib] MCPU.Instructions.peek
+            { (ushort)67, SSWAP },   // [mcpu.corelib] MCPU.Instructions.sswap
+            { (ushort)68, PUSHF },   // [mcpu.corelib] MCPU.Instructions.pushf
+            { (ushort)69, POPF },   // [mcpu.corelib] MCPU.Instructions.popf
+            { (ushort)70, PEEKF },   // [mcpu.corelib] MCPU.Instructions.peekf
+            { (ushort)71, PUSHI },   // [mcpu.corelib] MCPU.Instructions.pushi
+            { (ushort)72, POPI },   // [mcpu.corelib] MCPU.Instructions.popi
+            { (ushort)73, PEEKI },   // [mcpu.corelib] MCPU.Instructions.peeki
+            { (ushort)80, FICAST },   // [mcpu.corelib] MCPU.Instructions.ficast
+            { (ushort)81, IFCAST },   // [mcpu.corelib] MCPU.Instructions.ifcast
+            { (ushort)82, FADD },   // [mcpu.corelib] MCPU.Instructions.fadd
+            { (ushort)83, FSUB },   // [mcpu.corelib] MCPU.Instructions.fsub
+            { (ushort)84, FMUL },   // [mcpu.corelib] MCPU.Instructions.fmul
+            { (ushort)85, FDIV },   // [mcpu.corelib] MCPU.Instructions.fdiv
+            { (ushort)86, FMOD },   // [mcpu.corelib] MCPU.Instructions.fmod
+            { (ushort)87, FNEG },   // [mcpu.corelib] MCPU.Instructions.fneg
+            { (ushort)88, FINV },   // [mcpu.corelib] MCPU.Instructions.finv
+            { (ushort)89, FSQRT },   // [mcpu.corelib] MCPU.Instructions.fsqrt
+            { (ushort)90, FROOT },   // [mcpu.corelib] MCPU.Instructions.froot
+            { (ushort)91, FLOG },   // [mcpu.corelib] MCPU.Instructions.flog
+            { (ushort)92, FLOGE },   // [mcpu.corelib] MCPU.Instructions.floge
+            { (ushort)93, FEXP },   // [mcpu.corelib] MCPU.Instructions.fexp
+            { (ushort)94, FPOW },   // [mcpu.corelib] MCPU.Instructions.fpow
+            { (ushort)95, FFLOOR },   // [mcpu.corelib] MCPU.Instructions.ffloor
+            { (ushort)96, FCEIL },   // [mcpu.corelib] MCPU.Instructions.fceil
+            { (ushort)97, FROUND },   // [mcpu.corelib] MCPU.Instructions.fround
+            { (ushort)98, FMIN },   // [mcpu.corelib] MCPU.Instructions.fmin
+            { (ushort)99, FMAX },   // [mcpu.corelib] MCPU.Instructions.fmax
+            { (ushort)100, FSIGN },   // [mcpu.corelib] MCPU.Instructions.fsign
+            { (ushort)101, FSIN },   // [mcpu.corelib] MCPU.Instructions.fsin
+            { (ushort)102, FCOS },   // [mcpu.corelib] MCPU.Instructions.fcos
+            { (ushort)103, FTAN },   // [mcpu.corelib] MCPU.Instructions.ftan
+            { (ushort)104, FSINH },   // [mcpu.corelib] MCPU.Instructions.fsinh
+            { (ushort)105, FCOSH },   // [mcpu.corelib] MCPU.Instructions.fcosh
+            { (ushort)106, FTANH },   // [mcpu.corelib] MCPU.Instructions.ftanh
+            { (ushort)107, FASIN },   // [mcpu.corelib] MCPU.Instructions.fasin
+            { (ushort)108, FACOS },   // [mcpu.corelib] MCPU.Instructions.facos
+            { (ushort)109, FATAN },   // [mcpu.corelib] MCPU.Instructions.fatan
+            { (ushort)110, FATAN2 },   // [mcpu.corelib] MCPU.Instructions.fatan2
             { (ushort)65535, KERNEL },   // [mcpu.corelib] MCPU.Instructions.kernel
         };
 	}

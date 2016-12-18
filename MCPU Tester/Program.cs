@@ -30,25 +30,25 @@ namespace MCPU
             foreach (byte b in Encoding.ASCII.GetBytes("hello! top kek lulz /foo/bar/"))
                 proc.UserSpace[addr++] = b;
 
-            // ConsoleExtensions.HexDump(proc.ToBytes());
-
 
             var instr = new Instruction[]
             {
-/* 00 */        (JMP, new IA[] { (5, Label) }),
-/* ------------ FUNCTION @ 0x01 ------------ */
+/* 00 */        (JMP, new IA[] { (6, Label) }),
+/* ------------ FUNCTION @ 0x01 ------------ */// FUNCTION TEST
 /* 01 */        (KERNEL, new IA[] { 1 }),
-/* 02 */        (SYSCALL, new IA[] { 0 }),
+/* 02 */        (SYSCALL, new IA[] { (0, Parameter) }),
 /* 03 */        (KERNEL, new IA[] { 0 }),
 /* 04 */        (RET, null),
 /* ------------ END OF FUNCTION ------------ */
-/* 05 */        (CALL, new IA[] { (1, Function) }),
+/* 05 */        (CALL, new IA[] { (1, Function), 0 }),
 /* 06 */        (COPY, new IA[] { (0, Address), (64, Address), 32 }),
 /* 07 */        (IO, new IA[] { 13, 1 }),
 /* 08 */        (IN, new IA[] { 13, (0x6f, Address) }),
 /* 09 */        (CPUID, new IA[] { (0x7f, Address) }),
-/* 0a */        (CALL, new IA[] { (1, Function) }),
-/* 0b */        (CALL, new IA[] { (1, Function) }),
+/* 0a */        (MOV, new IA[] { (0x7c, Address), 0x315 }),
+/* 0b */        (MOV, new IA[] { (0x7d, Address), 0x42 }),
+/* 0c */        (ADD, new IA[] { (0x7c, Address), (0x7d, Address) }),
+/* 0d */        (CALL, new IA[] { (1, Function), 1 }), // DEBUG
             };
             ConsoleExtensions.HexDump(Instruction.SerializeMultiple(instr));
             
@@ -58,8 +58,6 @@ namespace MCPU
             WriteLine($"SP:  {proc.StackPointerAddress:x8}");
             WriteLine($"SSZ: {proc.StackSize * 4}");
             
-            ConsoleExtensions.HexDump(proc.ToBytes());
-
             ReadKey(true);
         }
     }

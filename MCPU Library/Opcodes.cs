@@ -70,7 +70,7 @@ namespace MCPU.Instructions
         : OPCode
     {
         public abk()
-            : base(0, (p, _) => p.__syscalltable[-1](_))
+            : base(0, (p, _) => Processor.__syscalltable[-1](p, _))
         {
         }
     }
@@ -83,7 +83,7 @@ namespace MCPU.Instructions
             : base(1, (p, _) => {
                 AssertConstant(0, _);
 
-                p.__syscalltable[p.TranslateConstant(_[0])](_.Skip(1).ToArray());
+                Processor.__syscalltable[p.TranslateConstant(_[0])](p, _.Skip(1).ToArray());
             })
         {
         }
@@ -1266,11 +1266,6 @@ namespace MCPU.Instructions
         }
     }
 
-
-
-
-
-    // TODO : ADD FLOATING POINT OPERATIONS ?
 
     #endregion
 

@@ -69,6 +69,9 @@ namespace MCPU
         /// <param name="value">Byte array to be dumped</param>
         public static void HexDump(byte[] value)
         {
+            if ((value?.Length ?? 0) == 0)
+                return;
+
             char __conv(byte _) => (_ < 0x20) || ((_ >= 0x7f) && (_ <= 0xa0)) ? '.' : (char)_;
 
             cmc fc = cmd.ForegroundColor;

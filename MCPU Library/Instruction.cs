@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
@@ -49,7 +50,7 @@ namespace MCPU
             else if (!p.IsElevated && RequiresEleveation)
                 throw new MissingPrivilegeException();
             else
-                Process(p ?? throw new ArgumentNullException("The processor must not be null."), RequiredArguments < 1 ? new InstructionArgument[0] : arguments.Take(RequiredArguments).ToArray());
+                Process(p ?? throw new ArgumentNullException("The processor must not be null."), RequiredArguments < 1 ? new InstructionArgument[0] : arguments);
         }
 
         /// <summary>
@@ -84,7 +85,7 @@ namespace MCPU
 
         #region ASSERTIONS
 
-        internal static ArgumentException _assertexcp(int argn, string reason) => new ArgumentException($"The given argument №{argn + 1} is invalid for the current call, {reason}");
+        internal static ArgumentException __assertexcp(int argn, string reason) => new ArgumentException($"The given argument №{argn + 1} is invalid for the current call, {reason}");
 
         /// <summary>
         /// Asserts that the argument at the given index is a constant 
@@ -93,7 +94,7 @@ namespace MCPU
         /// <param name="argv">Argument vector</param>
         /// <returns>Assertion result</returns>
         public static bool AssertConstant(int argn, InstructionArgument[] argv)
-            => argv[argn].IsConstant ? true : throw _assertexcp(argn, "as it must be a constant argument.");
+            => argv[argn].IsConstant ? true : throw __assertexcp(argn, "as it must be a constant argument.");
 
         /// <summary>
         /// Asserts that the argument at the given index is a not constant 
@@ -102,7 +103,7 @@ namespace MCPU
         /// <param name="argv">Argument vector</param>
         /// <returns>Assertion result</returns>
         public static bool AssertNotConstant(int argn, InstructionArgument[] argv)
-            => argv[argn].IsConstant ? throw _assertexcp(argn, "as it must not be a constant argument.") : true;
+            => argv[argn].IsConstant ? throw __assertexcp(argn, "as it must not be a constant argument.") : true;
 
         /// <summary>
         /// Asserts that the argument at the given index is an address
@@ -111,7 +112,7 @@ namespace MCPU
         /// <param name="argv">Argument vector</param>
         /// <returns>Assertion result</returns>
         public static bool AssertAddress(int argn, InstructionArgument[] argv)
-            => argv[argn].IsAddress ? true : throw _assertexcp(argn, "as it must be an address.");
+            => argv[argn].IsAddress ? true : throw __assertexcp(argn, "as it must be an address.");
 
         /// <summary>
         /// Asserts that the argument at the given index is not an address
@@ -120,7 +121,7 @@ namespace MCPU
         /// <param name="argv">Argument vector</param>
         /// <returns>Assertion result</returns>
         public static bool AssertNotAddress(int argn, InstructionArgument[] argv)
-            => argv[argn].IsAddress ? throw _assertexcp(argn, "as it must not be an address.") : true;
+            => argv[argn].IsAddress ? throw __assertexcp(argn, "as it must not be an address.") : true;
 
         /// <summary>
         /// Asserts that the argument at the given index is a jump label or function
@@ -129,7 +130,7 @@ namespace MCPU
         /// <param name="argv">Argument vector</param>
         /// <returns>Assertion result</returns>
         public static bool AssertInstructionSpace(int argn, InstructionArgument[] argv)
-            => argv[argn].IsInstructionSpace ? true : throw _assertexcp(argn, "as it must be a jump label or a function.");
+            => argv[argn].IsInstructionSpace ? true : throw __assertexcp(argn, "as it must be a jump label or a function.");
 
         /// <summary>
         /// Asserts that the argument at the given index is not a jump label or function
@@ -138,7 +139,7 @@ namespace MCPU
         /// <param name="argv">Argument vector</param>
         /// <returns>Assertion result</returns>
         public static bool AssertNotInstructionSpace(int argn, InstructionArgument[] argv)
-            => argv[argn].IsInstructionSpace ? throw _assertexcp(argn, "as it must not be a jump label or a function.") : true;
+            => argv[argn].IsInstructionSpace ? throw __assertexcp(argn, "as it must not be a jump label or a function.") : true;
 
         /// <summary>
         /// Asserts that the argument at the given index is a label
@@ -147,7 +148,7 @@ namespace MCPU
         /// <param name="argv">Argument vector</param>
         /// <returns>Assertion result</returns>
         public static bool AssertLabel(int argn, InstructionArgument[] argv)
-            => argv[argn].Type == ArgumentType.Label ? true : throw _assertexcp(argn, "as it must be a jump label.");
+            => argv[argn].Type == ArgumentType.Label ? true : throw __assertexcp(argn, "as it must be a jump label.");
 
         /// <summary>
         /// Asserts that the argument at the given index is a function
@@ -156,7 +157,7 @@ namespace MCPU
         /// <param name="argv">Argument vector</param>
         /// <returns>Assertion result</returns>
         public static bool AssertFunction(int argn, InstructionArgument[] argv)
-            => argv[argn].Type == ArgumentType.Function ? true : throw _assertexcp(argn, "as it must be a function.");
+            => argv[argn].Type == ArgumentType.Function ? true : throw __assertexcp(argn, "as it must be a function.");
 
         #endregion
     }
@@ -257,6 +258,7 @@ namespace MCPU
         /// The instruction arguments
         /// </summary>
         public InstructionArgument[] Arguments { get; }
+
 
         /// <summary>
         /// Processes the current instruction on the given processor
@@ -582,7 +584,7 @@ namespace MCPU
         /// <summary>
         /// Returns, whether the argument is a constant
         /// </summary>
-        public bool IsConstant => (KernelInvariantType & KernelInvariantType) == ArgumentType.Constant;
+        public bool IsConstant => (KernelInvariantType & KernelInvariantType & ~ArgumentType.Parameter) == ArgumentType.Constant;
         /// <summary>
         /// Returns, whether the argument resides inside the instruction segment (meaning it is a label or function)
         /// </summary>
@@ -601,6 +603,29 @@ namespace MCPU
         public static implicit operator (int, ArgumentType) (InstructionArgument arg) => (arg.Value, arg.Type);
 
         public static implicit operator InstructionArgument((int, ArgumentType) val) => new InstructionArgument { Value = val.Item1, Type = val.Item2 };
+    }
+
+    [Serializable, NativeCppClass, StructLayout(LayoutKind.Explicit, Size = 4)]
+    internal unsafe struct FloatIntUnion
+    {
+        [FieldOffset(0)]
+        public int I;
+        [FieldOffset(0)]
+        public float F;
+
+        public FloatIntUnion* Pointer
+        {
+            get
+            {
+                fixed (FloatIntUnion* ptr = &this)
+                    return ptr;
+            }
+        }
+        
+        public static implicit operator int(FloatIntUnion un) => un.I;
+        public static implicit operator float(FloatIntUnion un) => un.F;
+        public static implicit operator FloatIntUnion(int val) => new FloatIntUnion { I = val };
+        public static implicit operator FloatIntUnion(float val) => new FloatIntUnion { F = val };
     }
 
     /// <summary>
@@ -630,10 +655,12 @@ namespace MCPU
         /// Represents a jump label
         /// </summary>
         Label = 0b0000_0100,
+#if false
         /// <summary>
         /// Represents a floating-point number instead of an integer number
         /// </summary>
         FloatingPoint = 0b0100_0000,
+#endif
         /// <summary>
         /// Uses the kernel-space addresses instead of user-space addresses
         /// </summary>

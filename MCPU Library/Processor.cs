@@ -1,4 +1,6 @@
-﻿using System.Runtime.CompilerServices;
+﻿// #define USE_INSTRUCTION_CACHE
+
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Diagnostics.Contracts;
 using System.Collections.Generic;
@@ -19,12 +21,12 @@ namespace MCPU
     {
         #region FIELDS + CONSTANTS
 
-        internal readonly Dictionary<int, Action<InstructionArgument[]>> __syscalltable = new Dictionary<int, Action<InstructionArgument[]>> {
+        internal static readonly Dictionary<int, ProcessingDelegate> __syscalltable = new Dictionary<int, ProcessingDelegate> {
             { -1, delegate { /*  ABK INSTRUCTION  */ } },
-            { 0, _ => Console.WriteLine("MCPU created by Unknown6656") },
-            // TODO : SYSCALLS
+            { 0, (p, _) => Console.WriteLine("MCPU created by Unknown6656") },
+            { 1, (p, _) => ConsoleExtensions.HexDump(p.ToBytes()) }
         };
-
+        
         public const int IP_OFFS = 0x04;
         public const int FLAG_OFFS = 0x08;
         public const int RESV_OFFS = 0x0a;
@@ -94,6 +96,15 @@ namespace MCPU
         }
 
         /// <summary>
+        /// The instruction segment size (in bytes)
+        /// </summary>
+        public int InstructionSegmentSize
+        {
+            get => *((int*)(raw + INSZ_OFFS));
+            private set => *((int*)(raw + INSZ_OFFS)) = value;
+        }
+
+        /// <summary>
         /// The total (kernelspace) memory size (in bytes)
         /// </summary>
         public int RawSize
@@ -144,7 +155,34 @@ namespace MCPU
         /// <summary>
         /// Returns a list of all instructions
         /// </summary>
-        public Instruction[] Instructions { get; internal set; }
+        public Instruction[] Instructions
+#if USE_INSTRUCTION_CACHE
+            { set; get; }
+#else
+        {
+            set
+            {
+                byte[] bytes = Instruction.SerializeMultiple(value ?? new Instruction[0]);
+                int len = bytes.Length;
+                int rsz = RawSize;
+
+                InstructionSegmentSize = len;
+                raw = (byte*)Marshal.ReAllocHGlobal((IntPtr)raw, (IntPtr)(rsz + len));
+
+                for (int i = 0; i < len; i++)
+                    raw[rsz + i] = bytes[i];
+            }
+            get
+            {
+                byte[] bytes = new byte[InstructionSegmentSize];
+
+                for (int i = 0, l = bytes.Length, rsz = RawSize; i < l; i++)
+                    bytes[i] = raw[rsz + i];
+
+                return Instruction.DeserializeMultiple(bytes);
+            }
+        }
+#endif
 
         /// <summary>
         /// The stack size (in 4-byte blocks)
@@ -212,6 +250,7 @@ namespace MCPU
         {
             if (ms > 0)
             {
+                Thread.Sleep(ms);
 
 
                 // TODO
@@ -380,7 +419,7 @@ namespace MCPU
         /// <returns>Memory byte representation</returns>
         public byte[] ToBytes()
         {
-            int size = RawSize;
+            int size = RawSize + InstructionSegmentSize;
             byte[] targ = new byte[size];
 
             fixed (byte* ptr = targ)
