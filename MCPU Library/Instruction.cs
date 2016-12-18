@@ -162,7 +162,7 @@ namespace MCPU
     }
 
     /// <summary>
-    /// Represents an OP code which performs a binary arithmetic function
+    /// Represents an OP code which performs a unary arithmetic function
     /// </summary>
     public abstract unsafe class ArithmeticUnaryOPCode
         : OPCode
@@ -182,7 +182,7 @@ namespace MCPU
     }
 
     /// <summary>
-    /// Represents an OP code which performs an unary arithmetic function
+    /// Represents an OP code which performs an binary arithmetic function
     /// </summary>
     public abstract unsafe class ArithmeticBinaryOPCode
         : OPCode
@@ -197,6 +197,47 @@ namespace MCPU
                 AssertNotInstructionSpace(1, _);
                 
                 *p.TranslateAddress(_[0]) = func(*p.TranslateAddress(_[0]), *p.TranslateAddress(_[1]));
+            })
+        {
+        }
+    }
+
+    /// <summary>
+    /// Represents an OP code which performs a unary floating-point arithmetic function
+    /// </summary>
+    public abstract unsafe class FloatingPointArithmeticUnaryOPCode
+        : OPCode
+    {
+        /// <summary>
+        /// Creates a new OP code using the given unary floating-point arithmetic function
+        /// </summary>
+        /// <param name="func">Unary floating-point arithmetic function</param>
+        public FloatingPointArithmeticUnaryOPCode(Func<float, float> func)
+            : base(1, (p, _) => {
+                AssertAddress(0, _);
+
+                *((float*)p.TranslateAddress(_[0])) = func(p.TranslateFloatConstant(_[0]));
+            })
+        {
+        }
+    }
+
+    /// <summary>
+    /// Represents an OP code which performs an binary floating-point arithmetic function
+    /// </summary>
+    public abstract unsafe class FloatingPointArithmeticBinaryOPCode
+        : OPCode
+    {
+        /// <summary>
+        /// Creates a new OP code using the given binary floating-point arithmetic function
+        /// </summary>
+        /// <param name="func">Binary floating-point arithmetic function</param>
+        public FloatingPointArithmeticBinaryOPCode(Func<float, float, float> func)
+            : base(2, (p, _) => {
+                AssertAddress(0, _);
+                AssertNotInstructionSpace(1, _);
+
+                *((float*)p.TranslateAddress(_[0])) = func(p.TranslateFloatConstant(_[0]), p.TranslateFloatConstant(_[1]));
             })
         {
         }
@@ -589,6 +630,10 @@ namespace MCPU
         /// Represents a jump label
         /// </summary>
         Label = 0b0000_0100,
+        /// <summary>
+        /// Represents a floating-point number instead of an integer number
+        /// </summary>
+        FloatingPoint = 0b0100_0000,
         /// <summary>
         /// Uses the kernel-space addresses instead of user-space addresses
         /// </summary>

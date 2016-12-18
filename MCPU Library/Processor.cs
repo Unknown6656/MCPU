@@ -4,10 +4,10 @@ using System.Diagnostics.Contracts;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using System.Threading;
 using System.Linq;
 using System.Text;
 using System;
-using System.Threading;
 
 namespace MCPU
 {
@@ -430,6 +430,20 @@ namespace MCPU
         /// <param name="arg">Instruction argument</param>
         /// <returns>'Translated' constant</returns>
         public int TranslateConstant(InstructionArgument arg) => *TranslateAddress(arg);
+
+        /// <summary>
+        /// 'Translates' the given argument into a float*-pointer pointing to the (indirect) memory address or constant, to which the given argument is referring
+        /// </summary>
+        /// <param name="arg">Instruction argument</param>
+        /// <returns>'Translated' floating-point address</returns>
+        public float* TranslateFloatAddress(InstructionArgument arg) => (float*)TranslateAddress(arg);
+
+        /// <summary>
+        /// 'Translates' the given argument into a floating-point constant which is the value of the pointer, to which the given argument points
+        /// </summary>
+        /// <param name="arg">Instruction argument</param>
+        /// <returns>'Translated' floating-point constant</returns>
+        public float TranslateFloatConstant(InstructionArgument arg) => *TranslateFloatAddress(arg);
 
         /// <summary>
         /// Pops an integer from the MCPU callstack (UNSAFE!)
