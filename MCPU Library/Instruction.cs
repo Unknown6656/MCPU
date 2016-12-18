@@ -39,18 +39,24 @@ namespace MCPU
         /// <summary>
         /// Returns the OP code's number associated with the current instance
         /// </summary>
-        public int Number { get; }
+        public ushort Number { get; }
 
 
         internal void __process(Processor p, params InstructionArgument[] arguments)
         {
             if ((RequiredArguments > 0) && (arguments.Length < RequiredArguments))
-                throw new ArgumentException($"The intruction {Token} requires at least {RequiredArguments} arguments.", nameof(arguments));
+                throw new ArgumentException($"The instruction {Token} requires at least {RequiredArguments} arguments.", nameof(arguments));
             else if (!p.IsElevated && RequiresEleveation)
                 throw new MissingPrivilegeException();
             else
                 Process(p ?? throw new ArgumentNullException("The processor must not be null."), RequiredArguments < 1 ? new InstructionArgument[0] : arguments.Take(RequiredArguments).ToArray());
         }
+
+        /// <summary>
+        /// Returns the string representation of the current OP code
+        /// </summary>
+        /// <returns>String representation</returns>
+        public override string ToString() => $"0x{Number:x4}: {(RequiresEleveation ? "__kernel " : "")}{Token}({RequiredArguments})";
 
         /// <summary>
         /// Creates a new OP code
@@ -156,10 +162,92 @@ namespace MCPU
     }
 
     /// <summary>
+    /// Represents an OP code which performs a unary arithmetic function
+    /// </summary>
+    public abstract unsafe class ArithmeticUnaryOPCode
+        : OPCode
+    {
+        /// <summary>
+        /// Creates a new OP code using the given unary arithmetic function
+        /// </summary>
+        /// <param name="func">Unary arithmetic function</param>
+        public ArithmeticUnaryOPCode(Func<int, int> func)
+            : base(1, (p, _) => {
+                AssertAddress(0, _);
+
+                *p.TranslateAddress(_[0]) = func(*p.TranslateAddress(_[0]));
+            })
+        {
+        }
+    }
+
+    /// <summary>
+    /// Represents an OP code which performs an binary arithmetic function
+    /// </summary>
+    public abstract unsafe class ArithmeticBinaryOPCode
+        : OPCode
+    {
+        /// <summary>
+        /// Creates a new OP code using the given binary arithmetic function
+        /// </summary>
+        /// <param name="func">Binary arithmetic function</param>
+        public ArithmeticBinaryOPCode(Func<int, int, int> func)
+            : base(2, (p, _) => {
+                AssertAddress(0, _);
+                AssertNotInstructionSpace(1, _);
+                
+                *p.TranslateAddress(_[0]) = func(*p.TranslateAddress(_[0]), *p.TranslateAddress(_[1]));
+            })
+        {
+        }
+    }
+
+    /// <summary>
+    /// Represents an OP code which performs a unary floating-point arithmetic function
+    /// </summary>
+    public abstract unsafe class FloatingPointArithmeticUnaryOPCode
+        : OPCode
+    {
+        /// <summary>
+        /// Creates a new OP code using the given unary floating-point arithmetic function
+        /// </summary>
+        /// <param name="func">Unary floating-point arithmetic function</param>
+        public FloatingPointArithmeticUnaryOPCode(Func<float, float> func)
+            : base(1, (p, _) => {
+                AssertAddress(0, _);
+
+                *((float*)p.TranslateAddress(_[0])) = func(p.TranslateFloatConstant(_[0]));
+            })
+        {
+        }
+    }
+
+    /// <summary>
+    /// Represents an OP code which performs an binary floating-point arithmetic function
+    /// </summary>
+    public abstract unsafe class FloatingPointArithmeticBinaryOPCode
+        : OPCode
+    {
+        /// <summary>
+        /// Creates a new OP code using the given binary floating-point arithmetic function
+        /// </summary>
+        /// <param name="func">Binary floating-point arithmetic function</param>
+        public FloatingPointArithmeticBinaryOPCode(Func<float, float, float> func)
+            : base(2, (p, _) => {
+                AssertAddress(0, _);
+                AssertNotInstructionSpace(1, _);
+
+                *((float*)p.TranslateAddress(_[0])) = func(p.TranslateFloatConstant(_[0]), p.TranslateFloatConstant(_[1]));
+            })
+        {
+        }
+    }
+
+    /// <summary>
     /// 
     /// </summary>
     [Serializable]
-    public class Instruction
+    public unsafe class Instruction
     {
         /// <summary>
         /// The instruction's OP code
@@ -175,6 +263,12 @@ namespace MCPU
         /// </summary>
         /// <param name="p">Processor</param>
         public void Process(Processor p) => OPCode.__process(p, Arguments);
+
+        /// <summary>
+        /// Returns the string representation of the current instruction
+        /// </summary>
+        /// <returns>String representation</returns>
+        public override string ToString() => $"\"{OPCode}\" [{string.Join(", ", Arguments)}]";
 
         /// <summary>
         /// Creates a new instance
@@ -194,13 +288,181 @@ namespace MCPU
         {
             OPCode = opcode;
             Arguments = args ?? new InstructionArgument[0];
+
+            if (Arguments.Length > 0xff)
+                throw new InvalidProgramException("A single instruction cannot accept more than 255 arguments.");
         }
+
+        /// <summary>
+        /// Serializes the current instruction into a byte array
+        /// </summary>
+        /// <returns>Serialized instruction</returns>
+        public byte[] Serialize()
+        {
+            byte argc = (byte)Arguments.Length;
+            byte[] bytes = new byte[3 + argc * 5];
+
+            fixed (byte* ptr = bytes)
+            {
+                *((ushort*)ptr) = OPCode.Number;
+                ptr[2] = argc;
+
+                for (int i = 0; i < argc; i++)
+                {
+                    byte* optr = ptr + 3 + i * 5;
+
+                    *optr = (byte)Arguments[i].Type;
+                    *((int*)(optr + 1)) = Arguments[i];
+                }
+            }
+
+            return bytes;
+        }
+
+        /// <summary>
+        /// Serializes the given instruction into a byte array
+        /// </summary>
+        /// <param name="ins">Instruction</param>
+        /// <returns>Serialized instruction</returns>
+        public static byte[] Serialize(Instruction ins) => ins.Serialize();
+
+        /// <summary>
+        /// Deserializes a given byte array into an instruction-instance
+        /// </summary>
+        /// <param name="bytes">Serialized byte array</param>
+        /// <returns>Deserialized instruction</returns>
+        public static Instruction Deserialize(byte[] bytes) => Deserialize(bytes, false);
+
+        /// <summary>
+        /// Deserializes a given byte array into an instruction-instance
+        /// </summary>
+        /// <param name="bytes">Serialized byte array</param>
+        /// <param name="silent">Indicates, that no execption should be thrown in case of errors</param>
+        /// <returns>Deserialized instruction</returns>
+        public static Instruction Deserialize(byte[] bytes, bool silent)
+        {
+            try
+            {
+                return __deserialize(bytes).Item1;
+            }
+            catch
+            {
+                if (silent)
+                    return null;
+                else
+                    throw;
+            }
+        }
+
+        internal static (Instruction, int) __deserialize(byte[] bytes)
+        {
+            if ((bytes = bytes ?? new byte[0]).Length >= 3)
+                fixed (byte* ptr = bytes)
+                {
+                    InstructionArgument[] args = new InstructionArgument[ptr[2]];
+
+                    for (int i = 0; i < args.Length; i++)
+                        args[i] = (*((int*)(ptr + 4 + i * 5)), (ArgumentType)ptr[3 + i * 5]);
+
+                    return ((OPCodes.Codes[*((ushort*)ptr)], args), 3 + args.Length * 5);
+                }
+
+            throw new ArgumentException($"A instruction representation is composed of at least 3 bytes, however, only {bytes.Length} bytes were given.", nameof(bytes));
+        }
+
+        /// <summary>
+        /// Serializes multiple instructions into a byte array
+        /// </summary>
+        /// <param name="instr">Instructions</param>
+        /// <returns>Serialized instructions</returns>
+        public static byte[] SerializeMultiple(Instruction[] instr)
+        {
+            int len = (instr = instr ?? new Instruction[0]).Length;
+            List<byte> bytes = new List<byte>();
+            byte[] sz = new byte[4];
+
+            fixed (void* ptr = sz)
+                *((int*)ptr) = len;
+
+            bytes.AddRange(sz);
+
+            for (int i = 0; i < len; i++)
+                bytes.AddRange(instr[i]?.Serialize() ?? new byte[3]);
+
+            return bytes.ToArray();
+        }
+
+        /// <summary>
+        /// Deserializes the given byte array into multiple instructions
+        /// </summary>
+        /// <param name="bytes">Serialized byte array</param>
+        /// <returns>Deserialized instructions</returns>
+        public static Instruction[] DeserializeMultiple(byte[] bytes) => DeserializeMultiple(bytes, false);
+
+        /// <summary>
+        /// Deserializes the given byte array into multiple instructions
+        /// </summary>
+        /// <param name="bytes">Serialized byte array</param>
+        /// <param name="silent">Indicates, that no execption should be thrown in case of errors</param>
+        /// <returns>Deserialized instructions</returns>
+        public static Instruction[] DeserializeMultiple(byte[] bytes, bool silent)
+        {
+            bytes = bytes ?? new byte[4];
+
+            if (bytes.Length >= 4)
+                fixed (byte* ptr = bytes)
+                    try
+                    {
+                        int len = *((int*)ptr), offs = 4;
+                        Instruction[] instr = new Instruction[len];
+
+                        for (int i = 0; i < len; i++)
+                        {
+                            (Instruction ins, int size) = __deserialize(bytes.Skip(offs).ToArray());
+
+                            instr[i] = ins;
+                            offs += size;
+                        }
+
+                        return instr;
+                    }
+                    catch
+                    {
+                        if (silent)
+                            return null;
+                        else
+                            throw;
+                    }
+
+            return silent ? null as Instruction[] : throw new ArgumentException($"A representation of multiple instructions is composed of at least 4 bytes, however, only {bytes.Length} bytes were given.", nameof(bytes));
+        }
+
+        /// <summary>
+        /// Creates a new instruction based on the given OP code and arguments
+        /// </summary>
+        /// <param name="opcode">OP code</param>
+        /// <param name="args">Arguments</param>
+        /// <returns>Instruction</returns>
+        public static Instruction Create(int opcode, params InstructionArgument[] args) => Create(OPCodes.Codes[(ushort)opcode], args);
+
+        /// <summary>
+        /// Creates a new instruction based on the given OP code and arguments
+        /// </summary>
+        /// <param name="opcode">OP code</param>
+        /// <param name="args">Arguments</param>
+        /// <returns>Instruction</returns>
+        public static Instruction Create(OPCode opcode, params InstructionArgument[] args) => (opcode, args);
+
 
         public static implicit operator Instruction(OPCode opc) => new Instruction(opc);
 
-        public static implicit operator Instruction((OPCode, InstructionArgument[]) ins) => new Instruction(ins.Item1, ins.Item2);
+        public static implicit operator Instruction((int, IEnumerable<InstructionArgument>) ins) => new Instruction(OPCodes.Codes[(ushort)ins.Item1], ins.Item2?.ToArray());
+
+        public static implicit operator Instruction((OPCode, IEnumerable<InstructionArgument>) ins) => new Instruction(ins.Item1, ins.Item2?.ToArray());
 
         public static implicit operator (OPCode, InstructionArgument[]) (Instruction ins) => (ins.OPCode, ins.Arguments);
+
+        public static implicit operator (ushort, InstructionArgument[]) (Instruction ins) => (ins.OPCode.Number, ins.Arguments);
     }
 
     /// <summary>
@@ -251,6 +513,10 @@ namespace MCPU
         /// </summary>
         public int ReturnAddress { get; internal set; }
         /// <summary>
+        /// The saved status flags
+        /// </summary>
+        public StatusFlags SavedFlags { get; internal set; }
+        /// <summary>
         /// The call's arguments
         /// </summary>
         public int[] Arguments { get; internal set; }
@@ -258,27 +524,29 @@ namespace MCPU
         /// Returns the unmanaged size of the current function call
         /// </summary>
         public int Size => 2 + Arguments.Length;
+        
 
         /// <summary>
         /// Creates a new instance
         /// </summary>
         /// <param name="ret">Return address</param>
         /// <param name="args">Call arguments</param>
-        public FunctionCall(int ret, params int[] args)
+        public FunctionCall(int ret, StatusFlags flags, params int[] args)
         {
             Arguments = args;
+            SavedFlags = flags;
             ReturnAddress = ret;
         }
         /// <summary>
         /// Returns the string representation of the current function call
         /// </summary>
         /// <returns>String representation</returns>
-        public override string ToString() => $"ret: {ReturnAddress:x}, args: ({string.Join(", ", Arguments)})";
+        public override string ToString() => $"ret: {ReturnAddress:x}, flags: {SavedFlags}, args: ({string.Join(", ", Arguments)})";
 
 
-        public static implicit operator int[] (FunctionCall call) => new int[] { call.ReturnAddress, call.Arguments.Length }.Concat(call.Arguments).ToArray();
+        public static implicit operator int[] (FunctionCall call) => new int[] { call.ReturnAddress, (int)call.SavedFlags, call.Arguments.Length }.Concat(call.Arguments).ToArray();
 
-        public static implicit operator FunctionCall(int[] raw) => new FunctionCall { ReturnAddress = raw[0], Arguments = raw.Skip(2).Take(raw[1]).ToArray() };
+        public static implicit operator FunctionCall(int[] raw) => new FunctionCall { ReturnAddress = raw[0], SavedFlags = (StatusFlags)raw[1], Arguments = raw.Skip(3).Take(raw[2]).ToArray() };
     }
 
     /// <summary>
@@ -329,6 +597,10 @@ namespace MCPU
         public static implicit operator int(InstructionArgument arg) => arg.Value;
 
         public static implicit operator InstructionArgument(int val) => new InstructionArgument { Value = val, Type = ArgumentType.Constant };
+
+        public static implicit operator (int, ArgumentType) (InstructionArgument arg) => (arg.Value, arg.Type);
+
+        public static implicit operator InstructionArgument((int, ArgumentType) val) => new InstructionArgument { Value = val.Item1, Type = val.Item2 };
     }
 
     /// <summary>
@@ -358,6 +630,10 @@ namespace MCPU
         /// Represents a jump label
         /// </summary>
         Label = 0b0000_0100,
+        /// <summary>
+        /// Represents a floating-point number instead of an integer number
+        /// </summary>
+        FloatingPoint = 0b0100_0000,
         /// <summary>
         /// Uses the kernel-space addresses instead of user-space addresses
         /// </summary>

@@ -4,10 +4,10 @@ using System.Diagnostics.Contracts;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using System.Threading;
 using System.Linq;
 using System.Text;
 using System;
-using System.Threading;
 
 namespace MCPU
 {
@@ -21,7 +21,7 @@ namespace MCPU
 
         internal readonly Dictionary<int, Action<InstructionArgument[]>> __syscalltable = new Dictionary<int, Action<InstructionArgument[]>> {
             { -1, delegate { /*  ABK INSTRUCTION  */ } },
-
+            { 0, _ => Console.WriteLine("MCPU created by Unknown6656") },
             // TODO : SYSCALLS
         };
 
@@ -107,8 +107,8 @@ namespace MCPU
         /// </summary>
         public StatusFlags Flags
         {
-            get => *((StatusFlags*)(raw + MEMS_OFFS));
-            private set => *((StatusFlags*)(raw + MEMS_OFFS)) = value;
+            get => *((StatusFlags*)(raw + FLAG_OFFS));
+            internal set => *((StatusFlags*)(raw + FLAG_OFFS)) = value;
         }
 
         /// <summary>
@@ -117,7 +117,7 @@ namespace MCPU
         public InformationFlags InformationFlags
         {
             get => *((InformationFlags*)(raw + RESV_OFFS));
-            private set => *((InformationFlags*)(raw + RESV_OFFS)) = value;
+            internal set => *((InformationFlags*)(raw + RESV_OFFS)) = value;
         }
 
         /// <summary>
@@ -139,7 +139,7 @@ namespace MCPU
         /// <summary>
         /// Returns the current instruction
         /// </summary>
-        public Instruction CurrentInstruction => (IP < 0) || (IP >= Instructions.Length) ? new halt() : Instructions[IP];
+        public Instruction CurrentInstruction => (IP < 0) || (IP >= Instructions.Length) ? OPCodes.HALT : Instructions[IP];
 
         /// <summary>
         /// Returns a list of all instructions
@@ -204,10 +204,37 @@ namespace MCPU
             // TODO
         }
 
+        /// <summary>
+        /// Suspends the processor for the given time interval
+        /// </summary>
+        /// <param name="ms">Time interval (in ms)</param>
+        public void Sleep(int ms)
+        {
+            if (ms > 0)
+            {
+
+
+                // TODO
+
+            }
+        }
+
+        /// <summary>
+        /// Resets the processor into its original state
+        /// </summary>
         public void Reset()
         {
             Halt();
 
+            IP = 0;
+            StackSize = 0;
+            KernelSpace[3] = 0;
+            Flags = StatusFlags.Empty;
+            InformationFlags = InformationFlags.Empty;
+            Instructions = new Instruction[0];
+            
+            for (int i = IO_OFFS, s = RawSize; i < s; i++)
+                raw[i] = 0;
         }
 
         /// <summary>
@@ -239,7 +266,7 @@ namespace MCPU
         {
             Instruction ins = Instructions[IP];
 
-            if ((ins != null) && (ins.GetType() != typeof(halt)))
+            if ((ins != null) && (ins.GetType() != typeof(Instructions.halt)))
             {
                 ins.Process(this);
 
@@ -269,7 +296,7 @@ namespace MCPU
         /// <param name="ins"></param>
         public void ProcessWithoutReset(params Instruction[] ins)
         {
-            Instructions = ins.Concat(new Instruction[] { new halt() }).ToArray();
+            Instructions = ins.Concat(new Instruction[] { OPCodes.HALT, OPCodes.HALT }).ToArray();
             IsRunning = true;
 
             Exception res;
@@ -312,6 +339,7 @@ namespace MCPU
                 Push(a);
 
             Push(call.Arguments.Length);
+            Push((int)call.SavedFlags);
             Push(call.ReturnAddress);
         }
 
@@ -336,6 +364,7 @@ namespace MCPU
         {
             FunctionCall call = new FunctionCall {
                 ReturnAddress = Pop(),
+                SavedFlags = (StatusFlags)Pop(),
                 Arguments = new int[Pop()]
             };
 
@@ -384,6 +413,8 @@ namespace MCPU
                 {
                     if (!arg.IsKernel)
                         val += MEM_OFFS;
+                    else if (!IsElevated)
+                        throw new MissingPrivilegeException();
 
                     return KernelSpace + (arg.Type.HasFlag(ArgumentType.Indirect) ? KernelSpace[val] : val);
                 }
@@ -392,6 +423,27 @@ namespace MCPU
             }
             else throw new ArgumentException("The given argument must not be a function or a label.");
         }
+
+        /// <summary>
+        /// 'Translates' the given argument into a constant which is the value of the pointer, to which the given argument points
+        /// </summary>
+        /// <param name="arg">Instruction argument</param>
+        /// <returns>'Translated' constant</returns>
+        public int TranslateConstant(InstructionArgument arg) => *TranslateAddress(arg);
+
+        /// <summary>
+        /// 'Translates' the given argument into a float*-pointer pointing to the (indirect) memory address or constant, to which the given argument is referring
+        /// </summary>
+        /// <param name="arg">Instruction argument</param>
+        /// <returns>'Translated' floating-point address</returns>
+        public float* TranslateFloatAddress(InstructionArgument arg) => (float*)TranslateAddress(arg);
+
+        /// <summary>
+        /// 'Translates' the given argument into a floating-point constant which is the value of the pointer, to which the given argument points
+        /// </summary>
+        /// <param name="arg">Instruction argument</param>
+        /// <returns>'Translated' floating-point constant</returns>
+        public float TranslateFloatConstant(InstructionArgument arg) => *TranslateFloatAddress(arg);
 
         /// <summary>
         /// Pops an integer from the MCPU callstack (UNSAFE!)
@@ -433,6 +485,20 @@ namespace MCPU
             else
                 throw new InsufficientExecutionStackException("There is no element on the stack (aka StackUnderflowException).");
         }
+        
+        /// <summary>
+        /// Translates the given int*-pointer to a user-space address and returns the address as integer
+        /// </summary>
+        /// <param name="addr">Address pointer</param>
+        /// <returns>Address</returns>
+        public int GetUserAddress(int* addr) => GetKernelAddress(addr) - MEM_OFFS;
+
+        /// <summary>
+        /// Translates the given int*-pointer to a kernel-space address and returns the address as integer
+        /// </summary>
+        /// <param name="addr">Address pointer</param>
+        /// <returns>Address</returns>
+        public int GetKernelAddress(int* addr) => (int)(addr - KernelSpace);
 
         internal int UserToKernel(int addr) => VerifyUserspaceAddr(addr, addr + MEM_OFFS);
 
@@ -684,6 +750,44 @@ namespace MCPU
     public enum StatusFlags
         : ushort
     {
+        /// <summary>
+        /// Indicates that the first comparison input is zero
+        /// </summary>
+        Zero1 = 0b1000_0000_0000_0000,
+        /// <summary>
+        /// Indicates that the second comparison input is zero
+        /// </summary>
+        Zero2 = 0b0100_0000_0000_0000,
+        /// <summary>
+        /// Indicates that the first comparison input is negative
+        /// </summary>
+        Sign1 = 0b0010_0000_0000_0000,
+        /// <summary>
+        /// Indicates that the second comparison input is negative
+        /// </summary>
+        Sign2 = 0b0001_0000_0000_0000,
+        /// <summary>
+        /// Indicates that both comparison inputs are equal
+        /// </summary>
+        Equal = 0b0000_1000_0000_0000,
+        /// <summary>
+        /// Indicates that the fist comarison input is smaller than the second input
+        /// </summary>
+        Lower = 0b0000_0100_0000_0000,
+        /// <summary>
+        /// Indicates that the fist comarison input is greater than the second input
+        /// </summary>
+        Greater = 0b0000_0010_0000_0000,
+        /// <summary>
+        /// Indicates that the comparison had only one input (meaning that the first input is zero, and the second one is the 'real' input)
+        /// </summary>
+        Unary = 0b0000_0001_0000_0000,
+
+
+        /// <summary>
+        /// Represents no flag
+        /// </summary>
+        Empty = 0b0000_0000_0000_0000,
     }
     
     /// <summary>
@@ -701,5 +805,9 @@ namespace MCPU
         /// Indicates, that the processor is currently running
         /// </summary>
         Running = 0b0100_0000_0000_0000,
+        /// <summary>
+        /// Represents no flag
+        /// </summary>
+        Empty = 0b0000_0000_0000_0000,
     }
 }
