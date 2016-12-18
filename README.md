@@ -6,6 +6,7 @@ This project is a microprocessor emulator, which comes with its own instruction 
 * [Introduction](https://github.com/Unknown6656/MCPU/blob/documentation/Documentation/introduction.md)
 * [Instruction set](https://github.com/Unknown6656/MCPU/blob/documentation/Documentation/instruction-set.md)
 * [Syscall table](https://github.com/Unknown6656/MCPU/blob/documentation/Documentation/syscalls.md)
+* [Language reference](https://github.com/Unknown6656/MCPU/blob/documentation/Documentation/language-reference.md)
 
 ### TODO-List
 
