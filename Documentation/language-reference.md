@@ -11,7 +11,7 @@ A jump label must have a unique (case-insensitive) name throughout the program a
 label:
     instruction
 ```
-A function can be defined using the `FUNC`-token, and called using the `CALL`-OP code:
+A function can be defined using the `FUNC`-token, and called using the `CALL`-OP code. The closing `END FUNC`-token is also an implicit `RET`-instruction, however, one can prematurely exit a function using `RET`:
 ```
 FUNC myfunction
     instruction
