@@ -14,6 +14,19 @@ using System;
 namespace MCPU
 {
     /// <summary>
+    /// A general MCPU processor event handler
+    /// </summary>
+    /// <param name="p">Processor instance</param>
+    public delegate void ProcessEventHandler(Processor p);
+    /// <summary>
+    /// A general generic MCPU processor event handler
+    /// </summary>
+    /// <typeparam name="T">Generic argument type T</typeparam>
+    /// <param name="p">Processor instance</param>
+    /// <param name="args">Argument of type T</param>
+    public delegate void ProcessEventHandler<T>(Processor p, T args);
+
+    /// <summary>
     /// Represents the MSCPU-processor
     /// </summary>
     public unsafe sealed class Processor
@@ -46,6 +59,38 @@ namespace MCPU
 #endif
         internal bool disposed = false;
         internal byte* raw;
+
+        #endregion
+        #region EVENTS
+
+        /// <summary>
+        /// Raised after an instruction has been executed
+        /// </summary>
+        public event ProcessEventHandler<Instruction> InstructionExecuted;
+        /// <summary>
+        /// Rasied when a user-space memory access occures. The event is NOT raised, if the processor is running in elevated (kernel) mode
+        /// </summary>
+        public event ProcessEventHandler<int> UserspaceWriteAccess;
+        /// <summary>
+        /// Raised when the status flags are changed
+        /// </summary>
+        public event ProcessEventHandler<StatusFlags> StatusFlagsChanged;
+        /// <summary>
+        /// Raised when the information flags are changed
+        /// </summary>
+        public event ProcessEventHandler<InformationFlags> InformationFlagsChanged;
+        /// <summary>
+        /// Raised when the processor is halted
+        /// </summary>
+        public event ProcessEventHandler ProcessorHalted;
+        /// <summary>
+        /// Rasied when the processor is resetted to its original state
+        /// </summary>
+        public event ProcessEventHandler ProcessorReset;
+        /// <summary>
+        /// Raised if an exception occurs
+        /// </summary>
+        public event ProcessEventHandler<Exception> OnError;
 
         #endregion
         #region PROPERTIES
@@ -119,7 +164,12 @@ namespace MCPU
         public StatusFlags Flags
         {
             get => *((StatusFlags*)(raw + FLAG_OFFS));
-            internal set => *((StatusFlags*)(raw + FLAG_OFFS)) = value;
+            internal set
+            {
+                *((StatusFlags*)(raw + FLAG_OFFS)) = value;
+
+                StatusFlagsChanged?.Invoke(this, value);
+            }
         }
 
         /// <summary>
@@ -128,7 +178,12 @@ namespace MCPU
         public InformationFlags InformationFlags
         {
             get => *((InformationFlags*)(raw + RESV_OFFS));
-            internal set => *((InformationFlags*)(raw + RESV_OFFS)) = value;
+            internal set
+            {
+                *((InformationFlags*)(raw + RESV_OFFS)) = value;
+
+                InformationFlagsChanged?.Invoke(this, value);
+            }
         }
 
         /// <summary>
@@ -139,7 +194,11 @@ namespace MCPU
         public int this[int addr]
         {
             get => VerifyUserspaceAddr(addr, () => ((int*)(raw + MEM_OFFS))[addr]);
-            set => VerifyUserspaceAddr(addr, ((int*)(raw + MEM_OFFS))[addr] = value);
+            set => VerifyUserspaceAddr(addr, () => {
+                ((int*)(raw + MEM_OFFS))[addr] = value;
+
+                UserspaceWriteAccess?.Invoke(this, addr);
+            });
         }
         
         /// <summary>
@@ -238,6 +297,7 @@ namespace MCPU
         {
             IsRunning = false;
 
+            ProcessorHalted?.Invoke(this);
 
             // TODO
         }
@@ -274,6 +334,8 @@ namespace MCPU
             
             for (int i = IO_OFFS, s = RawSize; i < s; i++)
                 raw[i] = 0;
+
+            ProcessorReset?.Invoke(this);
         }
 
         /// <summary>
@@ -308,6 +370,8 @@ namespace MCPU
             if ((ins != null) && (ins.GetType() != typeof(Instructions.halt)))
             {
                 ins.Process(this);
+
+                InstructionExecuted?.Invoke(this, ins);
 
                 if (!ins.OPCode.SpecialIPHandling)
                     if (IP < Instructions.Length)
@@ -360,7 +424,7 @@ namespace MCPU
             res = t.Result; // CANNOT USE AWAIT, AS IT IS AN UNSAFE CONTEXT
 
             if (res != null)
-                ; // TODO : HANDLER
+                OnError?.Invoke(this, res);
 
             Halt();
         }
@@ -543,6 +607,12 @@ namespace MCPU
 
         internal void VerifyUserspaceAddr(int addr) => VerifyUserspaceAddr<object>(addr, null);
 
+        internal void VerifyUserspaceAddr(int addr, Action action) => VerifyUserspaceAddr(addr, () => {
+            action();
+
+            return null as object;
+        });
+        
         internal T VerifyUserspaceAddr<T>(int addr, T value) => VerifyUserspaceAddr(addr, () => value);
 
         internal T VerifyUserspaceAddr<T>(int addr, Func<T> action) =>

@@ -22,6 +22,11 @@ namespace MCPU
 
             proc.IO.SetValue(7, 12);
             proc.IO.SetValue(13, 5);
+            proc.OnError += (p, ex) => {
+                ForegroundColor = ConsoleColor.Red;
+                WriteLine($"WELL FUGG :D\n{ex.Message}\n{ex.StackTrace}");
+                ForegroundColor = ConsoleColor.White;
+            };
 
             for (int i = 0; i < 32; i++)
                 proc[i] = i | (i << 8) | (i << 16) | (i << 24);
