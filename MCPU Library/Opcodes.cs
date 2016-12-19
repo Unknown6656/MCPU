@@ -9,9 +9,7 @@ using static System.Math;
 namespace MCPU.Instructions
 {
 #pragma warning disable IDE1006 // DISABLE CLASS NAMING CONVENTION WARNING (THE INSTRUCTION NAMES DO NOT FOLLOW THE PASCAL CONVENTION)
-    #region
-    #endregion
-
+    
     [OPCodeNumber(0x0000)]
     public sealed class nop
         : OPCode
