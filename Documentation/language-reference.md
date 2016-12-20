@@ -35,6 +35,8 @@ A list of all instructions can be found [here](./instruction-set.md).
 
 ### Instruction parameters
 
+A MCPU instruction can accept up to 255 parameters due to the internal representation of instructions.  
+A function call can only accept up to 254 arguments, as the first argument must be the function's name.
 The MCPU assembly language generally differentiates between multiple types of parameters (or arguments) which can be passed to a function or OP code.
 
 The first type are constant parameters, which can have the following form:
@@ -92,6 +94,8 @@ After its execution, the memory map looks as follows:
    0005	 |    0
     :    :    :
 ```
+Kernel addresses (and indirect kernel address) can be accessed using a leading 'k' (see [the privileged section](#privileged-instructions-and-operations) for more information)
+
 
 The fourth type are functions and labels, which can be addressed using their name:
 ```
