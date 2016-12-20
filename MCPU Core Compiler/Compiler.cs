@@ -75,25 +75,43 @@ namespace MCPU.Compiler
             int id = 0;
 
             (MCPUFunction[], int, string) Error(string message) => (null, linenr + 1, message);
+            MCPUFunction FindFirst(string name) => (from f in functions where f.Name == name select f).FirstOrDefault();
             bool CheckGroup(string name, out string value) => (value = match.Groups[name].ToString().Trim()).Length > 0;
-            int ParseIntArg(string arg)
+            int ParseIntArg(string s)
             {
-                arg = arg.ToLower().Trim();
+                int intparse(string arg)
+                {
+                    if (arg.EndsWith("h"))
+                        return int.Parse(arg.Remove(arg.Length - 1), NumberStyles.HexNumber);
+                    else if (arg.StartsWith("0x"))
+                        return int.Parse(arg.Remove(0, 2), NumberStyles.HexNumber | NumberStyles.AllowHexSpecifier);
+                    else if (arg.StartsWith("0b"))
+                        return Convert.ToInt32(arg.Remove(0, 2), 2);
+                    else if (arg.StartsWith("0o"))
+                        return Convert.ToInt32(arg.Remove(0, 2), 8);
+                    else if ((arg == "null") & (arg == "false"))
+                        return 0;
+                    else if (arg == "true")
+                        return 1;
+                    else
+                        return int.Parse(arg);
+                }
 
-                if (arg.EndsWith("h"))
-                    return int.Parse(arg.Remove(arg.Length - 1), NumberStyles.HexNumber);
-                else if (arg.Contains("0x"))
-                    return int.Parse(arg, NumberStyles.HexNumber | NumberStyles.AllowHexSpecifier);
-                else if (arg.StartsWith("0b"))
-                    return Convert.ToInt32(arg.Remove(0, 2), 2);
-                else if (arg.StartsWith("0o"))
-                    return Convert.ToInt32(arg.Remove(0, 2), 8);
-                else if ((arg == "null") & (arg == "false"))
-                    return 0;
-                else if (arg == "true")
-                    return 1;
-                else
-                    return int.Parse(arg);
+                bool isneg = false;
+
+                s = s.ToLower().Trim();
+
+                if (s.StartsWith("+"))
+                    s = s.Remove(0, 1);
+                else if (s.StartsWith("-"))
+                {
+                    isneg = true;
+                    s = s.Remove(0, 1);
+                }
+
+                int val = intparse(s.Trim());
+
+                return isneg ? -val : val;
             }
             
             for (int l = lines.Length; linenr < l; ++linenr)
@@ -108,7 +126,20 @@ namespace MCPU.Compiler
                         string name = match.Groups["name"].ToString().ToLower();
                         (int, string, int) um = unmapped.FirstOrDefault(_ => _.Item2 == name);
 
-                        labels[name] = um.Item2 != name ? ++id : um.Item3;
+                        if (FindFirst(name) != null)
+                            return Error($"A function called '{name}' does already exist.");
+
+                        if (um.Item2 != name)
+                            if (labels.ContainsKey(name))
+                                return Error($"The label '{name}' does already exist.");
+                            else
+                                labels[name] = ++id;
+                        else
+                        {
+                            labels[name] = um.Item3;
+                            unmapped.Remove(um);
+                        }
+
                         line = line.Remove(match.Index, match.Length);
 
                         curr_func.Instructions.Add(new MCPUJumpLabel(id));
@@ -144,7 +175,14 @@ namespace MCPU.Compiler
                             return Error("Functions cannot be declared after the '.main'-token.");
                         else
                         {
-                            curr_func = new MCPUFunction(match.Groups["name"].ToString().ToLower(), OPCodes.NOP) { ID = ++id };
+                            string name = match.Groups["name"].ToString().ToLower();
+
+                            if (labels.ContainsKey(name))
+                                return Error($"A label called '{name}' does already exist.");
+                            else if (FindFirst(name) != null)
+                                return Error($"The function '{name}' does already exist.");
+
+                            curr_func = new MCPUFunction(name, OPCodes.NOP) { ID = ++id };
                             is_func = 1;
 
                             functions.Add(curr_func);
@@ -287,11 +325,7 @@ namespace MCPU.Compiler
                     
                     foreach (Instruction ins in f.Instructions)
                         if (ins.OPCode is MCPUJumpLabel)
-                        {
-                            instr.Add(OPCodes.NOP);
-
                             jumptable[(ins.OPCode as MCPUJumpLabel).Value] = linenr;
-                        }
                         else
                         {
                             instr.Add(ins);
