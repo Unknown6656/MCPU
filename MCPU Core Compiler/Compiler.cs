@@ -30,11 +30,11 @@ namespace MCPU.Compiler
         /// </summary>
         internal const string INTEGER_CORE = @"(\-?(0x[0-9a-f]+|[0-9a-f]+h|[0-9]+|0o[01]+|0b[0-7]+)|true|false|null)";
         /// <summary>
-        /// 
+        /// Argument core matching pattern
         /// </summary>
         internal static readonly Regex ARGUMENT_CORE = new Regex($@"(\[\$?(?<addr>{INTEGER_CORE})\]|\[\[\$?(?<ptr>{INTEGER_CORE})\]\]|\$?(?<const>{INTEGER_CORE})|{NAME_REGEX_CORE}|(?<float>{FLOAT_CORE}))", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         /// <summary>
-        /// 
+        /// Instruction matching pattern
         /// </summary>
         public static readonly Regex INSTRUCTION_REGEX = new Regex($@"^\s*\b{NAME_REGEX_CORE}\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         /// <summary>
@@ -298,11 +298,11 @@ namespace MCPU.Compiler
         }
 
         /// <summary>
-        /// 
+        /// Compiles the given MCPU assembly code to a list of instructions, which can be executed by a MCPU processor
         /// </summary>
-        /// <param name="code"></param>
-        /// <exception cref="MCPUCompilerException"></exception>
-        /// <returns></returns>
+        /// <param name="code">MCPU assembly code</param>
+        /// <exception cref="MCPUCompilerException">Possible compiler errors</exception>
+        /// <returns>Compiled instructions</returns>
         public static Instruction[] Compile(string code)
         {
             try
@@ -349,6 +349,35 @@ namespace MCPU.Compiler
                 throw new MCPUCompilerException(-1, $"{ex.Message}\n{ex.StackTrace}");
             }
         }
+
+        /// <summary>
+        /// Compiles the given MCPU assembly code to a list of instructions, which can be executed by a MCPU processor
+        /// </summary>
+        /// <param name="code">MCPU assembly code</param>
+        /// <exception cref="MCPUCompilerException">Possible compiler errors</exception>
+        /// <returns>Compiled instructions in byte format</returns>
+        public static byte[] CompileToBinary(string code) => Instruction.SerializeMultiple(Compile(code));
+
+        /// <summary>
+        /// Decompiles the given instructions into readable MCPU assembly code
+        /// </summary>
+        /// <param name="instructions">Instructions</param>
+        /// <returns>MCPU assembly code</returns>
+        public static string Decompile(params Instruction[] instructions)
+        {
+
+            // TODO
+
+
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Decompiles the given instruction byte array into readable MCPU assembly code
+        /// </summary>
+        /// <param name="instructions">Instruction byte array</param>
+        /// <returns>MCPU assembly code</returns>
+        public static string Decompile(byte[] instructions) => Decompile(Instruction.DeserializeMultiple(instructions));
     }
 
     /// <summary>
@@ -426,6 +455,9 @@ namespace MCPU.Compiler
         }
     }
     
+    /// <summary>
+    /// Represents a temporary instruction, which is only used during compile-time
+    /// </summary>
     [OPCodeNumber(0xfffe)]
     internal sealed class MCPUJumpLabel
         : OPCode
