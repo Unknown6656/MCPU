@@ -12,6 +12,7 @@ This project is a microprocessor emulator, which comes with its own instruction 
 
 - [ ] Documentation &#160; **(Currently in process)**
 - [ ] Floating-point arithmetic &#160; **(Currently in process)**
+- [ ] Unit Tests (!)
 - [x] Instruction serialization
 - [x] Instruction-space management
 - [ ] Function inlining + `NOP`-optimization
