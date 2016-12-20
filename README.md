@@ -12,13 +12,16 @@ This project is a microprocessor emulator, which comes with its own instruction 
 
 - [ ] Documentation &#160; **(Currently in process)**
 - [ ] Floating-point arithmetic &#160; **(Currently in process)**
+- [ ] Unit Tests (!)
 - [x] Instruction serialization
-- [ ] Instruction-space management
+- [x] Instruction-space management
+- [ ] Function inlining + `NOP`-optimization
+- [ ] Kernel-space memory addressing
 - [ ] Asynchronous instruction execution
 - [ ] Creation of handlers, which react to "hardware-interrupts"
 - [ ] String processing and support
 - [ ] IDE/Editor
-    - [ ] compiler
+    - [x] compiler
     - [ ] syntax highlighting
     - [ ] auto-completition
     - [ ] debugger
