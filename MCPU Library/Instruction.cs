@@ -366,7 +366,7 @@ namespace MCPU
                     for (int i = 0; i < args.Length; i++)
                         args[i] = (*((int*)(ptr + 4 + i * 5)), (ArgumentType)ptr[3 + i * 5]);
 
-                    return ((OPCodes.Codes[*((ushort*)ptr)], args), 3 + args.Length * 5);
+                    return ((OPCodes.CodesByID[*((ushort*)ptr)], args), 3 + args.Length * 5);
                 }
 
             throw new ArgumentException($"A instruction representation is composed of at least 3 bytes, however, only {bytes.Length} bytes were given.", nameof(bytes));
@@ -445,7 +445,7 @@ namespace MCPU
         /// <param name="opcode">OP code</param>
         /// <param name="args">Arguments</param>
         /// <returns>Instruction</returns>
-        public static Instruction Create(int opcode, params InstructionArgument[] args) => Create(OPCodes.Codes[(ushort)opcode], args);
+        public static Instruction Create(int opcode, params InstructionArgument[] args) => Create(OPCodes.CodesByID[(ushort)opcode], args);
 
         /// <summary>
         /// Creates a new instruction based on the given OP code and arguments
@@ -458,7 +458,7 @@ namespace MCPU
 
         public static implicit operator Instruction(OPCode opc) => new Instruction(opc);
 
-        public static implicit operator Instruction((int, IEnumerable<InstructionArgument>) ins) => new Instruction(OPCodes.Codes[(ushort)ins.Item1], ins.Item2?.ToArray());
+        public static implicit operator Instruction((int, IEnumerable<InstructionArgument>) ins) => new Instruction(OPCodes.CodesByID[(ushort)ins.Item1], ins.Item2?.ToArray());
 
         public static implicit operator Instruction((OPCode, IEnumerable<InstructionArgument>) ins) => new Instruction(ins.Item1, ins.Item2?.ToArray());
 

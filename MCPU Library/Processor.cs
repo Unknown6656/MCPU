@@ -6,6 +6,7 @@ using System.Diagnostics.Contracts;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using System.Reflection;
 using System.Threading;
 using System.Linq;
 using System.Text;
@@ -36,8 +37,9 @@ namespace MCPU
 
         internal static readonly Dictionary<int, ProcessingDelegate> __syscalltable = new Dictionary<int, ProcessingDelegate> {
             { -1, delegate { /*  ABK INSTRUCTION  */ } },
-            { 0, (p, _) => Console.WriteLine("MCPU created by Unknown6656") },
-            { 1, (p, _) => ConsoleExtensions.HexDump(p.ToBytes()) }
+            { 0, (p, _) => Console.WriteLine($"MCPU v. {Assembly.GetEntryAssembly().GetName().Version} created by Unknown6656") },
+            { 1, (p, _) => ConsoleExtensions.HexDump(p.ToBytes()) },
+            { 2, (p, _) => Console.WriteLine(string.Join(", ", from arg in _ select $"0x{p.TranslateConstant(arg):x8}")) },
         };
         
         public const int IP_OFFS = 0x04;
@@ -384,9 +386,21 @@ namespace MCPU
         }
 
         /// <summary>
-        /// 
+        /// Executes the given bytes
         /// </summary>
-        /// <param name="ins"></param>
+        /// <param name="ins">Bytes to be executed</param>
+        public void Process(byte[] bytes) => Process(Instruction.DeserializeMultiple(bytes));
+
+        /// <summary>
+        /// Executes the given bytes without previously resetting the processor
+        /// </summary>
+        /// <param name="ins">Bytes to be executed</param>
+        public void ProcessWithoutReset(byte[] bytes) => ProcessWithoutReset(Instruction.DeserializeMultiple(bytes));
+
+        /// <summary>
+        /// Executes the given instructions
+        /// </summary>
+        /// <param name="ins">Instructions to be executed</param>
         public void Process(params Instruction[] ins)
         {
             Reset();
@@ -394,9 +408,9 @@ namespace MCPU
         }
 
         /// <summary>
-        /// 
+        /// Executes the given instructions without previously resetting the processor
         /// </summary>
-        /// <param name="ins"></param>
+        /// <param name="ins">Instructions to be executed</param>
         public void ProcessWithoutReset(params Instruction[] ins)
         {
             Instructions = ins.Concat(new Instruction[] { OPCodes.HALT, OPCodes.HALT }).ToArray();

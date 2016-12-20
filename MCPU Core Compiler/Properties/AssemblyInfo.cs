@@ -6,11 +6,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("MCPU Library")]
+[assembly: AssemblyTitle("MCPU Core Compiler")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("MCPU Library")]
+[assembly: AssemblyProduct("MCPU Core Compiler")]
 [assembly: AssemblyCopyright("Copyright © Unknown6656, 2016")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -21,7 +21,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(true)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("2df6d431-a417-4d2d-abd9-e852671e947e")]
+[assembly: Guid("7e31c14a-a3b4-4d0c-b67a-3b842dca55b1")]
 
 // Version information for an assembly consists of the following four values:
 //
