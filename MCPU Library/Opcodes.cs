@@ -1,7 +1,5 @@
 ﻿using System.Collections.Generic;
-using System.Threading.Tasks;
 using System.Linq;
-using System.Text;
 using System;
 
 using static System.Math;
