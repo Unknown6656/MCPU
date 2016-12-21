@@ -19,6 +19,12 @@ namespace MCPU
     /// </summary>
     /// <param name="p">Processor instance</param>
     public delegate void ProcessEventHandler(Processor p);
+
+    /// <summary>
+    /// A general MCPU processor event handler
+    /// </summary>
+    /// <param name="p">Processor instance</param>
+    public delegate void CopyOfProcessEventHandler(Processor p);
     /// <summary>
     /// A general generic MCPU processor event handler
     /// </summary>
@@ -26,6 +32,14 @@ namespace MCPU
     /// <param name="p">Processor instance</param>
     /// <param name="args">Argument of type T</param>
     public delegate void ProcessEventHandler<T>(Processor p, T args);
+
+    /// <summary>
+    /// A general generic MCPU processor event handler
+    /// </summary>
+    /// <typeparam name="T">Generic argument type T</typeparam>
+    /// <param name="p">Processor instance</param>
+    /// <param name="args">Argument of type T</param>
+    public delegate void CopyOfProcessEventHandler<T>(Processor p, T args);
 
     /// <summary>
     /// Represents the MCPU-processor
