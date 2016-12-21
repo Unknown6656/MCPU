@@ -28,7 +28,7 @@ namespace MCPU
     public delegate void ProcessEventHandler<T>(Processor p, T args);
 
     /// <summary>
-    /// Represents the MSCPU-processor
+    /// Represents the MCPU-processor
     /// </summary>
     public unsafe sealed class Processor
         : IDisposable
@@ -116,7 +116,7 @@ namespace MCPU
         }
 
         /// <summary>
-        /// The ID of the current MSCPU-processor
+        /// The ID of the current MCPU-processor
         /// </summary>
         public int CPUID
         {

@@ -176,7 +176,7 @@ namespace MCPU
             : base(1, (p, _) => {
                 AssertAddress(0, _);
 
-                *p.TranslateAddress(_[0]) = func(*p.TranslateAddress(_[0]));
+                *p.TranslateAddress(_[0]) = func(p.TranslateConstant(_[0]));
             })
         {
         }
@@ -196,8 +196,10 @@ namespace MCPU
             : base(2, (p, _) => {
                 AssertAddress(0, _);
                 AssertNotInstructionSpace(1, _);
-                
-                *p.TranslateAddress(_[0]) = func(*p.TranslateAddress(_[0]), *p.TranslateAddress(_[1]));
+
+                int* src = p.TranslateAddress(_[0]);
+
+                *src = func(*src, p.TranslateConstant(_[1]));
             })
         {
         }
@@ -578,9 +580,17 @@ namespace MCPU
         /// </summary>
         public bool IsKernel => Type.HasFlag(ArgumentType.KernelMode);
         /// <summary>
+        /// Returns, whether the argument is a parameter
+        /// </summary>
+        public bool IsParameter => Type.HasFlag(ArgumentType.Parameter);
+        /// <summary>
         /// Returns, whether the argument is an address
         /// </summary>
         public bool IsAddress => Type.HasFlag(ArgumentType.Address);
+        /// <summary>
+        /// Returns, whether the argument is indirect
+        /// </summary>
+        public bool IsIndirect => Type.HasFlag(ArgumentType.Indirect);
         /// <summary>
         /// Returns, whether the argument is a constant
         /// </summary>

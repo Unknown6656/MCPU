@@ -48,22 +48,34 @@ loop:
 end:
     .user
     halt
+", @"
+.main
+    .kernel
+    syscall 2 k[2]  ; print the IP
+    add k[2] 2      ; skip the next instruction
+    halt
+    syscall 2 0xdeadbeef
 ",
         };
 
         public static void Main(string[] args)
         {
-            var proc = new Processor(3);
-            var res = MCPUCompiler.Compile(PROGR[1]);
-            
+            Processor proc = new Processor(16);
+            Instruction[] res = MCPUCompiler.Compile(PROGR[1]);
+            byte[] bytes = Instruction.SerializeMultiple(res);
+
+            WriteLine(string.Join("\n", res as object[]));
+            WriteLine("\n\n\n" + MCPUCompiler.Decompile(res) + "\n");
+
+            ConsoleExtensions.HexDump(bytes);
+
             proc.OnError += (p, ex) => {
                 ForegroundColor = ConsoleColor.Red;
                 WriteLine($"WELL FUGG :D\n{ex.Message}\n{ex.StackTrace}");
                 ForegroundColor = ConsoleColor.White;
             };
             proc.Process(res);
-
-
+            
             ReadKey(true);
         }
     }

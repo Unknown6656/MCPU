@@ -32,7 +32,7 @@ namespace MCPU.Compiler
         /// <summary>
         /// Argument core matching pattern
         /// </summary>
-        internal static readonly Regex ARGUMENT_CORE = new Regex($@"(\[\$?(?<addr>{INTEGER_CORE})\]|\[\[\$?(?<ptr>{INTEGER_CORE})\]\]|\$?(?<const>{INTEGER_CORE})|{NAME_REGEX_CORE}|(?<float>{FLOAT_CORE}))", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        internal static readonly Regex ARGUMENT_CORE = new Regex($@"(k?\[\$?(?<addr>{INTEGER_CORE})\]|k?\[\[\$?(?<ptr>{INTEGER_CORE})\]\]|\$?(?<const>{INTEGER_CORE})|{NAME_REGEX_CORE}|(?<float>{FLOAT_CORE}))", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         /// <summary>
         /// Instruction matching pattern
         /// </summary>
@@ -57,8 +57,7 @@ namespace MCPU.Compiler
 
         internal static IEnumerable<string> PreprocessLines(IEnumerable<string> lines) =>
             from line in lines
-            let ln = new Func<string>(() => line.Contains(COMMENT_START) ? line.Remove(0, line.IndexOf(COMMENT_START) + COMMENT_START.Length)
-                                                                         : line)().Trim()
+            let ln = new Func<string>(() => line.Contains(COMMENT_START) ? line.Remove(line.IndexOf(COMMENT_START)) : line)().Trim()
             where ln.Length > 0
             select ln;
 
@@ -220,11 +219,17 @@ namespace MCPU.Compiler
                                         {
                                             iarg.Value = ParseIntArg(val);
                                             iarg.Type = ArgumentType.IndirectAddress;
+
+                                            if (arg.StartsWith("k"))
+                                                iarg.Type |= ArgumentType.KernelMode;
                                         }
                                         else if (CheckGroup("addr", out val))
                                         {
                                             iarg.Value = ParseIntArg(val);
                                             iarg.Type = ArgumentType.Address;
+
+                                            if (arg.StartsWith("k"))
+                                                iarg.Type |= ArgumentType.KernelMode;
                                         }
                                         else if (CheckGroup("const", out val))
                                         {
@@ -281,8 +286,8 @@ namespace MCPU.Compiler
                     else
                         return Error($"The line '{line}' could not be parsed.");
                 }
-                else
-                    curr_func.Instructions.Add(OPCodes.NOP);
+                //else
+                //    curr_func.Instructions.Add(OPCodes.NOP);
             }
 
             functions.Add(curr_func);
@@ -365,11 +370,112 @@ namespace MCPU.Compiler
         /// <returns>MCPU assembly code</returns>
         public static string Decompile(params Instruction[] instructions)
         {
+            Dictionary<int, int> linetransl = new Dictionary<int, int>();
+            List<Instruction> instr = new List<Instruction>();
+            List<int> labels = new List<int>();
 
-            // TODO
+            int offs = 0;
 
+            foreach (Instruction i in instructions)
+                if (i.OPCode is Instructions.nop)
+                    ++offs;
+                else
+                    instr.Add(new Instruction(i.OPCode, (from arg in i.Arguments
+                                                         select new Func<InstructionArgument>(delegate
+                                                         {
+                                                             if (arg.IsInstructionSpace)
+                                                             {
+                                                                 labels.Add(arg - offs);
 
-            throw new NotImplementedException();
+                                                                 return (arg.Value - offs, arg.Type);
+                                                             }
+                                                             else
+                                                                 return arg;
+                                                         })()).ToArray()));
+
+            instructions = instr.ToArray();
+            instr.Clear();
+
+            int lblen = (int)Math.Ceiling(Math.Log(labels.Count, 26));
+            int lbcnt = 0;
+
+            string nextlabel()
+            {
+                char[] str = new char[lblen];
+
+                for (int i = lblen - 1; i >= 0; i--)
+                {
+                    int div = lbcnt / (int)Math.Pow(26, i);
+                    int mod = div % (int)Math.Pow(26, i + 1);
+                    
+                    str[i] = (char)('a' + mod);
+                }
+
+                ++lbcnt;
+
+                return $"label_{new string(str)}";
+            }
+
+            Dictionary<int, string> jump_table = labels.ToDictionary(_ => _, _ => nextlabel());
+            StringBuilder sb = new StringBuilder();
+            const int tab_wdh = 4;
+            int index = 0;
+            int line = 0;
+
+            string tostr(InstructionArgument arg, bool wasaddr = false)
+            {
+                string ret = "";
+
+                if (arg.IsInstructionSpace)
+                    return jump_table[arg];
+                else if (arg.IsKernel)
+                    ret = "k";
+
+                arg.Type = arg.KernelInvariantType;
+
+                if (arg.IsAddress)
+                    return ret + $"[{tostr((arg.Value, arg.Type & ~ArgumentType.Address), true)}]";
+                else if (arg.IsIndirect)
+                    return ret + $"[{tostr((arg.Value, arg.Type & ~ArgumentType.Indirect), true)}]";
+                else if (arg.IsParameter)
+                    ret += '$';
+
+                return ret + (wasaddr ? "0x" + arg.Value.ToString("x8") : arg.Value.ToString());
+            }
+
+            sb.AppendLine($"{new string(' ', tab_wdh)}.main");
+
+            while (index < instructions.Length)
+            {
+                if (jump_table.ContainsKey(line))
+                    sb.AppendLine($"{jump_table[line]}:");
+                else
+                {
+                    Instruction ins = instructions[index];
+
+                    sb.Append(new string(' ', tab_wdh));
+
+                    if (ins.OPCode is Instructions.kernel)
+                        sb.Append('.')
+                          .AppendLine((ins.Arguments?[0] ?? 0) == 0 ? "user" : "kernel");
+                    else
+                    {
+                        sb.Append(ins.OPCode.Token);
+
+                        foreach (InstructionArgument arg in ins.Arguments)
+                            sb.Append(' ')
+                              .Append(tostr(arg));
+
+                        sb.AppendLine();
+                    }
+
+                    ++index;
+                }
+
+                ++line;
+            }
+            
+            return sb.ToString();
         }
 
         /// <summary>
