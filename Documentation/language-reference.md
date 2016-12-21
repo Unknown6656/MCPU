@@ -202,6 +202,19 @@ _For more information about the I/O-ports see [the introduction](./introduction.
 
 ### Floating-point operations
 
+Floating-point operations (float-operations) are operations, which partly use IEEE-754 single-precision floating-point 32Bit-decimal numbers instead of plain 32Bit integer numbers. This allows the user and processor to perform calculations with real and rational numbers as well as integer numbers.
+Float arguments can be denoted as follows:
+```
+	42.0			; Floating-point number with a decimal point
+	+42.0f			; Floating-point number with a 'f'-suffix and a sign
+	42.	            ; Floating-point number without trailing decimal places
+	.42				; Floating-point number without leading decimal places
+	4.2e1			; Floating-point number in exponential representation
+	-.42e+2			; Floating-point number in exponential representation with factor and exponent signs
+	-4.2			; Floating-point number with a sign
+```
+
+
 (((TODO)))
 
 ### Privileged instructions and operations

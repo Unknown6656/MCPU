@@ -15,7 +15,7 @@ This project is a microprocessor emulator, which comes with its own instruction 
 - [ ] Unit Tests (!)
 - [x] Instruction serialization
 - [x] Instruction-space management
-- [ ] Function inlining + `NOP`-optimization
+- [x] Function inlining + `NOP`-optimization **(Nearly finished)**
 - [x] Kernel-space memory addressing
 - [ ] Asynchronous instruction execution
 - [ ] Creation of handlers, which react to "hardware-interrupts"
