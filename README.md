@@ -16,9 +16,10 @@ This project is a microprocessor emulator, which comes with its own instruction 
 - [x] Instruction serialization
 - [x] Instruction-space management
 - [ ] Function inlining + `NOP`-optimization
-- [ ] Kernel-space memory addressing
+- [x] Kernel-space memory addressing
 - [ ] Asynchronous instruction execution
 - [ ] Creation of handlers, which react to "hardware-interrupts"
+- [ ] (Virtual) Device support
 - [ ] String processing and support
 - [ ] IDE/Editor
     - [x] compiler

@@ -183,7 +183,22 @@ label:
 
 ### I/O Operations
 
-(((TODO)))
+The instructions `IO`, `IN` and `OUT` are designed to communicate with I/O-ports:
+`IO <port> <direction>` defines the `port`<sup>th</sup> I/O-port's direction; the direction `0` indicates an outgoing (write-only) port and `1` indicates an ingoing (read-only) port.
+The instruction `IN <port> <dst>` reads the port's value into the address `dst` - `OUT <port> <src>` writes the given value `src` into the I/O-port `port`.
+Only the lowest four bits of the value provided by the `OUT`-instruction will be passed to the port, as I/O-ports work with 4-bit integer values (all values between inclusive `0` and inclusive `15`).
+
+Example code:
+```
+	.MAIN			; Program start
+	IO 10 1			; Set the port 10 to 'in'
+	IO 12 0			; Set the port 12 to 'out'
+	IN 10 [3]		; Reads the value from port 10 into address 3
+	ADD [3] 7		; Increments the value in address 3 by 7
+	OUT 12 [3]		; Writes the new value of address 3 to the port 12
+```
+
+_For more information about the I/O-ports see [the introduction](./introduction.md)._
 
 ### Floating-point operations
 
@@ -191,4 +206,75 @@ label:
 
 ### Privileged instructions and operations
 
-(((TODO)))
+_**Do not use privileged instructions if you do not know what you are doing!**_
+
+Privileged instructions, operations and addresses are objects/functions, which are not usually accessible for a 'regular' user. Using the kernel privilege one can use them like any other instruction/address/....
+
+To claim kernel privilege use the tokens `.kernel` or `.user`:
+```
+	.MAIN			; Program start
+	....			; Everything executed here is being executed with user privileges (default)
+	.KERNEL			; Claim kernel privilege
+	....			; Everything executed here is being executed with Kernel privileges
+	.USER			; Return back to user privilege
+	....			; Everything executed here is being executed with user privileges again
+```
+
+The following items require kernel privileges to be executed or used:
+
+#### Kernel addresses
+
+Kernel addresses are 4-byte addresses, which map to the 'real' byte-addresses used internally by the emulator. They could be compared to physical memory-addresses in real computers.
+As user-space addresses start at the byte offset `0x0040`, any user-space address `a` can be translated to the kernel address `a + 16`.
+Kernel addresses are prefixed with the letter `k` when used inside a program:
+```
+	MOV k[20] 42	 ; Moves the value '42' to the kernel address 20, which represent the
+					 ;	user-space address 20 - 16 == 4
+	MOV k[2] k[[20]] ; Copies the instruction pointer to the address, to which the kernel
+					 ; 	address 20 is pointing (in this case address 42)
+```
+User-space addresses are limited by the memory's size - kernel addresses, however, are not. This means, that one can address I/O-ports, the instruction space, call stack or even the parent host system memory by passing addresses outside the user-space memory range:
+```
+	MOV [0] k[8]	; Copies the byte-representation of the first 4 I/O-ports to the user-
+					;	space address 0
+	MOV [1] k[-1]	; Copies the 4-byte block BEFORE the processor's memory to the user-space
+					; 	address 1
+```
+_**WARNING:** reading or writing to the host's system memory using kernel-space addresses is possible, but not advisable as they can seriously harm the host's system_
+
+See [the introduction](./introduction.md) for more information about the user-space memory and kernel address mapping.
+
+#### Privileged instructions
+
+The instructions `LEA`, `SYSCALL`, `ABK`, `RESET` and all push-operations are privileged instructions. The `ABK`-instruction is a shortcut for the expression `SYSCALL -1`, more information on which can be found [here](./instruction-set.md) or in the [section about IP and stack management](#ip-and-stack-management).
+The `LEA`-instruction loads the effective source memory address into the target address:
+```
+	LEA [7] [42]	; Loads the value '0x006A' into the user-space address 7, as the user-
+					;	address 0x002A (= 42) translates into the kernel address 0x006A
+```
+The `RESET`-instruction halts the processor and resets its memory, I/O-ports, flags, call stack and instruction space. The CPU-ID will not be reset.
+
+#### System calls
+
+A system-call (syscall) is a processor-exposed method, which can be called from within the MCPU assembly code to execute specific methods like debugging etc.
+A list of all  defined syscalls can be found [here](./syscalls.md).
+
+#### IP and Stack management
+
+Using kernel privileges, the processor's instruction pointer can be modified using kernel addresses as follows:
+```
+	...
+	CMP k[2] 30		; Compares the the instruction pointer with the constant 30
+	JG mylabel		; If more than 30 instructions have been executed, jump to 'mylabel'
+	MOV k[2] 42		; (Else) jump to the 42nd instruction
+mylabel:
+	HALT			; halts the processor
+	...
+```
+
+The stack is usually only modified by the instructions `CALL` and `RET`, as they push or pop a call-frame onto or from the stack.
+However, one can manipulate the stack using the OP codes `0x0040` to `0x0049`, as they provide basic stack functionality for 4-byte entries instead of entire call-frames.
+The instruction 'SSWAP' swaps the two top-most values on the stack.
+The instruction `PUSH <src>` pushes the 4-byte value `src` onto the call stack, while `PEEK <dst>` and `POP <dst>` peek and pop the top-most stack value into the given destination address.
+The instructions `PUSHI`, `POPI` and `PEEKI` push/pop/peek the instruction pointer instead of user-defined values or addresses. Therefore, the instructions `POPI` and `PEEKI` can also be used to modify the instruction pointer's value.
+The instructions `PUSHF`, `POPF` and `PEEKF` push/pop/peek the FLAGS-register instead of user values or addresses.
