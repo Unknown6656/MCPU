@@ -373,28 +373,36 @@ namespace MCPU.Compiler
             Dictionary<int, int> linetransl = new Dictionary<int, int>();
             List<Instruction> instr = new List<Instruction>();
             List<int> labels = new List<int>();
-
+            int line = 0;
             int offs = 0;
 
             foreach (Instruction i in instructions)
+            {
                 if (i.OPCode is Instructions.nop)
-                    ++offs;
+                    --offs;
                 else
-                    instr.Add(new Instruction(i.OPCode, (from arg in i.Arguments
-                                                         select new Func<InstructionArgument>(delegate
-                                                         {
-                                                             if (arg.IsInstructionSpace)
-                                                             {
-                                                                 labels.Add(arg - offs);
+                    instr.Add(i);
 
-                                                                 return (arg.Value - offs, arg.Type);
-                                                             }
-                                                             else
-                                                                 return arg;
-                                                         })()).ToArray()));
+                linetransl.Add(line++, offs);
+            }
 
-            instructions = instr.ToArray();
-            instr.Clear();
+            line = 0;
+            instructions = (from i in instr
+                            select new Instruction(i.OPCode, (from arg in i.Arguments
+                                                              let ll = line++
+                                                              select new Func<InstructionArgument>(delegate
+                                                              {
+                                                                  if (arg.IsInstructionSpace)
+                                                                  {
+                                                                      int nv = linetransl[arg] + arg;
+                                                                      
+                                                                      labels.Add(nv);
+
+                                                                      return (nv, arg.Type);
+                                                                  }
+                                                                  else
+                                                                      return arg;
+                                                              })()).ToArray())).ToArray();
 
             int lblen = (int)Math.Ceiling(Math.Log(labels.Count, 26));
             int lbcnt = 0;
@@ -416,11 +424,12 @@ namespace MCPU.Compiler
                 return $"label_{new string(str)}";
             }
 
-            Dictionary<int, string> jump_table = labels.ToDictionary(_ => _, _ => nextlabel());
+            Dictionary<int, string> jump_table = labels.Distinct().ToDictionary(_ => _, _ => nextlabel());
             StringBuilder sb = new StringBuilder();
             const int tab_wdh = 4;
             int index = 0;
-            int line = 0;
+
+            line = 0;
 
             string tostr(InstructionArgument arg, bool wasaddr = false)
             {
@@ -448,7 +457,7 @@ namespace MCPU.Compiler
             while (index < instructions.Length)
             {
                 if (jump_table.ContainsKey(line))
-                    sb.AppendLine($"{jump_table[line]}:");
+                    sb.AppendLine($"{jump_table[line]}:"); // TODO : CORRECT LINE <-> INDEX OFFSET 
                 else
                 {
                     Instruction ins = instructions[index];

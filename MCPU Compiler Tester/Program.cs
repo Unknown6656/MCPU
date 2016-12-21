@@ -35,21 +35,25 @@ END FUNC
     .USER
 ", @"
 ; this is a loop, which counts from 20 down to 0
-.main
+func print
     .kernel
+    syscall 2 [$0]
+    .user
+end func
+
+    .main
     mov [1] 20
-    syscall 2 [1]
+    call print 1
 loop:
     decr [1]
     cmp [1]
-    syscall 2 [1]
+    call print 1
     jz end
     jmp loop
 end:
-    .user
     halt
 ", @"
-.main
+    .main
     .kernel
     syscall 2 k[2]  ; print the IP
     add k[2] 2      ; skip the next instruction
@@ -63,8 +67,11 @@ end:
             Processor proc = new Processor(16);
             Instruction[] res = MCPUCompiler.Compile(PROGR[1]);
             byte[] bytes = Instruction.SerializeMultiple(res);
+            int line = 0;
 
-            WriteLine(string.Join("\n", res as object[]));
+            foreach (Instruction instr in res)
+                WriteLine($"{line++:x8}: {instr}");
+
             WriteLine("\n\n\n" + MCPUCompiler.Decompile(res) + "\n");
 
             ConsoleExtensions.HexDump(bytes);
