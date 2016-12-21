@@ -19,7 +19,7 @@ This project is a microprocessor emulator, which comes with its own instruction 
 - [x] Kernel-space memory addressing
 - [ ] Asynchronous instruction execution
 - [ ] Creation of handlers, which react to "hardware-interrupts"
-- [ ] (Virtual) Device support
+- [ ] Virtual Device support
 - [ ] String processing and support
 - [ ] IDE/Editor
     - [x] compiler
