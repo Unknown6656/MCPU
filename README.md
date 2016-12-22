@@ -13,7 +13,7 @@ This project is a microprocessor emulator, which comes with its own instruction 
 - [x] Documentation
 - [x] Floating-point arithmetic
 - [ ] Unit Tests (!)
-- [x] Push releases [name generator](http://www.codenamegenerator.com/)
+- [x] Push releases (used [name generator](http://www.codenamegenerator.com/))
 - [x] Instruction serialization
 - [x] Instruction-space management
 - [x] Function inlining + `NOP`-optimization **(Nearly finished)**
