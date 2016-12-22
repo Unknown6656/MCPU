@@ -41,28 +41,28 @@ The MCPU assembly language generally differentiates between multiple types of pa
 
 The first type are constant parameters, which can have the following form:
 ```
-	315				; decimal integer
+	315			; decimal integer
 	0b100111011		; binary integer with a leading '0b'
 	0o473			; octal integer with a leading '0o'
 	0x13b			; hexadecimal integer with a leading '0x'
 	13Bh			; hexadecimal integer with a trailing 'h'
 	-315			; negative integer
-	4.2				; floating point number
+	4.2			; floating point number
 	4.2f			; floating point number with trailing literal 'f'
 	-.42			; negative floating point number without a leading '0'
 	4.2e+4			; floating point number with exponential notation
 	null			; constant 0
 	true			; constant 1
 	false			; constant 0
-	pi				; constant π = 3.14159265358979
-	phi				; constant φ = 1.61803398874989
-	e				; constant e = 2.71828182845905
-	tau				; constant τ = 2π = 6.28318530717959
+	pi			; constant π = 3.14159265358979
+	phi			; constant φ = 1.61803398874989
+	e			; constant e = 2.71828182845905
+	tau			; constant τ = 2π = 6.28318530717959
 ```
 
 The second type are user-space zero-indexed memory addresses (or kernel-space with appropriate privileges), which each represent a 32-bit storage address:  
 ```
-	[7]				; Address No.7 (Bytes: 7*4...7*4+3, meaning the bytes 28...31)
+	[7]			; Address No.7 (Bytes: 7*4...7*4+3, meaning the bytes 28...31)
 	[0x0080]		; Address No.128 (bytes 512...515)
 	[0b10]			; Address No.2 (bytes 4...7)
 	[0o15]			; Address No.13 (bytes 52...55)
@@ -82,9 +82,9 @@ Imagine the following code:
 ```
 	.MAIN			; Program start
 	MOV [0] 1		; Copy the value '1' into address '0'
-	MOV [[0]] 42	; Copy the value '42' into the address, to which '0' points
+	MOV [[0]] 42		; Copy the value '42' into the address, to which '0' points
 	INCR [0]		; Increase the value in '0' by 1
-	MOV [[0]] 315	; Copy the value '315' into the address, to which now '0' points
+	MOV [[0]] 315		; Copy the value '315' into the address, to which now '0' points
 ```
 After its execution, the memory map looks as follows:
 ```
@@ -104,7 +104,7 @@ Kernel addresses (and indirect kernel address) can be accessed using a leading '
 The fourth type are functions and labels, which can be addressed using their name:
 ```
 FUNC myfunc			; Declaration of function 'myfunc'
-	...				; function logic
+	...			; function logic
 END FUNC			; End of function 'myfunc'
 
 	.MAIN			; Program start
@@ -117,20 +117,20 @@ See the section [`Control flow`](#control-flow) for more details about the usage
 The fifth type are function parameters: When a function is called, the caller can pass parameters to the functions, which can be addressed using the dollar-sign '$' followed by the zero-indexed number of the function parameter. e.g:
 ```
 FUNC func
-	ADD [$0] [$1]	; Add the value at the address, to which the second parameter points
-					; 	to the value of the address, to which the first parameter points
+	ADD [$0] [$1]		; Add the value at the address, to which the second parameter points
+				; 	to the value of the address, to which the first parameter points
 	MUL [$0] $2		; Multiply the value in the address, to which the first parameter points
-					; 	with the value of the third parameter
+				; 	with the value of the third parameter
 END func
 
 	.MAIN			; Program start
 	MOV [1] 4		; Copy value '4' to address '1'
 	MOV [3] 2		; Copy value '2' to address '3'
-	CALL func 3 1 5 ; Execute the function with the parameters 3, 1 and 5 which is equivalent to:
-					;	ADD [3] [1]
-					;	MUL [3] 5
-					; The result will be:
-					; 	([3] + [1]) * 5 = (4 + 2) * 5 = 6 * 5 = 30
+	CALL func 3 1 5 	; Execute the function with the parameters 3, 1 and 5 which is equivalent to:
+				;	ADD [3] [1]
+				;	MUL [3] 5
+				; The result will be:
+				; 	([3] + [1]) * 5 = (4 + 2) * 5 = 6 * 5 = 30
 ```
 
 ### Control flow
@@ -180,9 +180,9 @@ The following example jumps to the label `label`, if the value inside the addres
 	.....
 	CMP [42]		; Compare the value stored inside address 42 (to zero)
 	JNEG label		; If the value is negative, jump to label
-	...				; Execute these instructions if the value is positive
+	...			; Execute these instructions if the value is positive
 label:
-	...				; Execute these instructions if the value is negative
+	...			; Execute these instructions if the value is negative
 ```
 
 ### I/O Operations
@@ -211,8 +211,8 @@ Float arguments can be denoted as follows:
 ```
 	42.0			; Floating-point number with a decimal point
 	+42.0f			; Floating-point number with a 'f'-suffix and a sign
-	42.	            ; Floating-point number without trailing decimal places
-	.42				; Floating-point number without leading decimal places
+	42.	            	; Floating-point number without trailing decimal places
+	.42			; Floating-point number without leading decimal places
 	4.2e1			; Floating-point number in exponential representation
 	-.42e+2			; Floating-point number in exponential representation with factor and exponent signs
 	-4.2			; Floating-point number with a sign
@@ -230,12 +230,12 @@ Floating-point operations, however, assume that their given argument(s) are floa
 ```
 	MOV [7] 42.0	; Value inside address 7 : 0x00002842
 	FADD [7] 315	; The value '315' will be interpreted as the floating-point number
-					;	'4.414090162623174E-43'. As this number is much to small, the
-					;	operation's result will be still '42.0' and not 42 + 315 = 357
+			;	'4.414090162623174E-43'. As this number is much to small, the
+			;	operation's result will be still '42.0' and not 42 + 315 = 357
 ```
 In order to convert a floating-point number to a integer number, one must use the instructions `FICAST` and `IFCAST`. The instruction `FICAST` stands for _'**F**loat to **I**nteger **Cast**'_, which converts a floating point number to an integer one. The reverse instruction is `IFCAST` which stands for _'**I**nteger to **F**loat **Cast**'_.
 ```
-	MOV [5] 13		; Moves '13' to address 5
+	MOV [5] 13	; Moves '13' to address 5
 	IFCAST [4] [5]	; Converts '13' to '13.0' and stores the result into address 4
 	FSUB [4] 1.0	; Subtracts '1.0' from '13.0' (in address 4)
 	FICAST [6] [4]	; Casts '12.0' to '12' and stores the result into address 6
@@ -249,12 +249,12 @@ Privileged instructions, operations and addresses are objects/functions, which a
 
 To claim kernel privilege use the tokens `.kernel` or `.user`:
 ```
-	.MAIN			; Program start
-	....			; Everything executed here is being executed with user privileges (default)
-	.KERNEL			; Claim kernel privilege
-	....			; Everything executed here is being executed with Kernel privileges
-	.USER			; Return back to user privilege
-	....			; Everything executed here is being executed with user privileges again
+	.MAIN		; Program start
+	....		; Everything executed here is being executed with user privileges (default)
+	.KERNEL		; Claim kernel privilege
+	....		; Everything executed here is being executed with Kernel privileges
+	.USER		; Return back to user privilege
+	....		; Everything executed here is being executed with user privileges again
 ```
 
 The following items require kernel privileges to be executed or used:
@@ -266,16 +266,16 @@ As user-space addresses start at the byte offset `0x0040`, any user-space addres
 Kernel addresses are prefixed with the letter `k` when used inside a program:
 ```
 	MOV k[20] 42	 ; Moves the value '42' to the kernel address 20, which represent the
-					 ;	user-space address 20 - 16 == 4
+			 ;	user-space address 20 - 16 == 4
 	MOV k[2] k[[20]] ; Copies the instruction pointer to the address, to which the kernel
-					 ; 	address 20 is pointing (in this case address 42)
+			 ; 	address 20 is pointing (in this case address 42)
 ```
 User-space addresses are limited by the memory's size - kernel addresses, however, are not. This means, that one can address I/O-ports, the instruction space, call stack or even the parent host system memory by passing addresses outside the user-space memory range:
 ```
 	MOV [0] k[8]	; Copies the byte-representation of the first 4 I/O-ports to the user-
-					;	space address 0
+			;	space address 0
 	MOV [1] k[-1]	; Copies the 4-byte block BEFORE the processor's memory to the user-space
-					; 	address 1
+			; 	address 1
 ```
 _**WARNING:** reading or writing to the host's system memory using kernel-space addresses is possible, but not advisable as they can seriously harm the host's system_
 
@@ -287,7 +287,7 @@ The instructions `LEA`, `SYSCALL`, `ABK`, `RESET` and all push-operations are pr
 The `LEA`-instruction loads the effective source memory address into the target address:
 ```
 	LEA [7] [42]	; Loads the value '0x006A' into the user-space address 7, as the user-
-					;	address 0x002A (= 42) translates into the kernel address 0x006A
+			;	address 0x002A (= 42) translates into the kernel address 0x006A
 ```
 The `RESET`-instruction halts the processor and resets its memory, I/O-ports, flags, call stack and instruction space. The CPU-ID will not be reset.
 
@@ -301,11 +301,11 @@ A list of all  defined syscalls can be found [here](./syscalls.md).
 Using kernel privileges, the processor's instruction pointer can be modified using kernel addresses as follows:
 ```
 	...
-	CMP k[2] 30		; Compares the the instruction pointer with the constant 30
-	JG mylabel		; If more than 30 instructions have been executed, jump to 'mylabel'
-	MOV k[2] 42		; (Else) jump to the 42nd instruction
+	CMP k[2] 30	; Compares the the instruction pointer with the constant 30
+	JG mylabel	; If more than 30 instructions have been executed, jump to 'mylabel'
+	MOV k[2] 42	; (Else) jump to the 42nd instruction
 mylabel:
-	HALT			; halts the processor
+	HALT		; halts the processor
 	...
 ```
 
