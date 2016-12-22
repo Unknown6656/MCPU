@@ -1,12 +1,13 @@
-﻿<Window
+﻿<Window x:Class="MCPU.IDE.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	    xmlns:wf="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms"
+        xmlns:fctb="clr-namespace:FastColoredTextBoxNS;assembly=FastColoredTextBox"
         xmlns:local="clr-namespace:MCPU.IDE"
-        xmlns:SyntaxHighlightBox="clr-namespace:AurelienRibon.Ui.SyntaxHighlightBox;assembly=AurelienRibon.Ui.SyntaxHighlightBox" x:Class="MCPU.IDE.MainWindow"
         mc:Ignorable="d"
-        Height="449" Width="905"
+        Height="500" Width="750"
         Title="MCPU Integrated Development Environment"
         Loaded="Window_Loaded">
     <DockPanel>
@@ -14,6 +15,11 @@
         </StatusBar>
         <MenuItem DockPanel.Dock="Top" Height="23">
         </MenuItem>
-        <SyntaxHighlightBox:SyntaxHighlightBox x:Name="tb_main" VerticalAlignment="Top" Background="#FF363636"/>
+        <WindowsFormsHost>
+            <WindowsFormsHost.Child>
+                <local:HighlightnerForm x:Name="fctb_host"/>
+                <!--<fctb:FastColoredTextBox x:Name="tb_main"/>-->
+            </WindowsFormsHost.Child>
+        </WindowsFormsHost>
     </DockPanel>
 </Window>

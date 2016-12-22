@@ -10,6 +10,7 @@ using System.Windows.Data;
 using System.Windows;
 using System.Linq;
 using System.Text;
+using System.IO;
 using System;
 
 namespace MCPU.IDE
@@ -25,7 +26,7 @@ namespace MCPU.IDE
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-
+            //tb_main.AddStyle();
         }
     }
 }
