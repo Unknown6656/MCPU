@@ -58,4 +58,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>"$(SolutionDir)Tools\cshgencli32.exe" "$(TargetPath)"
+"$(SolutionDir)Tools\cshgencli32.exe" "$(TargetDir)mcpu.corelib.dll"
+"$(SolutionDir)Tools\cshgencli32.exe" "$(TargetDir)System.ValueTuple.dll"</PostBuildEvent>
+  </PropertyGroup>
 </Project>
