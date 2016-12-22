@@ -10,9 +10,10 @@ This project is a microprocessor emulator, which comes with its own instruction 
 
 ### TODO-List
 
-- [ ] Documentation &#160; **(Currently in process)**
-- [ ] Floating-point arithmetic &#160; **(Currently in process)**
+- [x] Documentation
+- [x] Floating-point arithmetic
 - [ ] Unit Tests (!)
+- [ ] Push releases
 - [x] Instruction serialization
 - [x] Instruction-space management
 - [x] Function inlining + `NOP`-optimization **(Nearly finished)**
