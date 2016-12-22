@@ -1,0 +1,894 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1" MembersFormat="FullSignature">
+  <Class Name="MCPU.ConsoleExtensions">
+    <Position X="72.75" Y="11.25" Width="4.25" />
+    <TypeIdentifier>
+      <HashCode>BAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>ConsoleExtensions.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.OPCodes">
+    <Position X="59.25" Y="3.25" Width="3.75" />
+    <TypeIdentifier>
+      <HashCode>qYRACnRGDOSuiqIUAETIAAio8B1JACgoIMEAcAAEICI=</HashCode>
+      <FileName>GeneratedInstructions.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.OPCode">
+    <Position X="92" Y="4.5" Width="5.25" />
+    <TypeIdentifier>
+      <HashCode>AAgAAAAAAIkABBBEgkBAEAAAAAAAACAAAAAAAAABAAY=</HashCode>
+      <FileName>Instruction.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.ArithmeticUnaryOPCode">
+    <Position X="101.5" Y="20.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Instruction.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.ArithmeticBinaryOPCode">
+    <Position X="84" Y="21.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Instruction.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.FloatingPointArithmeticUnaryOPCode">
+    <Position X="105.25" Y="13.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Instruction.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.FloatingPointArithmeticBinaryOPCode">
+    <Position X="118.5" Y="27.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Instruction.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instruction">
+    <Position X="97.5" Y="4.5" Width="5" />
+    <TypeIdentifier>
+      <HashCode>AAAAgAAAAAQAIAAEAgIAAAAAACBAAEAAIIAAAAAAgAA=</HashCode>
+      <FileName>Instruction.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.OPCodeNumberAttribute">
+    <Position X="87.25" Y="9.75" Width="3" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Instruction.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.RequiresPrivilegeAttribute">
+    <Position X="87.25" Y="7.25" Width="3" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Instruction.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.SpecialIPHandlingAttribute">
+    <Position X="87.25" Y="8.5" Width="3" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Instruction.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Processor" BaseTypeListCollapsed="true">
+    <Position X="63.25" Y="3.25" Width="4.75" />
+    <TypeIdentifier>
+      <HashCode>CwIIBADoD3CEvwBCKgAAShCEOBCaUAIQoIwQQBAEGgQ=</HashCode>
+      <FileName>Processor.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="MCPU.MissingPrivilegeException">
+    <Position X="87" Y="4.5" Width="3.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Processor.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.StackException">
+    <Position X="77.5" Y="11.25" Width="3" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Processor.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.IOPorts">
+    <Position X="77.25" Y="7.25" Width="3.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAEAgAACAAAAAAAAAAAAAAAAACAAAAAAAg=</HashCode>
+      <FileName>Processor.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.nop">
+    <Position X="70.75" Y="15.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.halt">
+    <Position X="79.75" Y="15.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.jmp">
+    <Position X="81.75" Y="17.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.jmprel">
+    <Position X="123.5" Y="19.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.abk">
+    <Position X="132.5" Y="19.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.syscall">
+    <Position X="125.75" Y="14" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.call">
+    <Position X="121.25" Y="16" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.ret">
+    <Position X="130.25" Y="16" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.copy">
+    <Position X="123.5" Y="18" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.clear">
+    <Position X="130.25" Y="18" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.io">
+    <Position X="70.75" Y="17.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.@in">
+    <Position X="77.5" Y="17.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.@out">
+    <Position X="73" Y="15.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.clearflags">
+    <Position X="81.75" Y="15.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.setflags">
+    <Position X="84" Y="17.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.getflags">
+    <Position X="125.75" Y="19.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.mov">
+    <Position X="134.75" Y="19.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.lea">
+    <Position X="128" Y="14" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.add">
+    <Position X="82.5" Y="25.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.sub">
+    <Position X="87" Y="25.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.mul">
+    <Position X="89.25" Y="25.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.div">
+    <Position X="91.5" Y="25.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.mod">
+    <Position X="76.75" Y="24" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.neg">
+    <Position X="98" Y="22.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.not">
+    <Position X="100.25" Y="22.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.or">
+    <Position X="85.75" Y="24" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.and">
+    <Position X="90.25" Y="24" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.xor">
+    <Position X="92.5" Y="24" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.nor">
+    <Position X="78" Y="25.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.nand">
+    <Position X="80.25" Y="25.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.nxor">
+    <Position X="84.75" Y="25.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.abs">
+    <Position X="102.5" Y="24.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.@bool">
+    <Position X="104.75" Y="24.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.pow">
+    <Position X="93.75" Y="25.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.shr">
+    <Position X="79" Y="24" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.shl">
+    <Position X="81.25" Y="24" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.ror">
+    <Position X="83.5" Y="24" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.rol">
+    <Position X="88" Y="24" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.fac">
+    <Position X="102.5" Y="22.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.incr">
+    <Position X="98" Y="24.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.decr">
+    <Position X="100.25" Y="24.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.cmp">
+    <Position X="130.25" Y="14" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.jle">
+    <Position X="123.5" Y="16" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.jl">
+    <Position X="132.5" Y="16" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.jge">
+    <Position X="125.75" Y="18" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.jg">
+    <Position X="132.5" Y="18" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.je">
+    <Position X="73" Y="17.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.jne">
+    <Position X="79.75" Y="17.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.jz">
+    <Position X="75.25" Y="15.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.jnz">
+    <Position X="84" Y="15.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.jneg">
+    <Position X="86.25" Y="17.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.jpos">
+    <Position X="128" Y="19.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.swap">
+    <Position X="121.25" Y="14" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.cpuid">
+    <Position X="132.5" Y="14" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.wait">
+    <Position X="125.75" Y="16" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.reset">
+    <Position X="134.75" Y="16" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.push">
+    <Position X="128" Y="18" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.pop">
+    <Position X="134.75" Y="18" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.peek">
+    <Position X="75.25" Y="17.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.sswap">
+    <Position X="68.5" Y="15.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.pushf">
+    <Position X="77.5" Y="15.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.popf">
+    <Position X="86.25" Y="15.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.peekf">
+    <Position X="88.5" Y="17.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.pushi">
+    <Position X="130.25" Y="19.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.popi">
+    <Position X="123.5" Y="14" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.peeki">
+    <Position X="134.75" Y="14" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.ficast">
+    <Position X="128" Y="16" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.ifcast">
+    <Position X="121.25" Y="18" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.fadd">
+    <Position X="125.25" Y="29" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.fsub">
+    <Position X="129.75" Y="29" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.fmul">
+    <Position X="107.25" Y="29" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.fdiv">
+    <Position X="109.5" Y="29" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.fmod">
+    <Position X="111.75" Y="29" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.fneg">
+    <Position X="104" Y="15.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.finv">
+    <Position X="106.25" Y="15.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.fsqrt">
+    <Position X="110.75" Y="15.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.froot">
+    <Position X="120.75" Y="29" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.flog">
+    <Position X="123" Y="29" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.floge">
+    <Position X="101.75" Y="17.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.fexp">
+    <Position X="106.25" Y="17.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.fpow">
+    <Position X="127.5" Y="29" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.ffloor">
+    <Position X="113" Y="17.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.fceil">
+    <Position X="97.25" Y="17.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.fround">
+    <Position X="99.5" Y="15.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.fmin">
+    <Position X="114" Y="29" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.fmax">
+    <Position X="118.5" Y="29" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.fsign">
+    <Position X="108.5" Y="15.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.fsin">
+    <Position X="113" Y="15.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.fcos">
+    <Position X="115.25" Y="15.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.ftan">
+    <Position X="99.5" Y="17.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.fsinh">
+    <Position X="104" Y="17.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.fcosh">
+    <Position X="108.5" Y="17.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.ftanh">
+    <Position X="110.75" Y="17.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.fasin">
+    <Position X="115.25" Y="17.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.facos">
+    <Position X="97.25" Y="15.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.fatan">
+    <Position X="101.75" Y="15.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.fatan2">
+    <Position X="116.25" Y="29" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MCPU.Instructions.kernel">
+    <Position X="88.5" Y="15.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Opcodes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Struct Name="MCPU.FunctionCall">
+    <Position X="72.5" Y="7.5" Width="4.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAgAAEAAAAAAAAAAAAAAACIAAAAAQAAoA=</HashCode>
+      <FileName>Instruction.cs</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="MCPU.InstructionArgument">
+    <Position X="63.75" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IAAEAAEAAAAACAAFEAIAQAAQAAAgAAAAAQBgAAAAAAA=</HashCode>
+      <FileName>Instruction.cs</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="MCPU.FloatIntUnion">
+    <Position X="72.5" Y="4.5" Width="4.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAIAAAAAAAAAAAAAAAAAAkAAAAAAAABAECAAAAA=</HashCode>
+      <FileName>Instruction.cs</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="MCPU.IOPort">
+    <Position X="77.25" Y="4.5" Width="3.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAIAAAAAAAAACAAAAAgAAAAABAAAAAgAAAAAAA=</HashCode>
+      <FileName>Processor.cs</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Enum Name="MCPU.ArgumentType">
+    <Position X="84.25" Y="5.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAgAAEAAAAAAAAAAAAAIAAAAQEggCAAAABAAAgAA=</HashCode>
+      <FileName>Instruction.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="MCPU.IODirection">
+    <Position X="84.25" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>QAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACA=</HashCode>
+      <FileName>Processor.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="MCPU.StatusFlags">
+    <Position X="82.5" Y="6" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAABAGABAAAAAAgAIEAAAAAAAAAAAAIQAAAAAAAAA=</HashCode>
+      <FileName>Processor.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="MCPU.InformationFlags">
+    <Position X="82.5" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAIAAAAAAAAAAAIIAAAAAAAAAAA=</HashCode>
+      <FileName>Processor.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Delegate Name="MCPU.ProcessingDelegate">
+    <Position X="82.75" Y="11.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAABAA=</HashCode>
+      <FileName>Instruction.cs</FileName>
+    </TypeIdentifier>
+  </Delegate>
+  <Delegate Name="MCPU.ProcessEventHandler">
+    <Position X="82.75" Y="9.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAA=</HashCode>
+      <FileName>Processor.cs</FileName>
+    </TypeIdentifier>
+  </Delegate>
+  <Delegate Name="MCPU.ProcessEventHandler&lt;T&gt;">
+    <Position X="82.75" Y="10.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAA=</HashCode>
+      <FileName>Processor.cs</FileName>
+    </TypeIdentifier>
+  </Delegate>
+  <Delegate Name="MCPU.CopyOfProcessingDelegate">
+    <Position X="82.75" Y="11.75" Width="3" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAABAA=</HashCode>
+      <FileName>Instruction.cs</FileName>
+    </TypeIdentifier>
+  </Delegate>
+  <Delegate Name="MCPU.CopyOfProcessEventHandler">
+    <Position X="82.75" Y="9.5" Width="3" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAA=</HashCode>
+      <FileName>Processor.cs</FileName>
+    </TypeIdentifier>
+  </Delegate>
+  <Delegate Name="MCPU.CopyOfProcessEventHandler&lt;T&gt;">
+    <Position X="82.75" Y="10.5" Width="3" />
+    <TypeIdentifier>
+      <HashCode>BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAA=</HashCode>
+      <FileName>Processor.cs</FileName>
+    </TypeIdentifier>
+  </Delegate>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

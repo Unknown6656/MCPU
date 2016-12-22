@@ -10,6 +10,8 @@ namespace MCPU
 {
     public delegate void ProcessingDelegate(Processor p, params InstructionArgument[] args);
 
+    public delegate void CopyOfProcessingDelegate(Processor p, params InstructionArgument[] args);
+
     /// <summary>
     /// Represents an OP code
     /// </summary>
