@@ -49,7 +49,7 @@ The FLAGS-register is defined as follows:
     00 ¦ . ¦ . ¦ . ¦ . ¦ . ¦ . ¦ . ¦ . ¦///////////////.///////////////¦ 0f
        '-|-'-|-'-|-'-|-'-|-'-|-'-|-'-|-'---------------|---------------'
          |   |   |   |   |   |   |   |                 |
- Zero 1 -'   |   |   |   |   |   |   |                Unused bits
+ Zero 1 -'   |   |   |   |   |   |   |    (currently) Unused bits
  Zero 2 -----'   |   |   |   |   |   |
  Sign 1 ---------'   |   |   |   |   |
  Sign 2 -------------'   |   |   |   |
@@ -64,17 +64,34 @@ If the comparison was unary (even though a unary comparison `CMP a` is implement
 
 ### InformationFlags-register (INFO.) and MCPUTicks-register (TICKS)
 
-(((TODO)))
+The INFOFLAGS-register is a 16-Bit register, which stores 'global' processor information - meaning information, which will not be pushed/popped to/from the stack during calls.
+```
+         0   1   2   3   4   5   6   7   8   9   a   b   c   d   e   f    BITS
+       .---.---.-------------------------------------------------------.
+    00 ¦ . ¦ . ¦///////////////////////////.///////////////////////////¦ 0f
+       '-|-'-|-'---------------------------|---------------------------'
+         |   |                             |
+   Elevated  |                (currently) Unused bits
+        Running
+```
+The flag `Elevated` determines whether the processor is currently running with elevated (kernel) privilege or not (See [the language reference manual](./language-reference.md) for more information about elevated instructions and operations).
+The flag `Running` indicates, that the processor is currently running. The processor's internal process-function is dependant from this particular flag, as it indicates whether the function shall continue processing or not.
 
 The TICKS-register contains the number of complete processor cycles performed (fetching, analysing and processing an instruction).
 
 ### Size registers
 
-(((TODO)))
+The size registers `MEMS` (byte-offset 0x0010) and `INSTR_COUNT` (byte-offset 0x0014) contain the size of the user-space memory and instruction array, respectively.  
+The `INSTR_COUNT`-register does contain the actual size of the byte-representation of the instruction array instead of the actual instruction count, as the name might indicate.
+The MCPU-processor's total memory size can be calculated by adding the base pointer to the instruction-count-register.
+The call-space offset can be determined by adding the memory offset (`0x0040`) to the `MEMS`-register.
 
 ### Stack and base pointer (SP and SBP/BP)
 
-(((TODO)))
+The stack base pointer (BP) contains the address of the bottom or base of the stack. This is the address `t0` in the top-most drawing of this document, as the stack grows from the top-most addresses to the bottom-most ones.
+The stack pointer (SP) contains the size of the stack, which means that the top of stack is located at the address `t0 - size`.
+
+Pushing an element onto the stack increases the SP, and writes the element at the new address `BASE_POINTER - SIZE`. Popping an element from the stack copies the element to the target address and decreases the SP by the element's size.
 
 ### I/O-Ports
 
