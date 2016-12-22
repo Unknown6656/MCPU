@@ -202,7 +202,40 @@ _For more information about the I/O-ports see [the introduction](./introduction.
 
 ### Floating-point operations
 
-(((TODO)))
+Floating-point operations (float-operations) are operations, which partly use IEEE-754 single-precision floating-point 32Bit-decimal numbers instead of plain 32Bit integer numbers. This allows the user and processor to perform calculations with real and rational numbers as well as integer numbers.
+Float arguments can be denoted as follows:
+```
+	42.0			; Floating-point number with a decimal point
+	+42.0f			; Floating-point number with a 'f'-suffix and a sign
+	42.	            ; Floating-point number without trailing decimal places
+	.42				; Floating-point number without leading decimal places
+	4.2e1			; Floating-point number in exponential representation
+	-.42e+2			; Floating-point number in exponential representation with factor and exponent signs
+	-4.2			; Floating-point number with a sign
+```
+During compile time, a floating-point argument will be converted to the integer, whoms bytes matches the IEEE byte representation of the floating-point number in question, e.g.:
+```
+	MOV [1] 42.0
+	; will be translated to:
+	MOV [1] 0x00002842
+	; the actual representation of '42.0' is '0x42280000', but the byte order is reversed
+	;	due to the endianess of the machine.
+```
+It is therefore _possible_ to pass a floating-point argument to any instruction, though it is not advisable as it can result in unexpected behaviour.
+Floating-point operations, however, assume that their given argument(s) are floating-point numbers. It can therefore be also unpredictable to pass a regular integer argument to a floating-point operation:
+```
+	MOV [7] 42.0	; Value inside address 7 : 0x00002842
+	FADD [7] 315	; The value '315' will be interpreted as the floating-point number
+					;	'4.414090162623174E-43'. As this number is much to small, the
+					;	operation's result will be still '42.0' and not 42 + 315 = 357
+```
+In order to convert a floating-point number to a integer number, one must use the instructions `FICAST` and `IFCAST`. The instruction `FICAST` stands for _'**F**loat to **I**nteger **Cast**'_, which converts a floating point number to an integer one. The reverse instruction is `IFCAST` which stands for _'**I**nteger to **F**loat **Cast**'_.
+```
+	MOV [5] 13		; Moves '13' to address 5
+	IFCAST [4] [5]	; Converts '13' to '13.0' and stores the result into address 4
+	FSUB [4] 1.0	; Subtracts '1.0' from '13.0' (in address 4)
+	FICAST [6] [4]	; Casts '12.0' to '12' and stores the result into address 6
+```
 
 ### Privileged instructions and operations
 

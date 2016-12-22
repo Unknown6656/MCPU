@@ -5,7 +5,7 @@ The basic memory layout can be visualized as follows:
 ```
      0   1   2   3   4   5   6   7   8   9   a   b   c   d   e   f    BYTES
    .---------------.---------------.-------.-------.---------------.
-00 ¦    CPU ID     ¦       IP      ¦ FLAGS ¦ INFO. ¦///////////////¦ 0f
+00 ¦    CPU ID     ¦       IP      ¦ FLAGS ¦ INFO. ¦  MCPU Ticks   ¦ 0f
    ¦---------------:---------------:-------'-------:---------------¦
 10 ¦  Memory Size  ¦  Instr. Count ¦ Stack pointer ¦ Base pointer  ¦ 1f
    ¦---------------'---------------'---------------'---------------¦
@@ -46,10 +46,10 @@ The FLAGS-register is defined as follows:
 ```
          0   1   2   3   4   5   6   7   8   9   a   b   c   d   e   f    BITS
        .---.---.---.---.---.---.---.---.-------------------------------.
-    00 ¦ . ¦ . ¦ . ¦ . ¦ . ¦ . ¦ . ¦ . ¦///////////////////////////////¦ 0f
-       '-|-'-|-'-|-'-|-'-|-'-|-'-|-'-|-'-------------------------------'
-         |   |   |   |   |   |   |   |
- Zero 1 -'   |   |   |   |   |   |   |
+    00 ¦ . ¦ . ¦ . ¦ . ¦ . ¦ . ¦ . ¦ . ¦///////////////.///////////////¦ 0f
+       '-|-'-|-'-|-'-|-'-|-'-|-'-|-'-|-'---------------|---------------'
+         |   |   |   |   |   |   |   |                 |
+ Zero 1 -'   |   |   |   |   |   |   |                Unused bits
  Zero 2 -----'   |   |   |   |   |   |
  Sign 1 ---------'   |   |   |   |   |
  Sign 2 -------------'   |   |   |   |
@@ -62,9 +62,11 @@ The Flags `Sign 1`/`Sign 2` are `0` if the first/second compared value are posit
 The Flag `Equal`, `Lower` and `Greater` are `1` if they fulfil their respective arithmetic description and `0` otherwise.
 If the comparison was unary (even though a unary comparison `CMP a` is implemented as `CMP 0 a`), the 7<sup>th</sup> highest bit is set to `1` (or `0` otherwise).
 
-### InformationFlags-register (INFO.)
+### InformationFlags-register (INFO.) and MCPUTicks-register (TICKS)
 
 (((TODO)))
+
+The TICKS-register contains the number of complete processor cycles performed (fetching, analysing and processing an instruction).
 
 ### Size registers
 
