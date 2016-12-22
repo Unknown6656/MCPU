@@ -54,6 +54,10 @@ The first type are constant parameters, which can have the following form:
 	null			; constant 0
 	true			; constant 1
 	false			; constant 0
+	pi				; constant π = 3.14159265358979
+	phi				; constant φ = 1.61803398874989
+	e				; constant e = 2.71828182845905
+	tau				; constant τ = 2π = 6.28318530717959
 ```
 
 The second type are user-space zero-indexed memory addresses (or kernel-space with appropriate privileges), which each represent a 32-bit storage address:  

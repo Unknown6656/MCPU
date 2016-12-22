@@ -11,7 +11,7 @@ This project is a microprocessor emulator, which comes with its own instruction 
 ### TODO-List
 
 - [x] Documentation
-- [ ] Floating-point arithmetic &#160; **(Currently in process)**
+- [x] Floating-point arithmetic
 - [ ] Unit Tests (!)
 - [ ] Push releases
 - [x] Instruction serialization
