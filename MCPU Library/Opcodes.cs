@@ -940,7 +940,7 @@ namespace MCPU.Instructions
     #endregion
     #region 004a...004f <<unassigned>>
     #endregion
-    #region 0050...00-- FLOATING POINT OPERATIONS
+    #region 0050...006e FLOATING POINT OPERATIONS
 
     [OPCodeNumber(0x0050)] // float -> int cast
     public sealed unsafe class ficast
@@ -1261,8 +1261,7 @@ namespace MCPU.Instructions
         {
         }
     }
-
-
+    
     #endregion
 
 

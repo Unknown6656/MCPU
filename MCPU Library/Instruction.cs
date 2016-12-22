@@ -8,9 +8,13 @@ using System;
 
 namespace MCPU
 {
+    /// <summary>
+    /// A delegate representing a instruction processing based on a given processor and given instruction arguments
+    /// </summary>
+    /// <param name="p">MCPU processor</param>
+    /// <param name="args">Instruction arguments</param>
     public delegate void ProcessingDelegate(Processor p, params InstructionArgument[] args);
-
-    public delegate void CopyOfProcessingDelegate(Processor p, params InstructionArgument[] args);
+    
 
     /// <summary>
     /// Represents an OP code
@@ -618,7 +622,7 @@ namespace MCPU
     }
 
     [Serializable, NativeCppClass, StructLayout(LayoutKind.Explicit, Size = 4)]
-    internal unsafe struct FloatIntUnion
+    public unsafe struct FloatIntUnion
     {
         [FieldOffset(0)]
         public int I;
@@ -638,6 +642,7 @@ namespace MCPU
         public static implicit operator float(FloatIntUnion un) => un.F;
         public static implicit operator FloatIntUnion(int val) => new FloatIntUnion { I = val };
         public static implicit operator FloatIntUnion(float val) => new FloatIntUnion { F = val };
+        public static implicit operator FloatIntUnion(double val) => new FloatIntUnion { F = (float)val };
     }
 
     /// <summary>

@@ -41,6 +41,7 @@ namespace MCPU
     /// <param name="args">Argument of type T</param>
     public delegate void CopyOfProcessEventHandler<T>(Processor p, T args);
 
+
     /// <summary>
     /// Represents the MCPU-processor
     /// </summary>
@@ -54,7 +55,8 @@ namespace MCPU
             { 0, (p, _) => Console.WriteLine($"MCPU v. {Assembly.GetEntryAssembly().GetName().Version} created by Unknown6656") },
             { 1, (p, _) => ConsoleExtensions.HexDump(p.ToBytes()) },
             { 2, (p, _) => Console.WriteLine(string.Join(", ", from arg in _ select $"0x{p.TranslateConstant(arg):x8}")) },
-            { 3, (p, _) => {
+            { 3, (p, _) => Console.WriteLine(string.Join(", ", from arg in _ select p.TranslateFloatConstant(arg))) },
+            { 4, (p, _) => {
                 OPCode.AssertAddress(0, _);
 
                 *p.TranslateAddress(_[0]) = p.Ticks;

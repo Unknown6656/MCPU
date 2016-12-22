@@ -24,7 +24,7 @@ namespace MCPU.Compiler
         /// <summary>
         /// Floating-point matching pattern
         /// </summary>
-        internal const string FLOAT_CORE = @"((\+|\-|)([0-9]+\.[0-9]*|[0-9]*\.[0-9]+)(e(\+|\-|)[0-9]+)?[fd]?)";
+        internal const string FLOAT_CORE = @"((\+|\-|)([0-9]+\.[0-9]*|[0-9]*\.[0-9]+)(e(\+|\-|)[0-9]+)?[fd]?|pi|e|phi|tau|π|τ)";
         /// <summary>
         /// Integer matching pattern
         /// </summary>
@@ -32,7 +32,7 @@ namespace MCPU.Compiler
         /// <summary>
         /// Argument core matching pattern
         /// </summary>
-        internal static readonly Regex ARGUMENT_CORE = new Regex($@"(k?\[\$?(?<addr>{INTEGER_CORE})\]|k?\[\[\$?(?<ptr>{INTEGER_CORE})\]\]|\$?(?<const>{INTEGER_CORE})|{NAME_REGEX_CORE}|(?<float>{FLOAT_CORE}))", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        internal static readonly Regex ARGUMENT_CORE = new Regex($@"((?<float>{FLOAT_CORE})|k?\[\$?(?<addr>{INTEGER_CORE})\]|k?\[\[\$?(?<ptr>{INTEGER_CORE})\]\]|\$?(?<const>{INTEGER_CORE})|{NAME_REGEX_CORE})", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         /// <summary>
         /// Instruction matching pattern
         /// </summary>
@@ -53,6 +53,22 @@ namespace MCPU.Compiler
         /// Matches function endings
         /// </summary>
         public static readonly Regex END_FUNC_REGEX = new Regex(@"\bend\s+func\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        /// <summary>
+        /// Represents the IEEE-754 representation of the mathematical constant π
+        /// </summary>
+        internal static readonly int FC_π = (FloatIntUnion)Math.PI;
+        /// <summary>
+        /// Represents the IEEE-754 representation of the mathematical constant τ
+        /// </summary>
+        internal static readonly int FC_τ = (FloatIntUnion)(Math.PI * 2);
+        /// <summary>
+        /// Represents the IEEE-754 representation of the mathematical constant e
+        /// </summary>
+        internal static readonly int FC_e = (FloatIntUnion)Math.E;
+        /// <summary>
+        /// Represents the IEEE-754 representation of the mathematical constant φ
+        /// </summary>
+        internal static readonly int FC_φ = (FloatIntUnion)1.61803398874989;
 
 
         internal static IEnumerable<string> PreprocessLines(IEnumerable<string> lines) =>
@@ -76,6 +92,29 @@ namespace MCPU.Compiler
             (MCPUFunction[], int, string) Error(string message) => (null, linenr + 1, message);
             MCPUFunction FindFirst(string name) => (from f in functions where f.Name == name select f).FirstOrDefault();
             bool CheckGroup(string name, out string value) => (value = match.Groups[name].ToString().Trim()).Length > 0;
+            unsafe int ParseFloatArg(string s)
+            {
+                switch (s)
+                {
+                    case "τ":
+                    case "tau":
+                        return FC_τ;
+                    case "π":
+                    case "pi":
+                        return FC_π;
+                    case "φ":
+                    case "phi":
+                        return FC_φ;
+                    case "e":
+                        return FC_e;
+                    default:
+                        float f = float.Parse(s.Replace('.', ',')
+                                               .Replace('f', 'd')
+                                               .Replace("d", ""));
+                        return *((int*)&f);
+                }
+
+            }
             int ParseIntArg(string s)
             {
                 int intparse(string arg)
@@ -112,7 +151,8 @@ namespace MCPU.Compiler
 
                 return isneg ? -val : val;
             }
-            
+
+
             for (int l = lines.Length; linenr < l; ++linenr)
             {
                 string line = lines[linenr];
@@ -214,7 +254,7 @@ namespace MCPU.Compiler
                                     {
                                         InstructionArgument iarg = new InstructionArgument();
                                         string val;
-
+                                        
                                         if (CheckGroup("ptr", out val))
                                         {
                                             iarg.Value = ParseIntArg(val);
@@ -230,6 +270,11 @@ namespace MCPU.Compiler
 
                                             if (arg.StartsWith("k"))
                                                 iarg.Type |= ArgumentType.KernelMode;
+                                        }
+                                        else if (CheckGroup("float", out val))
+                                        {
+                                            iarg.Type = ArgumentType.Constant;
+                                            iarg.Value = ParseFloatArg(val.ToLower());
                                         }
                                         else if (CheckGroup("const", out val))
                                         {
@@ -260,16 +305,6 @@ namespace MCPU.Compiler
                                                 }
                                             }
                                         }
-                                        else if (CheckGroup("float", out val))
-                                        {
-                                            float f = float.Parse(val.ToLower()
-                                                                     .Replace('.', ',')
-                                                                     .Replace('f', 'd')
-                                                                     .Replace("d", ""));
-
-                                            iarg.Type = ArgumentType.Constant;
-                                            iarg.Value = *((int*)&f);
-                                        }
                                         else
                                             return Error($"The type of the argument '{arg}' could not be determined.");
 
@@ -286,8 +321,6 @@ namespace MCPU.Compiler
                     else
                         return Error($"The line '{line}' could not be parsed.");
                 }
-                //else
-                //    curr_func.Instructions.Add(OPCodes.NOP);
             }
 
             functions.Add(curr_func);

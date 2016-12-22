@@ -13,7 +13,7 @@ namespace MCPU
     public static class Program
     {
         public readonly static string[] PROGR = new string[] {
-             @"
+             /* 00 */ @"
 FUNC decr1
     SUB [$0] 1
 END FUNC
@@ -33,7 +33,7 @@ END FUNC
     CALL add42 2
     SYSCALL 1
     .USER
-", @"
+", /* 01 */  @"
 ; this is a loop, which counts from 20 down to 0
 func print
     .kernel
@@ -52,20 +52,35 @@ loop:
     jmp loop
 end:
     halt
-", @"
+", /* 02 */ @"
     .main
     .kernel
     syscall 2 k[2]  ; print the IP
     add k[2] 2      ; skip the next instruction
     halt
     syscall 2 0xdeadbeef
+", /* 03 */ @"
+func fdebug
+    syscall 3 $0
+    syscall 2 $0
+end func
+
+    .main
+    .kernel
+    mov [0] 42.0
+    call fdebug [0]
+    fadd [0] 1.
+    call fdebug [0]
+    fmul [0] -.5
+    call fdebug [0]
 ",
+
         };
 
         public static void Main(string[] args)
         {
             Processor proc = new Processor(16);
-            Instruction[] res = MCPUCompiler.Compile(PROGR[1]);
+            Instruction[] res = MCPUCompiler.Compile(PROGR[3]);
             byte[] bytes = Instruction.SerializeMultiple(res);
             int line = 0;
 
