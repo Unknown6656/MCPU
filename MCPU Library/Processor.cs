@@ -54,11 +54,17 @@ namespace MCPU
             { 0, (p, _) => Console.WriteLine($"MCPU v. {Assembly.GetEntryAssembly().GetName().Version} created by Unknown6656") },
             { 1, (p, _) => ConsoleExtensions.HexDump(p.ToBytes()) },
             { 2, (p, _) => Console.WriteLine(string.Join(", ", from arg in _ select $"0x{p.TranslateConstant(arg):x8}")) },
+            { 3, (p, _) => {
+                OPCode.AssertAddress(0, _);
+
+                *p.TranslateAddress(_[0]) = p.Ticks;
+            } },
         };
         
         public const int IP_OFFS = 0x04;
         public const int FLAG_OFFS = 0x08;
         public const int RESV_OFFS = 0x0a;
+        public const int TICK_OFFS = 0x0c;
         public const int MEMS_OFFS = 0x10;
         public const int INSZ_OFFS = 0x14;
         public const int STACK_BASE_OFFS = 0x18;
@@ -136,6 +142,15 @@ namespace MCPU
         {
             get => *((int*)raw);
             private set => *((int*)raw) = value;
+        }
+
+        /// <summary>
+        /// The number of executed processor ticks
+        /// </summary>
+        public int Ticks
+        {
+            get => KernelSpace[TICK_OFFS / 4];
+            internal set => KernelSpace[TICK_OFFS / 4] = value;
         }
 
         /// <summary>
@@ -342,6 +357,7 @@ namespace MCPU
             Halt();
 
             IP = 0;
+            Ticks = 0;
             StackSize = 0;
             KernelSpace[3] = 0;
             Flags = StatusFlags.Empty;
@@ -385,8 +401,10 @@ namespace MCPU
 
             if ((ins != null) && (ins.GetType() != typeof(Instructions.halt)))
             {
-                ins.Process(this);
+                ++Ticks;
 
+                ins.Process(this);
+                
                 InstructionExecuted?.Invoke(this, ins);
 
                 if (!ins.OPCode.SpecialIPHandling)
@@ -698,6 +716,7 @@ namespace MCPU
                 raw[i] = 0;
 
             IO = new IOPorts(raw);
+            Ticks = 0;
             Size = size;
             CPUID = cpuid;
             StackSize = 0;
