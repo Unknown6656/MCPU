@@ -105,8 +105,8 @@ The I/O-ports are memory-mapped ports, which can be used for basic input and out
      |       Unused bits
      |
      Direction flag:
-     	0 - Output (write)
-     	1 - Input  (read)
+        0 - Output (write)
+        1 - Input  (read)
 ```
 A port can only read or write 4 bits at one time. If a larger value is pushed into the port, the value will be truncated to its last four bits.
 
@@ -115,7 +115,7 @@ A port can only read or write 4 bits at one time. If a larger value is pushed in
 The user-space memory is the 'normally' accessible memory space, which starts at the byte offset `0x0040`.
 As each user-space memory value has the size of 32 Bits (or 4 bytes), the 4-byte address `n` inside the user-space represents the byte-offset `0x40 + 4 * n` inside the kernel-space, e.g.  
 ```
-	MOV [10] 42
+    MOV [10] 42
 ```
 Moves the value '42' to the user-space memory address `10`, which is the kernel-address `0x4a` or `74`. The byte offset would be in this case `0x0128` or `296` for the least significant byte and `0x012B` or `299` for the most significant one.
 
