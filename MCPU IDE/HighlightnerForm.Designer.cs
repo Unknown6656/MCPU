@@ -31,6 +31,7 @@
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(HighlightnerForm));
             this.fctb = new FastColoredTextBoxNS.FastColoredTextBox();
+            this.docmap = new FastColoredTextBoxNS.DocumentMap();
             ((System.ComponentModel.ISupportInitialize)(this.fctb)).BeginInit();
             this.SuspendLayout();
             // 
@@ -48,7 +49,7 @@
         '\"',
         '\'',
         '\''};
-            this.fctb.AutoScrollMinSize = new System.Drawing.Size(251, 204);
+            this.fctb.AutoScrollMinSize = new System.Drawing.Size(451, 306);
             this.fctb.BackBrush = null;
             this.fctb.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
             this.fctb.CaretColor = System.Drawing.Color.Wheat;
@@ -70,20 +71,31 @@
             this.fctb.Paddings = new System.Windows.Forms.Padding(0);
             this.fctb.SelectionColor = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
             this.fctb.ServiceColors = ((FastColoredTextBoxNS.ServiceColors)(resources.GetObject("fctb.ServiceColors")));
-            this.fctb.Size = new System.Drawing.Size(805, 606);
+            this.fctb.Size = new System.Drawing.Size(827, 621);
             this.fctb.TabIndex = 0;
-            this.fctb.Text = ".inline func topkek ;random\r\n    ret\r\nend func\r\n\r\n    .main\r\n    .kernel\r\n    mov" +
-    " [3] 5\r\n    add $8 k[[2]]\r\nlabel:\r\n     call topkek\r\n     syscall -4\r\n     halt";
+            this.fctb.Text = resources.GetString("fctb.Text");
             this.fctb.TextAreaBorderColor = System.Drawing.Color.PowderBlue;
             this.fctb.Zoom = 100;
+            // 
+            // docmap
+            // 
+            this.docmap.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(60)))), ((int)(((byte)(60)))));
+            this.docmap.Dock = System.Windows.Forms.DockStyle.Right;
+            this.docmap.ForeColor = System.Drawing.Color.Maroon;
+            this.docmap.Location = new System.Drawing.Point(727, 0);
+            this.docmap.Name = "docmap";
+            this.docmap.Size = new System.Drawing.Size(100, 621);
+            this.docmap.TabIndex = 1;
+            this.docmap.Target = this.fctb;
             // 
             // HighlightnerForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.docmap);
             this.Controls.Add(this.fctb);
             this.Name = "HighlightnerForm";
-            this.Size = new System.Drawing.Size(805, 606);
+            this.Size = new System.Drawing.Size(827, 621);
             ((System.ComponentModel.ISupportInitialize)(this.fctb)).EndInit();
             this.ResumeLayout(false);
 
@@ -92,5 +104,6 @@
         #endregion
 
         public FastColoredTextBoxNS.FastColoredTextBox fctb;
+        private FastColoredTextBoxNS.DocumentMap docmap;
     }
 }

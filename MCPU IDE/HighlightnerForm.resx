@@ -135,4 +135,24 @@
         CgAAAAAAAAAAjQABAAH4/////P///woAAAAAAAAAAKQAAQAB9/////z///8KAAAAAAAAAACWAAEACw==
 </value>
   </data>
+  <data name="fctb.Text" xml:space="preserve">
+    <value>    ; this is a loop, which counts from 20 down to 0
+func print
+    .kernel
+    syscall 2 [$0]
+    .user
+end func
+
+    .main
+    mov [1] 20
+    call print 1
+loop:
+    decr [1]
+    cmp [1]
+    call print 1
+    jz end
+    jmp loop
+end:
+    halt</value>
+  </data>
 </root>
