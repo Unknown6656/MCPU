@@ -36,6 +36,7 @@
             // 
             // fctb
             // 
+            this.fctb.AutoCompleteBrackets = true;
             this.fctb.AutoCompleteBracketsList = new char[] {
         '(',
         ')',
@@ -47,22 +48,33 @@
         '\"',
         '\'',
         '\''};
-            this.fctb.AutoScrollMinSize = new System.Drawing.Size(27, 14);
+            this.fctb.AutoScrollMinSize = new System.Drawing.Size(251, 204);
             this.fctb.BackBrush = null;
-            this.fctb.CharHeight = 14;
+            this.fctb.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
+            this.fctb.CaretColor = System.Drawing.Color.Wheat;
+            this.fctb.CharHeight = 17;
             this.fctb.CharWidth = 8;
+            this.fctb.CommentPrefix = ";";
+            this.fctb.CurrentLineColor = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(60)))), ((int)(((byte)(60)))));
             this.fctb.Cursor = System.Windows.Forms.Cursors.IBeam;
             this.fctb.DisabledColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))));
             this.fctb.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.fctb.Font = new System.Drawing.Font("Courier New", 9.75F);
+            this.fctb.FoldingIndicatorColor = System.Drawing.Color.PowderBlue;
+            this.fctb.Font = new System.Drawing.Font("Consolas", 11F);
+            this.fctb.ForeColor = System.Drawing.Color.WhiteSmoke;
+            this.fctb.IndentBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
             this.fctb.IsReplaceMode = false;
+            this.fctb.LineNumberColor = System.Drawing.Color.PowderBlue;
             this.fctb.Location = new System.Drawing.Point(0, 0);
             this.fctb.Name = "fctb";
             this.fctb.Paddings = new System.Windows.Forms.Padding(0);
-            this.fctb.SelectionColor = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(255)))));
+            this.fctb.SelectionColor = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
             this.fctb.ServiceColors = ((FastColoredTextBoxNS.ServiceColors)(resources.GetObject("fctb.ServiceColors")));
             this.fctb.Size = new System.Drawing.Size(805, 606);
             this.fctb.TabIndex = 0;
+            this.fctb.Text = ".inline func topkek ;random\r\n    ret\r\nend func\r\n\r\n    .main\r\n    .kernel\r\n    mov" +
+    " [3] 5\r\n    add $8 k[[2]]\r\nlabel:\r\n     call topkek\r\n     syscall -4\r\n     halt";
+            this.fctb.TextAreaBorderColor = System.Drawing.Color.PowderBlue;
             this.fctb.Zoom = 100;
             // 
             // HighlightnerForm

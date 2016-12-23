@@ -13,6 +13,8 @@ using System.Text;
 using System.IO;
 using System;
 
+using FastColoredTextBoxNS;
+
 namespace MCPU.IDE
 {
     using MCPU.Compiler;
@@ -22,11 +24,13 @@ namespace MCPU.IDE
     public partial class MainWindow
         : Window
     {
+        public FastColoredTextBox fcbt => fctb_host.fctb;
+
+
         public MainWindow() => InitializeComponent();
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            //tb_main.AddStyle();
         }
     }
 }
