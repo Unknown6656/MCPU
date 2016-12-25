@@ -24,11 +24,11 @@ namespace MCPU.Compiler
         /// <summary>
         /// Floating-point matching pattern
         /// </summary>
-        internal const string FLOAT_CORE = @"((\+|\-|)([0-9]+\.[0-9]*|[0-9]*\.[0-9]+)(e(\+|\-|)[0-9]+)?[fd]?|pi|e|phi|tau|π|τ)";
+        public const string FLOAT_CORE = @"((\+|\-|)([0-9]+\.[0-9]*|[0-9]*\.[0-9]+)(e(\+|\-|)[0-9]+)?[fd]?|pi|e|phi|tau|π|τ)";
         /// <summary>
         /// Integer matching pattern
         /// </summary>
-        internal const string INTEGER_CORE = @"(\-?(0x[0-9a-f]+|[0-9a-f]+h|[0-9]+|0o[01]+|0b[0-7]+)|true|false|null)";
+        public const string INTEGER_CORE = @"(\-?(0x[0-9a-f]+|[0-9a-f]+h|[0-9]+|0o[01]+|0b[0-7]+)|true|false|null)";
         /// <summary>
         /// Argument core matching pattern
         /// </summary>
@@ -56,19 +56,19 @@ namespace MCPU.Compiler
         /// <summary>
         /// Represents the IEEE-754 representation of the mathematical constant π
         /// </summary>
-        internal static readonly int FC_π = (FloatIntUnion)Math.PI;
+        public static readonly int FC_π = (FloatIntUnion)Math.PI;
         /// <summary>
         /// Represents the IEEE-754 representation of the mathematical constant τ
         /// </summary>
-        internal static readonly int FC_τ = (FloatIntUnion)(Math.PI * 2);
+        public static readonly int FC_τ = (FloatIntUnion)(Math.PI * 2);
         /// <summary>
         /// Represents the IEEE-754 representation of the mathematical constant e
         /// </summary>
-        internal static readonly int FC_e = (FloatIntUnion)Math.E;
+        public static readonly int FC_e = (FloatIntUnion)Math.E;
         /// <summary>
         /// Represents the IEEE-754 representation of the mathematical constant φ
         /// </summary>
-        internal static readonly int FC_φ = (FloatIntUnion)1.61803398874989;
+        public static readonly int FC_φ = (FloatIntUnion)1.61803398874989;
 
 
         internal static IEnumerable<string> PreprocessLines(IEnumerable<string> lines) =>
