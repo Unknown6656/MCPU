@@ -7,6 +7,7 @@ This project is a microprocessor emulator, which comes with its own instruction 
 * [Instruction set](https://github.com/Unknown6656/MCPU/blob/documentation/Documentation/instruction-set.md)
 * [Syscall table](https://github.com/Unknown6656/MCPU/blob/documentation/Documentation/syscalls.md)
 * [Language reference](https://github.com/Unknown6656/MCPU/blob/documentation/Documentation/language-reference.md)
+* [IDE Manual](https://github.com/Unknown6656/MCPU/blob/documentation/Documentation/ide.md)
 
 ### TODO-List
 
@@ -22,9 +23,9 @@ This project is a microprocessor emulator, which comes with its own instruction 
 - [ ] Creation of handlers, which react to "hardware-interrupts"
 - [ ] Virtual Device support
 - [ ] String processing and support
-- [ ] IDE/Editor
+- [ ] IDE/Editor **(currently in progress)**
     - [x] compiler
-    - [ ] syntax highlighting
-    - [ ] auto-completition
+    - [x] syntax highlighting
+    - [ ] auto-completition **(currently in progress)**
     - [ ] debugger
     - [ ] refractoring
