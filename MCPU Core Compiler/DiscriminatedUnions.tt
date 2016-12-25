@@ -25,28 +25,98 @@ for (int i = 2; i <= 26; i++)
 	/// <summary>
     /// A generic discriminated union with <#=i#> different type cases
     /// </summary>
-	public abstract class Union<#=""#><<#=type_str#>>
+	public abstract class Union<<#=type_str#>>
     {
+        /// <summary>
+        /// Matches the current union value with the given functions and returns the common return value of the function.
+        /// </summary>
+        /// <typeparam name="_">Common return type</typeparam>
+<#
+for (int j = 0; j < i; j++)
+{
+#>
+        /// <param name="<#=SmallC(j)#>">A function which matches the union type '<#=BigC(j)#>'</param>
+<# } #>
+        /// <returns>Match result</returns>
         public abstract _ Match<_>(<#=func_str#>);
+<#
+for (int j = 0; j < i; j++)
+{
+#>
+        /// <summary>
+        /// Returns, whether the current union instance is from the type '<#=BigC(j)#>'
+        /// </summary>
+		public virtual bool Is<#=BigC(j)#> => false;
+<# } #>
+        /// <summary>
+        /// The union's type-unsafe item
+        /// </summary>
+		public abstract object UnsafeItem { get; }
 
-		private Union<#=""#>() { }
+		private Union() { }
+
+		/// <summary>
+		/// Returns whether the union contains a value of the given generic type
+		/// </summary>
+		public bool Is<_>() => typeof(_) == UnsafeItem?.GetType();
+
+		/// <summary>
+		/// Returns the union value cast to the given type.
+		/// </summary>
+		public _ As<_>() =>
+<#
+for (int j = 0; j < i; j++)
+	WriteLine($"			Is<{BigC(j)}>() ? (_)UnsafeItem :");
+#>
+					  default(_);
 
 <#
 for (int j = 0; j < i; j++)
 {
 #>
+		public static implicit operator <#=BigC(j)#>(Union<<#=type_str#>> u) => u.As<<#=BigC(j)#>>();
+<#
+}
+for (int j = 0; j < i; j++)
+{
+#>
+		public static implicit operator Union<<#=type_str#>>(<#=BigC(j)#> i) => new Case<#=j + 1#>(i);
+<# } #>
 
+<#
+for (int j = 0; j < i; j++)
+{
+#>
+        /// <summary>
+        /// Union case №<#=j + 1#> (Represents type '<#=BigC(j)#>')
+        /// </summary>
 		public sealed class Case<#=j + 1#>
 			: Union<#=""#><<#=type_str#>>
 		{
+			/// <summary>
+			/// Returns, whether the current union instance is from the type '<#=BigC(j)#>'
+			/// </summary>
+			public override bool Is<#=BigC(j)#> => true;
+			/// <summary>
+			/// The union's type-unsafe item
+			/// </summary>
+			public override object UnsafeItem => Item;
+			/// <summary>
+			/// The union's item
+			/// </summary>
 			public <#=BigC(j)#> Item { get; }
+
+			public override _ Match<_>(<#=func_str#>) => <#=SmallC(j)#>(Item);
 			
+			/// <summary>
+            /// Creates a new union with '<#=i#>' possible cases and sets it to a value of the type '<#=BigC(j)#>'
+            /// </summary>
+            /// <param name="item">Union value of the type <#=BigC(j)#></param>
             public Case<#=j + 1#>(<#=BigC(j)#> item)
 				: base() => Item = item;
 
-			public override _ Match<_>(<#=func_str#>) => <#=SmallC(j)#>(Item);
-
 			public static implicit operator <#=BigC(j)#>(Case<#=j + 1#> c) => c.Item;
+			public static implicit operator Case<#=j + 1#>(<#=BigC(j)#> i) => new Case<#=j + 1#>(i);
 		}
 <# } #>
 	}

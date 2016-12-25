@@ -420,11 +420,11 @@ namespace MCPU.Compiler
         {
             try
             {
-                return new cmpres.Case1(CompileWithMetadata(code));
+                return CompileWithMetadata(code);
             }
             catch (MCPUCompilerException ex)
             {
-                return new cmpres.Case2(ex);
+                return ex;
             }
         }
 
@@ -434,7 +434,7 @@ namespace MCPU.Compiler
         /// <param name="code">MCPU assembly code</param>
         /// <exception cref="MCPUCompilerException">Possible compiler errors</exception>
         /// <returns>Compiled instructions in byte format</returns>
-        public static byte[] CompileToBinary(string code) => Instruction.SerializeMultiple(Compile(code));
+        public static byte[] CompileToBinary(string code) => Compile(code).Match(res => Instruction.SerializeMultiple(res.Instructions), ex => null as byte[] ?? throw ex);
 
         /// <summary>
         /// Decompiles the given instructions into readable MCPU assembly code
