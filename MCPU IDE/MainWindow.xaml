@@ -37,6 +37,7 @@
         <CommandBinding Command="local:Commands.SaveAs" Executed="mif_save_as"/>
         <CommandBinding Command="local:Commands.ExportAsHTML" Executed="mif_export_html"/>
         <CommandBinding Command="local:Commands.Preferences" Executed="mif_settings"/>
+        <CommandBinding Command="local:Commands.Compile" Executed="mic_compile"/>
     </Window.CommandBindings>
     <DockPanel>
         <Menu DockPanel.Dock="Top" Height="21">
@@ -68,8 +69,9 @@
                 <MenuItem x:Name="mie_zoom_res" Header="Reset _Zoom" Command="local:Commands.ZoomReset"/>
             </MenuItem>
             <MenuItem Header="_COMPILER">
-                <MenuItem Header="_Compile"/>
+                <MenuItem Header="_Compile" Command="local:Commands.Compile"/>
                 <MenuItem Header="_Error list"/>
+                <MenuItem Header="_View compile Instructions"/>
             </MenuItem>
             <MenuItem Header="_PROCESSOR">
                 <MenuItem Header="_Start"/>

@@ -8,6 +8,8 @@ using System;
 
 namespace MCPU.Compiler
 {
+    using cmpres = Union<MCPUCompilerResult, MCPUCompilerException>;
+
     /// <summary>
     /// Provides functions to parse and compile given code segments to MCPU-compatible instructions
     /// </summary>
@@ -48,7 +50,7 @@ namespace MCPU.Compiler
         /// <summary>
         /// Matches function declarations
         /// </summary>
-        public static readonly Regex FUNC_REGEX = new Regex($@"\b(inline\s+)?func\s+{NAME_REGEX_CORE}\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        public static readonly Regex FUNC_REGEX = new Regex($@"((?<inline>\.inline)\s+|\b)func\s+{NAME_REGEX_CORE}\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         /// <summary>
         /// Matches function endings
         /// </summary>
@@ -74,22 +76,21 @@ namespace MCPU.Compiler
         internal static IEnumerable<string> PreprocessLines(IEnumerable<string> lines) =>
             from line in lines
             let ln = new Func<string>(() => line.Contains(COMMENT_START) ? line.Remove(line.IndexOf(COMMENT_START)) : line)().Trim()
-            where ln.Length > 0
+            // where ln.Length > 0
             select ln;
 
-        internal static unsafe (MCPUFunction[], int, string) Precompile(string code)
+        internal static unsafe (MCPUFunction[], MCPULabelMetadata[], int, string) Precompile(string code)
         {
             string[] lines = PreprocessLines((code ?? "").Split('\n', '\r')).ToArray();
             List<(int, string, int)> unmapped = new List<(int, string, int)>();
+            List<MCPULabelMetadata> labelmeta = new List<MCPULabelMetadata>();
             Dictionary<string, int> labels = new Dictionary<string, int>();
             List<MCPUFunction> functions = new List<MCPUFunction>();
+            int is_func = 0, linenr = 0, id = 0;
             MCPUFunction curr_func = null;
-            int is_func = 0;
-            int linenr = 0;
             Match match;
-            int id = 0;
 
-            (MCPUFunction[], int, string) Error(string message) => (null, linenr + 1, message);
+            (MCPUFunction[], MCPULabelMetadata[], int, string) Error(string message) => (null, null, linenr + 1, message);
             MCPUFunction FindFirst(string name) => (from f in functions where f.Name == name select f).FirstOrDefault();
             bool CheckGroup(string name, out string value) => (value = match.Groups[name].ToString().Trim()).Length > 0;
             unsafe int ParseFloatArg(string s)
@@ -156,7 +157,10 @@ namespace MCPU.Compiler
             for (int l = lines.Length; linenr < l; ++linenr)
             {
                 string line = lines[linenr];
-                
+
+                if (line.Length == 0)
+                    continue; // we need this condition to be consistent with the original line numbers
+
                 if ((match = LABEL_REGEX.Match(line)).Success)
                     if (is_func == 0)
                         Error("An jump label may only be used inside a function or after the '.main'-token.");
@@ -170,11 +174,12 @@ namespace MCPU.Compiler
 
                         if (um.Item2 != name)
                             if (labels.ContainsKey(name))
-                                return Error($"The label '{name}' does already exist.");
+                                return Error($"The label '{name}' does already exist on line {labels.First(_ => _.Key == name).Value + 1}.");
                             else
                                 labels[name] = ++id;
                         else
                         {
+                            labelmeta.Add(new MCPULabelMetadata { Name = name, DefinedLine = linenr + 1, ParentFunction = curr_func });
                             labels[name] = um.Item3;
                             unmapped.Remove(um);
                         }
@@ -214,6 +219,7 @@ namespace MCPU.Compiler
                             return Error("Functions cannot be declared after the '.main'-token.");
                         else
                         {
+                            bool inline = match.Groups["inline"]?.ToString()?.ToLower()?.Contains("inline") ?? false;
                             string name = match.Groups["name"].ToString().ToLower();
 
                             if (labels.ContainsKey(name))
@@ -221,7 +227,7 @@ namespace MCPU.Compiler
                             else if (FindFirst(name) != null)
                                 return Error($"The function '{name}' does already exist.");
 
-                            curr_func = new MCPUFunction(name, OPCodes.NOP) { ID = ++id };
+                            curr_func = new MCPUFunction(name, OPCodes.NOP) { ID = ++id, IsInlined = inline, DefinedLine = linenr + 1 };
                             is_func = 1;
 
                             functions.Add(curr_func);
@@ -332,35 +338,52 @@ namespace MCPU.Compiler
                 return Error($"The label or function '{unmapped.First().Item2}' could not be found.");
             }
             else
-                return (functions.ToArray(), -1, "");
+                return (functions.ToArray(), labelmeta.ToArray(), -1, "");
         }
 
         /// <summary>
-        /// Compiles the given MCPU assembly code to a list of instructions, which can be executed by a MCPU processor
+        /// Compiles the given MCPU assembly code to a list of instructions and metadata, which can be executed by a MCPU processor or analyzed by an IDE
         /// </summary>
         /// <param name="code">MCPU assembly code</param>
         /// <exception cref="MCPUCompilerException">Possible compiler errors</exception>
-        /// <returns>Compiled instructions</returns>
-        public static Instruction[] Compile(string code)
+        /// <returns>Compiled instructions and metadata</returns>
+        public static MCPUCompilerResult CompileWithMetadata(string code)
         {
             try
             {
-                (MCPUFunction[] func, int errln, string errmsg) = Precompile(code);
+                (MCPUFunction[] func, MCPULabelMetadata[] labels, int errln, string errmsg) = Precompile(code);
 
                 if ((errln != -1) || !string.IsNullOrEmpty(errmsg))
                     throw new MCPUCompilerException(errln, errmsg);
 
                 MCPUFunction mainf = (from f in func where f.Name == MAIN_FUNCTION_NAME select f).First();
+                MCPUFunctionMetadata[] metadata = new MCPUFunctionMetadata[func.Length];
                 Dictionary<int, int> jumptable = new Dictionary<int, int>();
                 List<Instruction> instr = new List<Instruction>();
-                int linenr = 1;
+                int linenr = 1, fnr = 0;
 
                 instr.Add((OPCodes.JMP, new InstructionArgument[] { (0, ArgumentType.Label) }));
 
                 foreach (MCPUFunction f in func.Where(f => f != mainf).Concat(new MCPUFunction[] { mainf }))
                 {
                     jumptable[f.ID] = linenr;
-                    
+                    metadata[fnr++] = f;
+
+                    if (f.IsInlined)
+                    {
+                        bool caninline = (f.Instructions.Count <= 30) && f.Instructions.All(_ => _.OPCode != OPCodes.JMP);
+
+                        if (caninline)
+                        {
+
+                            // MAGIC GOES HERE
+
+
+                            throw new NotImplementedException("'.inline' not supported yet");
+                            continue;
+                        }
+                    }
+
                     foreach (Instruction ins in f.Instructions)
                         if (ins.OPCode is MCPUJumpLabel)
                             jumptable[(ins.OPCode as MCPUJumpLabel).Value] = linenr;
@@ -378,13 +401,30 @@ namespace MCPU.Compiler
                     for (int j = 0, k = cmp_instr[i].Arguments.Length; j < k; j++)
                         if (cmp_instr[i].Arguments[j].IsInstructionSpace)
                             cmp_instr[i].Arguments[j].Value = jumptable[cmp_instr[i].Arguments[j].Value];
-                
-                return cmp_instr;
+
+                return (cmp_instr, metadata, labels);
             }
             catch (Exception ex)
             when (!(ex is MCPUCompilerException))
             {
                 throw new MCPUCompilerException(-1, $"{ex.Message}\n{ex.StackTrace}");
+            }
+        }
+
+        /// <summary>
+        /// Compiles the given MCPU assembly code to a list of instructions, which can be executed by a MCPU processor
+        /// </summary>
+        /// <param name="code">MCPU assembly code</param>
+        /// <returns>Compiler result</returns>
+        public static cmpres Compile(string code)
+        {
+            try
+            {
+                return new cmpres.Case1(CompileWithMetadata(code));
+            }
+            catch (MCPUCompilerException ex)
+            {
+                return new cmpres.Case2(ex);
             }
         }
 
@@ -527,7 +567,7 @@ namespace MCPU.Compiler
         /// <returns>MCPU assembly code</returns>
         public static string Decompile(byte[] instructions) => Decompile(Instruction.DeserializeMultiple(instructions));
     }
-
+    
     /// <summary>
     /// Represents a MCPU compiler error
     /// </summary>
@@ -552,6 +592,67 @@ namespace MCPU.Compiler
         public MCPUCompilerException(int line, string msg)
             : base(msg) => LineNr = line;
     }
+    
+    /// <summary>
+    /// Represents public MCPU label metadata
+    /// </summary>
+    public struct MCPULabelMetadata
+    {
+        /// <summary>
+        /// The label's name
+        /// </summary>
+        public string Name { set; get; }
+        /// <summary>
+        /// The function, in which the label has been defined
+        /// </summary>
+        public MCPUFunctionMetadata ParentFunction { set; get; }
+        /// <summary>
+        /// The line, in which the label has been defined (The line number is one-based -- NOT zero-based)
+        /// </summary>
+        public int DefinedLine { set; get; }
+    }
+
+    /// <summary>
+    /// Represents public MCPU function metadata
+    /// </summary>
+    public struct MCPUFunctionMetadata
+    {
+        /// <summary>
+        /// The function's name
+        /// </summary>
+        public string Name { set; get; }
+        /// <summary>
+        /// Sets or gets whether the function is inlined
+        /// </summary>
+        public bool Inlined { set; get; }
+        /// <summary>
+        /// The line, in which the function has been defined (The line number is one-based -- NOT zero-based)
+        /// </summary>
+        public int DefinedLine { set; get; }
+    }
+
+    /// <summary>
+    /// Represents a successful MCPU compiler result
+    /// </summary>
+    public struct MCPUCompilerResult
+    {
+        /// <summary>
+        /// The generated instructions
+        /// </summary>
+        public Instruction[] Instructions { set; get; }
+        /// <summary>
+        /// Reflected label information
+        /// </summary>
+        public MCPULabelMetadata[] Labels { set; get; }
+        /// <summary>
+        /// Reflected function information
+        /// </summary>
+        public MCPUFunctionMetadata[] Functions { set; get; }
+
+
+        public static implicit operator (Instruction[], MCPUFunctionMetadata[], MCPULabelMetadata[])(MCPUCompilerResult res) => (res.Instructions, res.Functions, res.Labels);
+        public static implicit operator MCPUCompilerResult((Instruction[], MCPUFunctionMetadata[], MCPULabelMetadata[])_) => new MCPUCompilerResult { Instructions = _.Item1, Labels = _.Item3, Functions = _.Item2 };
+    }
 
     /// <summary>
     /// Represents a MCPU function definition
@@ -563,9 +664,17 @@ namespace MCPU.Compiler
         /// </summary>
         public int ID { set; get; }
         /// <summary>
+        /// The line, in which the function has been defined
+        /// </summary>
+        public int DefinedLine { set; get; }
+        /// <summary>
         /// The function's name
         /// </summary>
         public string Name { internal set; get; }
+        /// <summary>
+        /// Determines, whether the function is inlined during the compiling process
+        /// </summary>
+        public bool IsInlined { internal set; get; }
         /// <summary>
         /// The function's instructions
         /// </summary>
@@ -601,6 +710,14 @@ namespace MCPU.Compiler
             Name = name;
             Instructions = instr?.ToList() ?? new List<Instruction>();
         }
+
+
+        public static implicit operator MCPUFunctionMetadata(MCPUFunction func) => new MCPUFunctionMetadata
+        {
+            Name = func.Name,
+            Inlined = func.IsInlined,
+            DefinedLine = func.DefinedLine
+        };
     }
     
     /// <summary>

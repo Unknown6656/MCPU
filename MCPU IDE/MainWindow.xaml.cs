@@ -58,7 +58,10 @@ namespace MCPU.IDE
         private void Save()
         {
             if (path == null)
-                ;
+            {
+                // select file
+                // touch file
+            }
             else
             {
                 FileInfo nfo = new FileInfo(path);
@@ -66,7 +69,14 @@ namespace MCPU.IDE
                 if (!nfo.Exists)
                 {
                     //error
-                    nfo.
+
+                    path = null;
+
+                    Save();
+                }
+                else
+                {
+                    // save file
                 }
             }
         }
@@ -130,6 +140,19 @@ namespace MCPU.IDE
             fctb.Clear();
         }
 
+        private void mic_compile(object sender, ExecutedRoutedEventArgs e)
+        {
+            try
+            {
+                MCPUCompiler.CompileWithMetadata();
+            }
+            catch (MCPUCompilerException ex)
+            {
+
+                throw;
+            }
+        }
+
         #endregion
     }
 
@@ -157,5 +180,7 @@ namespace MCPU.IDE
         public static readonly RoutedUICommand Delete = create(nameof(Delete), Key.Delete, ModifierKeys.None);
         public static readonly RoutedUICommand Undo = create(nameof(Undo), Key.Z);
         public static readonly RoutedUICommand Redo = create(nameof(Redo), Key.Y);
+
+        public static readonly RoutedUICommand Compile = create(nameof(Compile), Key.F5, ModifierKeys.None);
     }
 }
