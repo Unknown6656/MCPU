@@ -6,8 +6,10 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <!--<ResourceDictionary Source="pack://application:,,,/Selen.Wpf.SystemStyles;component/ButtonStyles.xaml"/>
-                <ResourceDictionary Source="pack://application:,,,/Selen.Wpf.SystemStyles;component/TextBoxStyles.xaml"/>-->
+                <!--
+                <ResourceDictionary Source="pack://application:,,,/Selen.Wpf.SystemStyles;component/ButtonStyles.xaml"/>
+                <ResourceDictionary Source="pack://application:,,,/Selen.Wpf.SystemStyles;component/TextBoxStyles.xaml"/>
+                -->
                 <ResourceDictionary Source="pack://application:,,,/Selen.Wpf.SystemStyles;component/Styles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>

@@ -19,14 +19,70 @@
             <Setter Property="Background" Value="{StaticResource BG}"/>
         </Style>
     </Window.Resources>
+    <Window.CommandBindings>
+        <CommandBinding Command="local:Commands.Undo" Executed="mie_undo"/>
+        <CommandBinding Command="local:Commands.Redo" Executed="mie_redo"/>
+        <CommandBinding Command="local:Commands.Cut" Executed="mie_cut"/>
+        <CommandBinding Command="local:Commands.Copy" Executed="mie_copy"/>
+        <CommandBinding Command="local:Commands.Paste" Executed="mie_paste"/>
+        <CommandBinding Command="local:Commands.Delete" Executed="mie_delete"/>
+        <CommandBinding Command="local:Commands.SelectAll" Executed="mie_select_all"/>
+        <CommandBinding Command="local:Commands.ZoomIn" Executed="mie_zoom_in_Click"/>
+        <CommandBinding Command="local:Commands.ZoomOut" Executed="mie_zoom_out_Click"/>
+        <CommandBinding Command="local:Commands.ZoomReset" Executed="mie_zoom_res_Click"/>
+        <CommandBinding Command="local:Commands.New" Executed="mif_new"/>
+        <CommandBinding Command="local:Commands.Exit" Executed="mif_exit"/>
+        <CommandBinding Command="local:Commands.Open" Executed="mif_open"/>
+        <CommandBinding Command="local:Commands.Save" Executed="mif_save"/>
+        <CommandBinding Command="local:Commands.SaveAs" Executed="mif_save_as"/>
+        <CommandBinding Command="local:Commands.ExportAsHTML" Executed="mif_export_html"/>
+        <CommandBinding Command="local:Commands.Preferences" Executed="mif_settings"/>
+    </Window.CommandBindings>
     <DockPanel>
         <Menu DockPanel.Dock="Top" Height="21">
             <MenuItem Header="_FILE">
-                <MenuItem Header="_New"/>
-                <MenuItem Header="_Open"/>
-                <MenuItem Header="_Save"/>
+                <MenuItem Header="_New" Command="local:Commands.New"/>
+                <MenuItem Header="_Open ..." Command="local:Commands.Open"/>
+                <MenuItem Header="_Save" Command="local:Commands.Save"/>
+                <MenuItem Header="Save _As ..." Command="local:Commands.SaveAs"/>
+                <MenuItem Header="_Export as HTML ..." Command="local:Commands.ExportAsHTML"/>
                 <Separator/>
-                <MenuItem Header="_Exit"/>
+                <MenuItem Header="_Preferences" Command="local:Commands.Preferences"/>
+                <Separator/>
+                <MenuItem Header="E_xit" Command="local:Commands.Exit"/>
+            </MenuItem>
+            <MenuItem Header="_EDIT">
+                <MenuItem Header="U_ndo" Command="local:Commands.Undo"/>
+                <MenuItem Header="_Redo" Command="local:Commands.Redo"/>
+                <Separator/>
+                <MenuItem Header="_Copy"  Command="local:Commands.Copy"/>
+                <MenuItem Header="C_ut" Command="local:Commands.Cut"/>
+                <MenuItem Header="_Paste" Command="local:Commands.Paste"/>
+                <MenuItem Header="_Delete" Command="local:Commands.Delete"/>
+                <MenuItem Header="_Select All" Command="local:Commands.SelectAll"/>
+                <Separator/>
+                <MenuItem Header="_Insert Snippet ..."/>
+                <Separator/>
+                <MenuItem x:Name="mie_zoom_in" Header="Zoom _in" Command="local:Commands.ZoomIn"/>
+                <MenuItem x:Name="mie_zoom_out" Header="Zoom _out" Command="local:Commands.ZoomOut"/>
+                <MenuItem x:Name="mie_zoom_res" Header="Reset _Zoom" Command="local:Commands.ZoomReset"/>
+            </MenuItem>
+            <MenuItem Header="_COMPILER">
+                <MenuItem Header="_Compile"/>
+                <MenuItem Header="_Error list"/>
+            </MenuItem>
+            <MenuItem Header="_PROCESSOR">
+                <MenuItem Header="_Start"/>
+                <MenuItem Header="St_op"/>
+                <MenuItem Header="_Reset"/>
+                <Separator/>
+                <MenuItem Header="View _Memory Map ..."/>
+                <MenuItem Header="Dump Memory ..."/>
+                <MenuItem Header="Load from Memory dump ..."/>
+            </MenuItem>
+            <MenuItem Header="_HELP">
+                <MenuItem Header="_About"/>
+                <MenuItem Header="_View on GitHub"/>
             </MenuItem>
         </Menu>
         <StatusBar DockPanel.Dock="Bottom" Height="20" Padding="0" FontSize="10" Background="{StaticResource BG}" Foreground="{StaticResource FG}">
