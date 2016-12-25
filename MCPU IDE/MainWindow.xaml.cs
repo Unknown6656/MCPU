@@ -24,13 +24,15 @@ namespace MCPU.IDE
     public partial class MainWindow
         : Window
     {
-        public FastColoredTextBox fcbt => fctb_host.fctb;
+        public FastColoredTextBox fctb => fctb_host.fctb;
 
 
         public MainWindow() => InitializeComponent();
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            fctb.ZoomChanged += (o, a) => lb_zoom.Content = $"{fctb.Zoom} %";
+            fctb.CursorChanged += (o, a) => lb_pos.Content = $"{fctb.Cursor.Handle}";
         }
     }
 }

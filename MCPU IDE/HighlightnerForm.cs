@@ -80,15 +80,21 @@ namespace MCPU.IDE
             MinimumSize = new Size(500, 300);
             
             fctb.AutoIndent = true;
+            fctb.KeyDown += Fctb_KeyDown;
             fctb.TextChanged += Fctb_TextChanged;
-            fctb.ZoomChanged += Fctb_ZoomChanged;
             fctb.ToolTipNeeded += Fctb_ToolTipNeeded;
             fctb.AutoIndentNeeded += Fctb_AutoIndentNeeded;
             // fctb.Text = new string(' ', fctb.TabLength);
             fctb.Selection = new Range(fctb, fctb.TabLength - 1, 0, fctb.TabLength - 1, 0);
+            fctb.ToolTip = new DarkTooltip();
+            fctb.ToolTip.BackColor = fctb.BackColor;
+            fctb.ToolTip.ForeColor = fctb.ForeColor;
             fctb.Select();
-            
+
             autocomp = new AutocompleteMenu(fctb);
+            autocomp.ToolTip = new DarkTooltip();
+            autocomp.ToolTip.BackColor = fctb.BackColor;
+            autocomp.ToolTip.ForeColor = fctb.ForeColor;
             autocomp.BackColor = fctb.BackColor;
             autocomp.ForeColor = fctb.ForeColor;
             autocomp.Opening += Autocomp_Opening;
@@ -114,18 +120,36 @@ namespace MCPU.IDE
                                  }).ToArray();
 
             autocomp.Items.SetAutocompleteItems(std_autocompitems);
+            // autocomp.Items.MinimumSize = new Size(200, 300);
+            autocomp.Items.Width = 500;
 
             fctb.OnSyntaxHighlight(new TextChangedEventArgs(fctb.Range));
         }
 
-        private void Fctb_ToolTipNeeded(object sender, ToolTipNeededEventArgs e)
+        private void Fctb_KeyDown(object sender, KeyEventArgs e)
         {
+            if (e.KeyData == (Keys.Space | Keys.Control))
+            {
+                Point cursor = fctb.PlaceToPoint(fctb.Selection.End);
 
+                cursor.Offset(0, fctb.CharHeight);
+
+                autocomp.Show(fctb, cursor);
+
+                e.Handled = true;
+            }
         }
 
-        private void Fctb_ZoomChanged(object sender, EventArgs e)
+        private void Fctb_ToolTipNeeded(object sender, ToolTipNeededEventArgs e)
         {
+            if (!string.IsNullOrEmpty(e.HoveredWord))
+            {
+                e.ToolTipTitle = e.HoveredWord;
+                
+                // TODO
 
+                e.ToolTipText = "This is tooltip for '" + e.HoveredWord + "'";
+            }
         }
 
         private void Autocomp_Opening(object sender, CancelEventArgs e) =>

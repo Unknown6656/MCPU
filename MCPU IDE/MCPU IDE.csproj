@@ -78,6 +78,9 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DarkTooltip.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="HighlightnerForm.cs">
       <SubType>UserControl</SubType>
     </Compile>
