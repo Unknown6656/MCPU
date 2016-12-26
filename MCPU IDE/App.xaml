@@ -1,7 +1,7 @@
 ﻿<Application x:Class="MCPU.IDE.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:MCPU.IDE"
+             xmlns:local="https://github.com/Unknown6656/MCPU"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
         <ResourceDictionary>

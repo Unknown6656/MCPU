@@ -148,7 +148,7 @@ namespace MCPU.IDE
                 
                 // TODO
 
-                e.ToolTipText = "This is tooltip for '" + e.HoveredWord + "'";
+                e.ToolTipText = "This is the tooltip for '" + e.HoveredWord + "'";
             }
         }
 
@@ -196,7 +196,7 @@ namespace MCPU.IDE
             
             TextChanged?.Invoke(sender, e);
 
-            docmap.NeedRepaint();
+            docmap.Invalidate();
         }
     }
 }

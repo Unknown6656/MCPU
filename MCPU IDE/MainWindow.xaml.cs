@@ -7,6 +7,7 @@ using System.Windows.Shapes;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Data;
+using System.Diagnostics;
 using System.Windows;
 using System.Linq;
 using System.Text;
@@ -19,7 +20,6 @@ namespace MCPU.IDE
 {
     using MCPU.Compiler;
     using MCPU;
-
 
     public partial class MainWindow
         : Window
@@ -53,6 +53,7 @@ namespace MCPU.IDE
                 mie_zoom_res.IsEnabled = nz != 100;
             };
             fctb.CursorChanged += (o, a) => lb_pos.Content = $"{fctb.Cursor.Handle}";
+            fctb.OnTextChanged(); // update control after loading
         }
 
         private void Save()
@@ -175,6 +176,13 @@ namespace MCPU.IDE
 
         }
 
+        private void mih_github(object sender, ExecutedRoutedEventArgs e) => Process.Start(@"https://github.com/Unknown6656/MCPU/").Dispose();
+
+        private void mih_about(object sender, ExecutedRoutedEventArgs e)
+        {
+
+        }
+
         #endregion
     }
 
@@ -208,6 +216,9 @@ namespace MCPU.IDE
         public static readonly RoutedUICommand Start = create(nameof(Start), Key.F6, ModifierKeys.None);
         public static readonly RoutedUICommand Stop = create(nameof(Stop), Key.F6, ModifierKeys.Shift);
         public static readonly RoutedUICommand Reset = create(nameof(Reset), Key.F6);
+
+        public static readonly RoutedUICommand About = create(nameof(Reset), Key.F1, ModifierKeys.None);
+        public static readonly RoutedUICommand GitHub = create(nameof(Reset), Key.F2, ModifierKeys.None);
     }
 }
 
