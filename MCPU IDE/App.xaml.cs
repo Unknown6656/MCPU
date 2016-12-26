@@ -17,8 +17,9 @@ namespace MCPU.IDE
         : Application
     {
         internal ResourceDictionary previousdir = null;
+        internal const string DEFAULT_LANG = "de-DE";
 
-
+        
         protected override void OnStartup(StartupEventArgs args)
         {
             DirectoryCatalog catalog = new DirectoryCatalog(AppDomain.CurrentDomain.BaseDirectory);
@@ -26,7 +27,7 @@ namespace MCPU.IDE
 
             container.ComposeParts(LanguageImportModule.Instance);
 
-            ChangeLanguage("en-GB");
+            ChangeLanguage(DEFAULT_LANG);
 
             base.OnStartup(args);
         }
@@ -38,25 +39,36 @@ namespace MCPU.IDE
                                 d.Metadata["Culture"].ToString().ToLower() == code.ToLower()
                           select d).FirstOrDefault();
 
-            if (resdir != null)
-            {
-                if (previousdir != null)
-                    Current.Resources.MergedDictionaries.Remove(previousdir);
+            if (resdir?.Value == null)
+                resdir = new Lazy<ResourceDictionary, IDictionary<string, object>>
+                    (
+                        metadata: new Dictionary<string, object> { { "Culture", code } },
+                        valueFactory: () => new ResourceDictionary { Source = new Uri($@"/mcpu.ide;component/Languages/{code}.xaml", UriKind.RelativeOrAbsolute) }
+                    );
 
-                Current.Resources.MergedDictionaries.Add(previousdir = resdir.Value);
+            if (previousdir != null)
+                Current.Resources.MergedDictionaries.Remove(previousdir);
 
-                CultureInfo cultureInfo = new CultureInfo(resdir.Metadata["Culture"].ToString());
+            Current.Resources.MergedDictionaries.Add(previousdir = resdir.Value);
 
-                Thread.CurrentThread.CurrentCulture = cultureInfo;
-                Thread.CurrentThread.CurrentUICulture = cultureInfo;
-                
-                foreach (Window hwnd in Current.Windows)
-                    if (hwnd != null)
-                        hwnd.Language = XmlLanguage.GetLanguage(CultureInfo.CurrentCulture.IetfLanguageTag);
-            }
+            CultureInfo cultureInfo = new CultureInfo(code);
+
+            Thread.CurrentThread.CurrentCulture = cultureInfo;
+            Thread.CurrentThread.CurrentUICulture = cultureInfo;
+
+            foreach (Window hwnd in Current.Windows)
+                if (hwnd != null)
+                    hwnd.Language = XmlLanguage.GetLanguage(CultureInfo.CurrentCulture.IetfLanguageTag);
         }
     }
     
+    public static class Language
+    {
+        public static string Get(this string key) => Application.Current.Resources[key] as string;
+
+        public static string Get(this string key, params object[] args) => string.Format(Get(key), args);
+    }
+
     public sealed class LanguageImportModule
     {
         private static LanguageImportModule _instance;
