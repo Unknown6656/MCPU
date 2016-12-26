@@ -56,8 +56,8 @@ namespace MCPU.IDE
 
         public new event EventHandler<TextChangedEventArgs> TextChanged;
 
-        internal List<string> functions = new List<string>();
-        internal List<string> labels = new List<string>();
+        internal MCPUFunctionMetadata[] functions = new MCPUFunctionMetadata[0];
+        internal MCPULabelMetadata[] labels = new MCPULabelMetadata[0];
         internal AutocompleteItem[] std_autocompitems;
         internal AutocompleteMenu autocomp;
 
@@ -148,7 +148,7 @@ namespace MCPU.IDE
                 
                 // TODO
 
-                e.ToolTipText = "This is tooltip for '" + e.HoveredWord + "'";
+                e.ToolTipText = "This is the tooltip for '" + e.HoveredWord + "'";
             }
         }
 
@@ -196,7 +196,7 @@ namespace MCPU.IDE
             
             TextChanged?.Invoke(sender, e);
 
-            docmap.NeedRepaint();
+            docmap.Invalidate();
         }
     }
 }

@@ -59,5 +59,21 @@ namespace MCPU.IDE.Properties {
                 resourceCulture = value;
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;ResourceDictionary xmlns=&quot;http://schemas.microsoft.com/winfx/2006/xaml/presentation&quot;
+        ///                    xmlns:x=&quot;http://schemas.microsoft.com/winfx/2006/xaml&quot;
+        ///                    xmlns:s=&quot;clr-namespace:System;assembly=mscorlib&quot;&gt;
+        ///    &lt;s:String x:Key=&quot;mw_title&quot;&gt;MCPU Integrated Development Environment&lt;/s:String&gt;
+        ///    &lt;s:String x:Key=&quot;mw_file&quot;&gt;_FILE&lt;/s:String&gt;
+        ///    &lt;s:String x:Key=&quot;mw_file_new&quot;&gt;_New&lt;/s:String&gt;
+        ///    &lt;s:String x:Key=&quot;mw_file_open&quot;&gt;_Open ...&lt;/s:String&gt;
+        ///    &lt;s:String x:Key=&quot;mw_file_save&quot;&gt;_Sav [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string en_GB {
+            get {
+                return ResourceManager.GetString("en_GB", resourceCulture);
+            }
+        }
     }
 }

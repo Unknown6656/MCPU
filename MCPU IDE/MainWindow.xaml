@@ -8,7 +8,7 @@
         xmlns:local="clr-namespace:MCPU.IDE"
         mc:Ignorable="d"
         Height="500" Width="750"
-        Title="MCPU Integrated Development Environment"
+        Title="{DynamicResource mw_title}"
         Loaded="Window_Loaded">
     <Window.Resources>
         <SolidColorBrush x:Key="BG" Color="#ff404040"/>
@@ -19,14 +19,77 @@
             <Setter Property="Background" Value="{StaticResource BG}"/>
         </Style>
     </Window.Resources>
+    <Window.CommandBindings>
+        <CommandBinding Command="local:Commands.Undo" Executed="mie_undo"/>
+        <CommandBinding Command="local:Commands.Redo" Executed="mie_redo"/>
+        <CommandBinding Command="local:Commands.Cut" Executed="mie_cut"/>
+        <CommandBinding Command="local:Commands.Copy" Executed="mie_copy"/>
+        <CommandBinding Command="local:Commands.Paste" Executed="mie_paste"/>
+        <CommandBinding Command="local:Commands.Delete" Executed="mie_delete"/>
+        <CommandBinding Command="local:Commands.SelectAll" Executed="mie_select_all"/>
+        <CommandBinding Command="local:Commands.ZoomIn" Executed="mie_zoom_in_Click"/>
+        <CommandBinding Command="local:Commands.ZoomOut" Executed="mie_zoom_out_Click"/>
+        <CommandBinding Command="local:Commands.ZoomReset" Executed="mie_zoom_res_Click"/>
+        <CommandBinding Command="local:Commands.New" Executed="mif_new"/>
+        <CommandBinding Command="local:Commands.Exit" Executed="mif_exit"/>
+        <CommandBinding Command="local:Commands.Open" Executed="mif_open"/>
+        <CommandBinding Command="local:Commands.Save" Executed="mif_save"/>
+        <CommandBinding Command="local:Commands.SaveAs" Executed="mif_save_as"/>
+        <CommandBinding Command="local:Commands.ExportAsHTML" Executed="mif_export_html"/>
+        <CommandBinding Command="local:Commands.Preferences" Executed="mif_settings"/>
+        <CommandBinding Command="local:Commands.Compile" Executed="mic_compile"/>
+        <CommandBinding Command="local:Commands.Stop" Executed="mip_stop"/>
+        <CommandBinding Command="local:Commands.Start" Executed="mip_start"/>
+        <CommandBinding Command="local:Commands.Reset" Executed="mip_reset"/>
+        <CommandBinding Command="local:Commands.About" Executed="mih_about"/>
+        <CommandBinding Command="local:Commands.GitHub" Executed="mih_github"/>
+    </Window.CommandBindings>
     <DockPanel>
         <Menu DockPanel.Dock="Top" Height="21">
-            <MenuItem Header="_FILE">
-                <MenuItem Header="_New"/>
-                <MenuItem Header="_Open"/>
-                <MenuItem Header="_Save"/>
+            <MenuItem Header="{DynamicResource mw_file}">
+                <MenuItem Header="{DynamicResource mw_file_new}" Command="local:Commands.New"/>
+                <MenuItem Header="{DynamicResource mw_file_open}" Command="local:Commands.Open"/>
+                <MenuItem Header="{DynamicResource mw_file_save}" Command="local:Commands.Save"/>
+                <MenuItem Header="{DynamicResource mw_file_saveall}" Command="local:Commands.SaveAs"/>
+                <MenuItem Header="{DynamicResource mw_file_export}" Command="local:Commands.ExportAsHTML"/>
                 <Separator/>
-                <MenuItem Header="_Exit"/>
+                <MenuItem Header="{DynamicResource mw_file_settings}" Command="local:Commands.Preferences"/>
+                <Separator/>
+                <MenuItem Header="{DynamicResource mw_file_exit}" Command="local:Commands.Exit"/>
+            </MenuItem>
+            <MenuItem Header="{DynamicResource mw_edit}">
+                <MenuItem Header="{DynamicResource mw_edit_undo}" Command="local:Commands.Undo"/>
+                <MenuItem Header="{DynamicResource mw_edit_redo}" Command="local:Commands.Redo"/>
+                <Separator/>
+                <MenuItem Header="{DynamicResource mw_edit_copy}" Command="local:Commands.Copy"/>
+                <MenuItem Header="{DynamicResource mw_edit_cut}" Command="local:Commands.Cut"/>
+                <MenuItem Header="{DynamicResource mw_edit_paste}" Command="local:Commands.Paste"/>
+                <MenuItem Header="{DynamicResource mw_edit_delete}" Command="local:Commands.Delete"/>
+                <MenuItem Header="{DynamicResource mw_edit_select}" Command="local:Commands.SelectAll"/>
+                <Separator/>
+                <MenuItem Header="{DynamicResource mw_edit_insert}"/>
+                <Separator/>
+                <MenuItem x:Name="mie_zoom_in" Header="{DynamicResource mw_edit_zin}" Command="local:Commands.ZoomIn"/>
+                <MenuItem x:Name="mie_zoom_out" Header="{DynamicResource mw_edit_zout}" Command="local:Commands.ZoomOut"/>
+                <MenuItem x:Name="mie_zoom_res" Header="{DynamicResource mw_edit_zres}" Command="local:Commands.ZoomReset"/>
+            </MenuItem>
+            <MenuItem Header="{DynamicResource mw_compiler}">
+                <MenuItem Header="{DynamicResource mw_compiler_compile}" Command="local:Commands.Compile"/>
+                <MenuItem Header="{DynamicResource mw_compiler_errors}"/>
+                <MenuItem Header="{DynamicResource mw_compiler_instr}"/>
+            </MenuItem>
+            <MenuItem Header="{DynamicResource mw_processor}">
+                <MenuItem Header="{DynamicResource mw_processor_start}" Command="local:Commands.Start"/>
+                <MenuItem Header="{DynamicResource mw_processor_stop}" Command="local:Commands.Stop"/>
+                <MenuItem Header="{DynamicResource mw_processor_reset}" Command="local:Commands.Reset"/>
+                <Separator/>
+                <MenuItem Header="{DynamicResource mw_processor_memmap}"/>
+                <MenuItem Header="{DynamicResource mw_processor_dump}"/>
+                <MenuItem Header="{DynamicResource mw_processor_loaddump}"/>
+            </MenuItem>
+            <MenuItem Header="{DynamicResource mw_help}">
+                <MenuItem Header="{DynamicResource mw_help_about}" Command="local:Commands.About"/>
+                <MenuItem Header="{DynamicResource mw_help_github}" Command="local:Commands.GitHub"/>
             </MenuItem>
         </Menu>
         <StatusBar DockPanel.Dock="Bottom" Height="20" Padding="0" FontSize="10" Background="{StaticResource BG}" Foreground="{StaticResource FG}">
