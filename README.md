@@ -11,7 +11,7 @@ This project is a microprocessor emulator, which comes with its own instruction 
 
 ### TODO-List
 
-- [x] Documentation
+- [ ] Documentation (!)
 - [x] Floating-point arithmetic
 - [ ] Unit Tests (!)
 - [x] Push releases (used [name generator](http://www.codenamegenerator.com/))
@@ -19,13 +19,17 @@ This project is a microprocessor emulator, which comes with its own instruction 
 - [x] Instruction-space management
 - [x] Function inlining + `NOP`-optimization **(Nearly finished)**
 - [x] Kernel-space memory addressing
-- [ ] Asynchronous instruction execution
-- [ ] Creation of handlers, which react to "hardware-interrupts"
+- [ ] Asynchronous processor execution
 - [ ] Virtual Device support
 - [ ] String processing and support
 - [ ] IDE/Editor **(currently in progress)**
     - [x] compiler
     - [x] syntax highlighting
+    - [X] multi-language support **(Nearly finished)**
+        - [x] English
+        - [x] German
+        - [ ] French
+        - [ ] Russian (?)
     - [ ] auto-completition **(currently in progress)**
     - [ ] debugger
     - [ ] refractoring
