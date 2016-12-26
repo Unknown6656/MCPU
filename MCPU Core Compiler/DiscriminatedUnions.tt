@@ -13,6 +13,24 @@ using System;
 
 namespace MCPU.Compiler
 {
+	/// <summary>
+    /// An interface for discriminated type-unsafe unions
+    /// </summary>
+    public interface IUnsafeUnion
+    {
+		/// <summary>
+		/// Returns the union value cast to the given generic type.
+		/// </summary>
+        _ As<_>();
+		/// <summary>
+		/// Returns whether the union contains a value of the given generic type
+		/// </summary>
+        bool Is<_>();
+		/// <summary>
+        /// The union's type-unsafe item
+		/// </summary>
+        object UnsafeItem { get; }
+    }
 <#
 char BigC(int i) => (char)('A' + i);
 char SmallC(int i) => (char)('a' + i);
@@ -27,6 +45,7 @@ for (int i = 2; i <= 26; i++)
     /// A generic discriminated union with <#=i#> different type cases
     /// </summary>
 	public abstract class Union<<#=type_str#>>
+		: IUnsafeUnion
     {
         /// <summary>
         /// Matches the current union value with the given functions and returns the common return value of the function.
@@ -56,23 +75,18 @@ for (int j = 0; j < i; j++)
         /// <summary>
 		/// Returns the union value cast to the type '<#=BigC(j)#>'
         /// </summary>
-		public virtual <#=BigC(j)#> As<#=BigC(j)#> => As<<#=BigC(j)#>>();
+		public <#=BigC(j)#> As<#=BigC(j)#> => As<<#=BigC(j)#>>();
 <# } #>
         /// <summary>
         /// The union's type-unsafe item
         /// </summary>
 		public abstract object UnsafeItem { get; }
-
-		// prevent inheritance by external classes
-		private Union() { }
-
 		/// <summary>
 		/// Returns whether the union contains a value of the given generic type
 		/// </summary>
 		public bool Is<_>() => typeof(_) == UnsafeItem?.GetType();
-
 		/// <summary>
-		/// Returns the union value cast to the given type.
+		/// Returns the union value cast to the given generic type.
 		/// </summary>
 		public _ As<_>() =>
 <#= string.Join(" ||\r\n", from j in Enumerable.Range(0, i) select $"			{(j == 0 ? '(' : ' ')}(typeof(_) == typeof({BigC(j)}))")#>) ? (_)UnsafeItem :
@@ -81,6 +95,8 @@ for (int j = 0; j < i; j++)
 #else
             throw new InvalidCastException($"The discriminated union cannot be converted to a value of the type '{typeof(_)}'.");
 #endif
+		// prevent inheritance by external classes
+		private Union() { }
 
 <#
 for (int j = 0; j < i; j++)

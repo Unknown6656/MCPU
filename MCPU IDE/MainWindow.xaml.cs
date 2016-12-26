@@ -15,8 +15,6 @@ using System;
 
 using FastColoredTextBoxNS;
 
-using Keys = System.Windows.Forms.Keys;
-
 namespace MCPU.IDE
 {
     using MCPU.Compiler;
@@ -28,6 +26,7 @@ namespace MCPU.IDE
     {
         public FastColoredTextBox fctb => fctb_host.fctb;
         public Processor proc;
+        public IntPtr handle;
         public string path;
 
 
@@ -35,6 +34,7 @@ namespace MCPU.IDE
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            handle = new IWIN32WINDOWCONVERTER(this);
             path = null;
 
             fctb.ZoomChanged += (o, a) =>
@@ -88,7 +88,7 @@ namespace MCPU.IDE
         private void mie_zoom_out_Click(object sender, ExecutedRoutedEventArgs e) => fctb.Zoom = (int)(fctb.Zoom / 1.2);
 
         private void mie_zoom_res_Click(object sender, ExecutedRoutedEventArgs e) => fctb.Zoom = 100;
-        
+
         private void mie_select_all(object sender, ExecutedRoutedEventArgs e) => fctb.SelectAll();
 
         private void mie_delete(object sender, ExecutedRoutedEventArgs e) => fctb.ClearSelected();
@@ -102,7 +102,7 @@ namespace MCPU.IDE
         private void mie_redo(object sender, ExecutedRoutedEventArgs e) => fctb.Redo();
 
         private void mie_cut(object sender, ExecutedRoutedEventArgs e) => fctb.Cut();
-        
+
         private void mif_open(object sender, ExecutedRoutedEventArgs e)
         {
             Save();
@@ -142,15 +142,37 @@ namespace MCPU.IDE
 
         private void mic_compile(object sender, ExecutedRoutedEventArgs e)
         {
-            try
-            {
-                MCPUCompiler.CompileWithMetadata();
-            }
-            catch (MCPUCompilerException ex)
-            {
+            Union<MCPUCompilerResult, MCPUCompilerException> res = MCPUCompiler.Compile(fctb.Text);
 
-                throw;
+            if (res.IsA)
+            {
+                MCPUCompilerResult cmpres = res;
+                
+                fctb_host.labels = cmpres.Labels;
+                fctb_host.functions = cmpres.Functions;
+                proc.Instructions = cmpres.Instructions;
             }
+            else
+            {
+                MCPUCompilerException ex = res;
+
+                TaskDialog.Show(handle, "Compiler error", "Error", $"The code could not be compiled due to the following compiler error:\n'{ex.Message}' on line {ex.LineNr}");
+            }
+        }
+
+        private void mip_reset(object sender, ExecutedRoutedEventArgs e)
+        {
+
+        }
+
+        private void mip_start(object sender, ExecutedRoutedEventArgs e)
+        {
+
+        }
+
+        private void mip_stop(object sender, ExecutedRoutedEventArgs e)
+        {
+
         }
 
         #endregion
@@ -182,5 +204,10 @@ namespace MCPU.IDE
         public static readonly RoutedUICommand Redo = create(nameof(Redo), Key.Y);
 
         public static readonly RoutedUICommand Compile = create(nameof(Compile), Key.F5, ModifierKeys.None);
+
+        public static readonly RoutedUICommand Start = create(nameof(Start), Key.F6, ModifierKeys.None);
+        public static readonly RoutedUICommand Stop = create(nameof(Stop), Key.F6, ModifierKeys.Shift);
+        public static readonly RoutedUICommand Reset = create(nameof(Reset), Key.F6);
     }
 }
+

@@ -65,6 +65,7 @@
       <HintPath>Resources\Selen.Wpf.SystemStyles.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
@@ -100,6 +101,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="TaskDialog.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DarkTooltip.cs">
@@ -151,6 +153,10 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Languages\IDE Languages\IDE Languages.csproj">
+      <Project>{8e5493f7-82f1-467a-8bde-174eb166e7b7}</Project>
+      <Name>IDE Languages</Name>
+    </ProjectReference>
     <ProjectReference Include="..\MCPU Core Compiler\MCPU Core Compiler.csproj">
       <Project>{7e31c14a-a3b4-4d0c-b67a-3b842dca55b1}</Project>
       <Name>MCPU Core Compiler</Name>

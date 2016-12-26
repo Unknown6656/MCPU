@@ -8,7 +8,7 @@
         xmlns:local="clr-namespace:MCPU.IDE"
         mc:Ignorable="d"
         Height="500" Width="750"
-        Title="MCPU Integrated Development Environment"
+        Title="{DynamicResource mw_title}"
         Loaded="Window_Loaded">
     <Window.Resources>
         <SolidColorBrush x:Key="BG" Color="#ff404040"/>
@@ -38,6 +38,9 @@
         <CommandBinding Command="local:Commands.ExportAsHTML" Executed="mif_export_html"/>
         <CommandBinding Command="local:Commands.Preferences" Executed="mif_settings"/>
         <CommandBinding Command="local:Commands.Compile" Executed="mic_compile"/>
+        <CommandBinding Command="local:Commands.Stop" Executed="mip_stop"/>
+        <CommandBinding Command="local:Commands.Start" Executed="mip_start"/>
+        <CommandBinding Command="local:Commands.Reset" Executed="mip_reset"/>
     </Window.CommandBindings>
     <DockPanel>
         <Menu DockPanel.Dock="Top" Height="21">
@@ -74,9 +77,9 @@
                 <MenuItem Header="_View compile Instructions"/>
             </MenuItem>
             <MenuItem Header="_PROCESSOR">
-                <MenuItem Header="_Start"/>
-                <MenuItem Header="St_op"/>
-                <MenuItem Header="_Reset"/>
+                <MenuItem Header="_Start" Command="local:Commands.Start"/>
+                <MenuItem Header="St_op" Command="local:Commands.Stop"/>
+                <MenuItem Header="_Reset" Command="local:Commands.Reset"/>
                 <Separator/>
                 <MenuItem Header="View _Memory Map ..."/>
                 <MenuItem Header="Dump Memory ..."/>
