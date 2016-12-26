@@ -8,7 +8,6 @@ using System;
 
 namespace MCPU.Compiler
 {
-    using cmpres = Union<MCPUCompilerResult, MCPUCompilerException>;
 
     /// <summary>
     /// Provides functions to parse and compile given code segments to MCPU-compatible instructions
@@ -416,7 +415,7 @@ namespace MCPU.Compiler
         /// </summary>
         /// <param name="code">MCPU assembly code</param>
         /// <returns>Compiler result</returns>
-        public static cmpres Compile(string code)
+        public static Union<MCPUCompilerResult, MCPUCompilerException> Compile(string code)
         {
             try
             {
