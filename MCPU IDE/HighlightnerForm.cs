@@ -93,8 +93,6 @@ namespace MCPU.IDE
             fctb.TextChanged += Fctb_TextChanged;
             fctb.ToolTipNeeded += Fctb_ToolTipNeeded;
             fctb.AutoIndentNeeded += Fctb_AutoIndentNeeded;
-            // fctb.Text = new string(' ', fctb.TabLength);
-            fctb.Selection = new Range(fctb, fctb.TabLength - 1, 0, fctb.TabLength - 1, 0);
             fctb.ToolTip = new DarkTooltip();
             fctb.ToolTip.BackColor = fctb.BackColor;
             fctb.ToolTip.ForeColor = fctb.ForeColor;

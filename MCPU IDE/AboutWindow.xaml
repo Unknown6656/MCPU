@@ -13,15 +13,24 @@
         WindowStartupLocation="CenterOwner"
         Title="{DynamicResource aw_title}" Height="280.666" Width="460">
     <Canvas Height="241" Width="443" VerticalAlignment="Top" HorizontalAlignment="Left">
-        <Label Content="{DynamicResource aw_version}" Foreground="{StaticResource FG}" Canvas.Left="10" Canvas.Top="10" Padding="0" Width="80" Height="19"/>
-        <TextBox x:Name="tb_version" Text="v 0.0.0.0" FontFamily="Consolas" IsEnabled="False" Height="20" Canvas.Left="95" TextWrapping="Wrap" Width="112" Canvas.Top="9"/>
-        <TextBlock Canvas.Left="10" TextWrapping="Wrap" Canvas.Top="34" Height="172" Width="423">
+        <Label Content="{DynamicResource aw_version}" Foreground="{StaticResource FG}" Canvas.Left="10" Canvas.Top="5" Padding="0" Width="80" Height="19"/>
+        <TextBox x:Name="tb_version" Text="v 0.0.0.0" FontFamily="Consolas" IsEnabled="False" Height="20" Canvas.Left="95" TextWrapping="Wrap" Width="171" Canvas.Top="4"/>
+        <TextBlock Canvas.Left="10" TextWrapping="Wrap" Canvas.Top="25" Height="186" Width="423">
             <Run Text="{DynamicResource mw_title}"/>
             <LineBreak/>
             <Run Text="{DynamicResource global_copyright}"/> © 2016-<Run x:Name="curr_year"/>, Unknown6656
             <LineBreak/>
             <LineBreak/>
             <Run Text="{DynamicResource aw_description}"/>
+            <LineBreak/>
+            <Run Text="{DynamicResource aw_fctb_before}"/>
+            <Hyperlink NavigateUri="https://github.com/PavelTorgashov/FastColoredTextBox" Foreground="PowderBlue">
+                <Hyperlink.Inlines>
+                    <Run Text="{DynamicResource aw_fctb_desc}"/>
+                </Hyperlink.Inlines>
+            </Hyperlink>
+            <Run Text="{DynamicResource aw_fctb_after}"/>
+            <LineBreak/>
             <LineBreak/>
             <Hyperlink NavigateUri="https://github.com/Unknown6656/MCPU" RequestNavigate="Hyperlink_RequestNavigate" Foreground="PowderBlue">
                 <Hyperlink.Inlines>

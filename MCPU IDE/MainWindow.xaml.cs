@@ -58,10 +58,15 @@ namespace MCPU.IDE
                 mie_zoom_out.IsEnabled = st != -1;
                 mie_zoom_res.IsEnabled = nz != 100;
             };
-            fctb.CursorChanged += (o, a) => lb_pos.Content = $"{fctb.Cursor}";
+            fctb.SelectionChanged += Fctb_SelectionChanged;
             fctb.OnTextChanged(); // update control after loading
-            
+
+            Fctb_SelectionChanged(null, null);
             global_insert(null, null);
+
+            changed = false;
+
+            mif_new(null, null);
         }
 
         private void Window_Closing(object sender, CancelEventArgs e) => e.Cancel = !Save();
@@ -77,38 +82,61 @@ namespace MCPU.IDE
             }
         }
 
+        private void Fctb_SelectionChanged(object sender, EventArgs e)
+        {
+            string ToString(Place p) => $"{"global_abbrv_ln".GetStr()} {p.iLine + 1} {"global_abbrv_ch".GetStr()} {p.iChar + 1}";
+
+            Place st = fctb.Selection.Start;
+            Place end = fctb.Selection.End;
+
+            lb_pos.Content = st == end ? ToString(st) : $"{ToString(st)} : {ToString(end)}";
+        }
+
         private bool Open()
         {
-            OpenFileDialog ofd = new OpenFileDialog
+            bool __open()
             {
-                DefaultExt = ".mcpu",
-                Filter = "MCPU Assembly files (*.mcpu)|*.mcpu|All files|*.*",
-                CheckFileExists = true,
-            };
-
-            if (ofd.ShowDialog(this) ?? false)
-                try
+                OpenFileDialog ofd = new OpenFileDialog
                 {
-                    using (FileStream fs = new FileStream(ofd.FileName, FileMode.Open, FileAccess.Read, FileShare.Read))
-                    using (StreamReader sr = new StreamReader(fs))
-                        fctb.Text = sr.ReadToEnd();
+                    DefaultExt = ".mcpu",
+                    Filter = "MCPU Assembly files (*.mcpu)|*.mcpu|All files|*.*",
+                    CheckFileExists = true,
+                };
 
-                    fctb.Invalidate();
+                if (ofd.ShowDialog(this) ?? false)
+                    try
+                    {
+                        using (FileStream fs = new FileStream(ofd.FileName, FileMode.Open, FileAccess.Read, FileShare.Read))
+                        using (StreamReader sr = new StreamReader(fs))
+                            fctb.Text = sr.ReadToEnd();
 
-                    changed = false;
-                }
-                catch
-                {
-                    TaskDialog.Show(handle, "msg_err_filenfound".GetStr(), "msg_err".GetStr(), "msg_errtxt_filenfound".GetStr(path), TaskDialogButtons.Ok, TaskDialogIcon.SecurityError);
+                        fctb.Invalidate();
 
-                    path = null;
+                        changed = false;
+                    }
+                    catch
+                    {
+                        TaskDialog.Show(handle, "msg_err_filenfound".GetStr(), "msg_err".GetStr(), "msg_errtxt_filenfound".GetStr(path), TaskDialogButtons.Ok, TaskDialogIcon.SecurityError);
 
-                    return Open();
-                }
-            else
-                return false;
-            
-            return true;
+                        path = null;
+
+                        return Open();
+                    }
+                else
+                    return false;
+
+                return true;
+            }
+            bool res = __open();
+
+            if (res)
+            {
+                changed = false;
+
+                fctb.Selection = new Range(fctb, 0, 0, 0, 0);
+            }
+
+            return res;
         }
 
         private bool Save(bool prompt = true)
@@ -255,8 +283,11 @@ namespace MCPU.IDE
             if (Save())
             {
                 fctb.Clear();
+                fctb.Text = new string(' ', fctb.TabLength);
+                fctb.Selection = new Range(fctb, fctb.TabLength - 1, 0, fctb.TabLength - 1, 0);
 
                 path = null;
+                changed = false;
             }
         }
 
@@ -282,17 +313,23 @@ namespace MCPU.IDE
 
         private void mip_reset(object sender, ExecutedRoutedEventArgs e)
         {
+            proc.Reset();
 
+            // TODO ?
         }
 
         private void mip_start(object sender, ExecutedRoutedEventArgs e)
         {
+            proc.Process();
 
+            // SOME ASYNC SHIT HAS TO GO HERE OR EVERYTHING WILL RUN INSIDE THE UI-THREAD --> NOT GOOD !
         }
 
         private void mip_stop(object sender, ExecutedRoutedEventArgs e)
         {
+            proc.Halt();
 
+            // TODO ?
         }
 
         internal void mih_github(object sender, ExecutedRoutedEventArgs e) => Process.Start(@"https://github.com/Unknown6656/MCPU/").Dispose();

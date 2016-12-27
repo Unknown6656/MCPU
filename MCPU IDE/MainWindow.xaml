@@ -93,9 +93,10 @@
             </MenuItem>
         </Menu>
         <StatusBar DockPanel.Dock="Bottom" Height="20" Padding="0" FontSize="10" Background="{StaticResource BG}" Foreground="{StaticResource FG}">
+            <Label Content="{DynamicResource lang_iso}" Style="{StaticResource st_stat}"/>
             <Label x:Name="lb_zoom" Content="100 %" Style="{StaticResource st_stat}"/>
             <Label x:Name="lb_ins" Content="{DynamicResource mw_INS}" Style="{StaticResource st_stat}"/>
-            <Label x:Name="lb_pos" Content="Ln ---- Ch ----" Style="{StaticResource st_stat}"/>
+            <Label x:Name="lb_pos" Content="Ln. ---- Ch. --- : Ln. ---- Ch. ---" Style="{StaticResource st_stat}" Width="160"/>
         </StatusBar>
         <WindowsFormsHost>
             <WindowsFormsHost.Child>

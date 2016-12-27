@@ -1,9 +1,12 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:s="clr-namespace:System;assembly=mscorlib">
+    <s:String x:Key="lang_iso">DEU</s:String>
     <s:String x:Key="lang_code">de-DE</s:String>
     <s:String x:Key="lang_name">Deutsch</s:String>
 
+    <s:String x:Key="global_abbrv_ln">L.</s:String>
+    <s:String x:Key="global_abbrv_ch">Z.</s:String>
     <s:String x:Key="global_close">Schließen</s:String>
     <s:String x:Key="global_copyright">Copyright</s:String>
 
@@ -53,8 +56,10 @@
     <s:String x:Key="aw_description">
         Diese IDE (Entwicklungsumgebung ist für die effiziente Erstellung, Änderung, Auführung und Fehleranalyse von MCPU Assembly Programmen konzipiert,
         welche auf dem hierfür dedizierten MCPU Prozessor Emulator ausgeführt werden.
-        <!-- TODO : SOME TEXT GOES HERE -->
     </s:String>
+    <s:String x:Key="aw_fctb_before">Das Haupt-texteingabefeld des Editors wurde mithilfe des</s:String>
+    <s:String x:Key="aw_fctb_after">umgesetzt.</s:String>
+    <s:String x:Key="aw_fctb_desc">FastColoredTextBox-Projektes</s:String>
     
     <s:String x:Key="msg_err">Fehler</s:String>
     <s:String x:Key="msg_suc">OK<!-- TODO --></s:String>
