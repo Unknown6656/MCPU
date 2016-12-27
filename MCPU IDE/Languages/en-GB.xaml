@@ -36,4 +36,14 @@
     <s:String x:Key="mw_help">_HELP</s:String>
     <s:String x:Key="mw_help_about">_About</s:String>
     <s:String x:Key="mw_help_github">_View on GitHub</s:String>
+    <s:String x:Key="mw_INS">INS</s:String>
+    <s:String x:Key="mw_OVR">OVR</s:String>
+
+    <s:String x:Key="msg_err">Error</s:String>
+    <s:String x:Key="msg_err_compiler">Compiler error</s:String>
+    <s:String x:Key="msg_errtxt_compiler">The code could not be compiled due to the following compiler error:&#10;'{0}' on line {1}.</s:String>
+    <s:String x:Key="msg_err_filenfound">File not found</s:String>
+    <s:String x:Key="msg_errtxt_filenfound">The file '{0}' could not be accessed or found.</s:String>
+    <s:String x:Key="msg_err_filesave">Unable to save file</s:String>
+    <s:String x:Key="msg_errtxt_filesave">The file '{0}' could not be saved due to the following error:&#10;{1}</s:String>
 </ResourceDictionary>

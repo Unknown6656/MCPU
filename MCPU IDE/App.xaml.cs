@@ -17,7 +17,7 @@ namespace MCPU.IDE
         : Application
     {
         internal ResourceDictionary previousdir = null;
-        internal const string DEFAULT_LANG = "de-DE";
+        internal const string DEFAULT_LANG = "en-GB";
 
         
         protected override void OnStartup(StartupEventArgs args)
@@ -62,11 +62,11 @@ namespace MCPU.IDE
         }
     }
     
-    public static class Language
+    public static class LanguageExtensions
     {
-        public static string Get(this string key) => Application.Current.Resources[key] as string;
+        public static string GetStr(this string key) => Application.Current.Resources?[key] as string ?? "[string not found]";
 
-        public static string Get(this string key, params object[] args) => string.Format(Get(key), args);
+        public static string GetStr(this string key, params object[] args) => string.Format(GetStr(key), args);
     }
 
     public sealed class LanguageImportModule
