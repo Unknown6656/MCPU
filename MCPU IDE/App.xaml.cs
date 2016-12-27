@@ -1,24 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.ComponentModel.Composition.Hosting;
 using System.ComponentModel.Composition;
-using System.ComponentModel.Composition.Hosting;
-using System.Configuration;
-using System.Data;
-using System.Globalization;
-using System.Linq;
-using System.Threading;
+using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Markup;
+using System.Globalization;
+using System.Configuration;
+using System.Threading;
+using System.Windows;
+using System.Data;
+using System.Linq;
+using System;
 
 namespace MCPU.IDE
 {
+    /// <summary>
+    /// Encapsulates the MCPU IDE application
+    /// </summary>
     public partial class App
         : Application
     {
         internal ResourceDictionary previousdir = null;
-        internal const string DEFAULT_LANG = "en-GB";
-
         
         protected override void OnStartup(StartupEventArgs args)
         {
@@ -27,11 +28,15 @@ namespace MCPU.IDE
 
             container.ComposeParts(LanguageImportModule.Instance);
 
-            ChangeLanguage(DEFAULT_LANG);
+            ChangeLanguage(LanguageExtensions.DEFAULT_LANG);
 
             base.OnStartup(args);
         }
 
+        /// <summary>
+        /// Changes the application's language to the given language (if found)
+        /// </summary>
+        /// <param name="code">New language code</param>
         public void ChangeLanguage(string code)
         {
             var resdir = (from d in LanguageImportModule.Instance.ResourceDictionaryList
@@ -62,21 +67,46 @@ namespace MCPU.IDE
         }
     }
     
+    /// <summary>
+    /// Contains basic language management extension methods
+    /// </summary>
     public static class LanguageExtensions
     {
+        /// <summary>
+        /// The application's and assembly's default language
+        /// </summary>
+        public const string DEFAULT_LANG = "en-GB";
+
+        /// <summary>
+        /// Returns the language-specific string associated with the given resource key
+        /// </summary>
+        /// <param name="key">Resource key</param>
+        /// <returns>Language-specific string</returns>
         public static string GetStr(this string key) => Application.Current.Resources?[key] as string ?? "[string not found]";
 
+        /// <summary>
+        /// Returns the formatted language-specific string associated with the given resource key
+        /// </summary>
+        /// <param name="key">Resource key</param>
+        /// <param name="args">Optional format string arguments</param>
+        /// <returns>Formatted language-specific string</returns>
         public static string GetStr(this string key, params object[] args) => string.Format(GetStr(key), args);
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     public sealed class LanguageImportModule
     {
         private static LanguageImportModule _instance;
 
-        public static LanguageImportModule Instance =>
-            _instance = _instance ?? new LanguageImportModule();
-
-        
+        /// <summary>
+        /// Static module instance
+        /// </summary>
+        public static LanguageImportModule Instance => _instance = _instance ?? new LanguageImportModule();
+        /// <summary>
+        /// 
+        /// </summary>
         [ImportMany(typeof(ResourceDictionary))]
         public IEnumerable<Lazy<ResourceDictionary, IDictionary<string, object>>> ResourceDictionaryList { get; set; }
     }

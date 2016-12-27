@@ -5,7 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MCPU.IDE"
         mc:Ignorable="d"
-        Title="AboutWindow" Height="300" Width="300">
+        ResizeMode="NoResize"
+        Title="{}" Height="300" Width="300">
     <Grid>
         
     </Grid>

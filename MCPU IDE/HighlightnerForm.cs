@@ -56,15 +56,24 @@ namespace MCPU.IDE
 
         public new event EventHandler<TextChangedEventArgs> TextChanged;
 
+        public MainWindow Parent { set; get; }
+
         internal MCPUFunctionMetadata[] functions = new MCPUFunctionMetadata[0];
         internal MCPULabelMetadata[] labels = new MCPULabelMetadata[0];
         internal AutocompleteItem[] std_autocompitems;
         internal AutocompleteMenu autocomp;
-
+        
 
         public HighlightnerForm()
+            : this(App.Current.MainWindow as MainWindow)
+        {
+        }
+
+        public HighlightnerForm(MainWindow parent)
         {
             InitializeComponent();
+
+            Parent = parent;
 
             Load += HighlightnerForm_Load;
             SizeChanged += HighlightnerForm_SizeChanged;
@@ -197,6 +206,9 @@ namespace MCPU.IDE
             TextChanged?.Invoke(sender, e);
 
             docmap.Invalidate();
+
+            if (sender != null)
+                Parent.changed = true;
         }
     }
 }

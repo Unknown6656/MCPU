@@ -38,12 +38,19 @@
     <s:String x:Key="mw_help_github">_View on GitHub</s:String>
     <s:String x:Key="mw_INS">INS</s:String>
     <s:String x:Key="mw_OVR">OVR</s:String>
-
     <s:String x:Key="msg_err">Error</s:String>
+    <s:String x:Key="msg_suc">Success</s:String>
+    <s:String x:Key="msg_war">Warning</s:String>
+    <s:String x:Key="msg_suc_html">Successfully exported HTML</s:String>
+    <s:String x:Key="msg_suctxt_html">The current code file could successfully be exported as HTML document and has been save inside the file '{0}'&#10;Do you want to open the HTML document?</s:String>
+    <s:String x:Key="msg_war_unsaved">Discard unsaved changes?</s:String>
+    <s:String x:Key="msg_wartxt_unsaved">You have modified the code file since the last save. Do you want to discard all currently unsaved changes?</s:String>
     <s:String x:Key="msg_err_compiler">Compiler error</s:String>
     <s:String x:Key="msg_errtxt_compiler">The code could not be compiled due to the following compiler error:&#10;'{0}' on line {1}.</s:String>
     <s:String x:Key="msg_err_filenfound">File not found</s:String>
     <s:String x:Key="msg_errtxt_filenfound">The file '{0}' could not be accessed or found.</s:String>
     <s:String x:Key="msg_err_filesave">Unable to save file</s:String>
     <s:String x:Key="msg_errtxt_filesave">The file '{0}' could not be saved due to the following error:&#10;{1}</s:String>
+    <s:String x:Key="msg_err_html">Unable to export HTML</s:String>
+    <s:String x:Key="msg_errtxt_html">The current code file could not be exported as HTML document due to the following internal error:&#10;{0}</s:String>
 </ResourceDictionary>

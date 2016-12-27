@@ -38,4 +38,19 @@
     <s:String x:Key="mw_help_github">_Auf GitHub ansehen</s:String>
     <s:String x:Key="mw_INS">EINF</s:String>
     <s:String x:Key="mw_OVR">ÜBR</s:String>
+    <s:String x:Key="msg_err">Fehler</s:String>
+    <s:String x:Key="msg_suc">OK<!-- TODO --></s:String>
+    <s:String x:Key="msg_war">Warnung</s:String>
+    <s:String x:Key="msg_suc_html">HTML efolgreich exportiert</s:String>
+    <s:String x:Key="msg_suctxt_html">Die Code-Datei konnte erfolgreich als HTML-Dokument exportiert werden und wurde in die Datei '{0}' geschrieben&#10;Möchten Sie das exportierte HTML-Dokument jetzt öffnen?</s:String>
+    <s:String x:Key="msg_war_unsaved">Änderungen verwerfen?</s:String>
+    <s:String x:Key="msg_wartxt_unsaved">Sie besitzen ungespeicherte Änderungen ihrer Code-Datei. Sollen diese verworfen werden?</s:String>
+    <s:String x:Key="msg_err_compiler">Compilerfehler</s:String>
+    <s:String x:Key="msg_errtxt_compiler">Der Quellcode konnte aufgrund des folgenden fehlers nicht kompiliert werden:&#10;'{0}' in Linie {1}.</s:String>
+    <s:String x:Key="msg_err_filenfound">Datei nicht gefunden</s:String>
+    <s:String x:Key="msg_errtxt_filenfound">Die Datei '{0}' konnte nicht geöffnet oder gefunden werden.</s:String>
+    <s:String x:Key="msg_err_filesave">Datei nicht gespeichert</s:String>
+    <s:String x:Key="msg_errtxt_filesave">Die Datei '{0}' konnte aufgrund des folgenden Fehlers nicht gespeichert werden:&#10;{1}</s:String>
+    <s:String x:Key="msg_err_html">HTML nicht exportiert</s:String>
+    <s:String x:Key="msg_errtxt_html">Die Code-Datei konnte aufgrund des folgenden Fehlers nicht als HTML-Dokument exportiert werden:&#10;{0}</s:String>
 </ResourceDictionary>

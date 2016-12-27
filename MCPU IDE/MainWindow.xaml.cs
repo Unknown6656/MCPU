@@ -9,6 +9,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Data;
 using System.Diagnostics;
+using Microsoft.Win32;
 using System.Windows;
 using System.Linq;
 using System.Text;
@@ -24,14 +25,15 @@ namespace MCPU.IDE
     using MCPU.Compiler;
     using MCPU.IDE;
     using MCPU;
-    
+
     public partial class MainWindow
         : Window
     {
-        public FastColoredTextBox fctb => fctb_host.fctb;
-        public Processor proc;
-        public IntPtr handle;
-        public string path;
+        internal FastColoredTextBox fctb => fctb_host.fctb;
+        internal Processor proc;
+        internal IntPtr handle;
+        internal bool changed;
+        internal string path;
 
 
         public MainWindow() => InitializeComponent();
@@ -75,50 +77,102 @@ namespace MCPU.IDE
             }
         }
 
-        private bool Save()
+        private bool Open()
         {
-            if (path == null)
+            OpenFileDialog ofd = new OpenFileDialog
             {
-                
-                // select file
+                DefaultExt = ".mcpu",
+                Filter = "MCPU Assembly files (*.mcpu)|*.mcpu|All files|*.*",
+                CheckFileExists = true,
+            };
 
-                return false; // if aborting
+            if (ofd.ShowDialog(this) ?? false)
+                try
+                {
+                    using (FileStream fs = new FileStream(ofd.FileName, FileMode.Open, FileAccess.Read, FileShare.Read))
+                    using (StreamReader sr = new StreamReader(fs))
+                        fctb.Text = sr.ReadToEnd();
 
-                path = ""; // update path
+                    fctb.Invalidate();
 
-                return Save();
-            }
-            else
-            {
-                FileInfo nfo = new FileInfo(path);
-
-                if (nfo.Exists)
-                    try
-                    {
-                        using (FileStream fs = new FileStream(nfo.FullName, FileMode.Create, FileAccess.ReadWrite, FileShare.Read))
-                        using (StreamWriter wr = new StreamWriter(fs))
-                            wr.Write(fctb.Text);
-                    }
-                    catch (Exception ex)
-                    {
-                        TaskDialog.Show(handle, "msg_err_filesave".GetStr(), "msg_err".GetStr(), "msg_errtxt_filesave".GetStr(path, ex.Message), TaskDialogButtons.Ok, TaskDialogIcon.SecurityError);
-
-                        return false;
-                    }
-                else
+                    changed = false;
+                }
+                catch
                 {
                     TaskDialog.Show(handle, "msg_err_filenfound".GetStr(), "msg_err".GetStr(), "msg_errtxt_filenfound".GetStr(path), TaskDialogButtons.Ok, TaskDialogIcon.SecurityError);
 
                     path = null;
 
-                    if (Save())
-                        ;
-                    else
-                        ;
+                    return Open();
                 }
-            }
-
+            else
+                return false;
+            
             return true;
+        }
+
+        private bool Save(bool prompt = true)
+        {
+            bool __save()
+            {
+                if (changed)
+                {
+                    if (prompt)
+                        if (TaskDialog.Show(handle, "msg_war_unsaved".GetStr(), "msg_war".GetStr(), "msg_wartxt_unsaved".GetStr(), TaskDialogButtons.Yes | TaskDialogButtons.No | TaskDialogButtons.Cancel, TaskDialogIcon.SecurityWarning) == TaskDialogResult.Yes)
+                            return true;
+
+                    if (path == null)
+                    {
+                        SaveFileDialog sfd = new SaveFileDialog
+                        {
+                            DefaultExt = ".mcpu",
+                            Filter = "MCPU Assembly files (*.mcpu)|*.mcpu|All files|*.*",
+                            OverwritePrompt = true,
+                        };
+
+                        if (path != null)
+                            sfd.FileName = path;
+
+                        if (sfd.ShowDialog(this) ?? false)
+                        {
+                            path = sfd.FileName;
+
+                            return Save();
+                        }
+                        else
+                            return false;
+                    }
+                    else
+                    {
+                        FileInfo nfo = new FileInfo(path);
+                        DirectoryInfo dir = nfo.Directory;
+
+                        if (!dir.Exists)
+                            dir.Create();
+
+                        try
+                        {
+                            using (FileStream fs = new FileStream(nfo.FullName, FileMode.Create, FileAccess.ReadWrite, FileShare.Read))
+                            using (StreamWriter wr = new StreamWriter(fs))
+                                wr.Write(fctb.Text);
+                        }
+                        catch (Exception ex)
+                        {
+                            TaskDialog.Show(handle, "msg_err_filesave".GetStr(), "msg_err".GetStr(), "msg_errtxt_filesave".GetStr(path, ex.Message), TaskDialogButtons.Ok, TaskDialogIcon.SecurityError);
+
+                            return false;
+                        }
+                    }
+                }
+
+                return true;
+            }
+            bool res = __save();
+            
+            if (res)
+                changed = false;
+
+            return res;
         }
 
         #region MENU ITEMS
@@ -146,12 +200,10 @@ namespace MCPU.IDE
         private void mif_open(object sender, ExecutedRoutedEventArgs e)
         {
             if (Save())
-            {
-                // TODO
-            }
+                Open();
         }
 
-        private void mif_save(object sender, ExecutedRoutedEventArgs e) => Save();
+        private void mif_save(object sender, ExecutedRoutedEventArgs e) => Save(false);
 
         private void mif_save_as(object sender, ExecutedRoutedEventArgs e)
         {
@@ -159,19 +211,39 @@ namespace MCPU.IDE
 
             path = null;
 
-            if (!Save())
+            if (!Save(false))
                 path = oldpath;
         }
 
         private void mif_export_html(object sender, ExecutedRoutedEventArgs e)
         {
-            // TODO
+            SaveFileDialog sfd = new SaveFileDialog
+            {
+                DefaultExt = ".html",
+                Filter = "HTML document files (*.html)|*.html|All files|*.*",
+                OverwritePrompt = true,
+            };
 
-            string targ_path = "";
+            if (sfd.ShowDialog(this) ?? false)
+                try
+                {
+                    FileInfo nfo = new FileInfo(sfd.FileName);
+                    DirectoryInfo dir = nfo.Directory;
 
-            using (FileStream fs = new FileStream(targ_path, FileMode.Create, FileAccess.ReadWrite, FileShare.Read))
-            using (StreamWriter wr = new StreamWriter(fs))
-                wr.Write(fctb.Html);
+                    if (!dir.Exists)
+                        dir.Create();
+
+                    using (FileStream fs = new FileStream(nfo.FullName, FileMode.Create, FileAccess.ReadWrite, FileShare.Read))
+                    using (StreamWriter wr = new StreamWriter(fs))
+                        wr.Write(fctb.Html);
+
+                    if (TaskDialog.Show(handle, "msg_suc_html".GetStr(), "msg_suc".GetStr(), "msg_suctxt_html".GetStr(nfo.FullName), TaskDialogButtons.Yes | TaskDialogButtons.No | TaskDialogButtons.Cancel, TaskDialogIcon.SecuritySuccess) == TaskDialogResult.Yes)
+                        Process.Start($"\"{nfo.FullName}\"").Dispose();
+                }
+                catch (Exception ex)
+                {
+                    TaskDialog.Show(handle, "msg_err_html".GetStr(), "msg_err".GetStr(), "msg_errtxt_html".GetStr(ex.Message), TaskDialogButtons.Ok, TaskDialogIcon.SecurityError);
+                }
         }
 
         private void mif_settings(object sender, ExecutedRoutedEventArgs e) => new SettingsWindow().ShowDialog();
@@ -243,7 +315,6 @@ namespace MCPU.IDE
         public static readonly RoutedUICommand ExportAsHTML = create(nameof(ExportAsHTML), Key.E);
         public static readonly RoutedUICommand Preferences = create(nameof(Preferences), Key.F10, ModifierKeys.None);
         public static readonly RoutedUICommand Exit = create(nameof(Exit), Key.F4, ModifierKeys.Alt);
-
         public static readonly RoutedUICommand ZoomIn = create(nameof(ZoomIn), Key.OemPlus);
         public static readonly RoutedUICommand ZoomOut = create(nameof(ZoomOut), Key.OemMinus);
         public static readonly RoutedUICommand ZoomReset = create(nameof(ZoomReset), Key.D0);
@@ -254,16 +325,12 @@ namespace MCPU.IDE
         public static readonly RoutedUICommand Delete = create(nameof(Delete), Key.Delete, ModifierKeys.None);
         public static readonly RoutedUICommand Undo = create(nameof(Undo), Key.Z);
         public static readonly RoutedUICommand Redo = create(nameof(Redo), Key.Y);
-
         public static readonly RoutedUICommand Compile = create(nameof(Compile), Key.F5, ModifierKeys.None);
-
         public static readonly RoutedUICommand Start = create(nameof(Start), Key.F6, ModifierKeys.None);
         public static readonly RoutedUICommand Stop = create(nameof(Stop), Key.F6, ModifierKeys.Shift);
         public static readonly RoutedUICommand Reset = create(nameof(Reset), Key.F6);
-
         public static readonly RoutedUICommand About = create(nameof(Reset), Key.F1, ModifierKeys.None);
         public static readonly RoutedUICommand GitHub = create(nameof(Reset), Key.F2, ModifierKeys.None);
-
         public static readonly RoutedUICommand InsertDelete = create(nameof(InsertDelete), Key.Insert, ModifierKeys.None);
     }
 }
