@@ -1,6 +1,12 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:s="clr-namespace:System;assembly=mscorlib">
+    <s:String x:Key="lang_code">de-DE</s:String>
+    <s:String x:Key="lang_name">Deutsch</s:String>
+
+    <s:String x:Key="global_close">Schließen</s:String>
+    <s:String x:Key="global_copyright">Copyright</s:String>
+
     <s:String x:Key="mw_title">MCPU Entwicklungsumgebung</s:String>
     <s:String x:Key="mw_file">_DATEI</s:String>
     <s:String x:Key="mw_file_new">_Neu</s:String>
@@ -38,6 +44,18 @@
     <s:String x:Key="mw_help_github">_Auf GitHub ansehen</s:String>
     <s:String x:Key="mw_INS">EINF</s:String>
     <s:String x:Key="mw_OVR">ÜBR</s:String>
+
+    <s:String x:Key="aw_title">Über die MCPU Entwicklungsumgebung</s:String>
+    <s:String x:Key="aw_version">Version:</s:String>
+    <s:String x:Key="aw_version_str">V {0}</s:String>
+    <s:String x:Key="aw_github">GitHub-Projekt besuchen</s:String>
+    <s:String x:Key="aw_github_issues">Feedback geben oder einen technischen Fehler melden</s:String>
+    <s:String x:Key="aw_description">
+        Diese IDE (Entwicklungsumgebung ist für die effiziente Erstellung, Änderung, Auführung und Fehleranalyse von MCPU Assembly Programmen konzipiert,
+        welche auf dem hierfür dedizierten MCPU Prozessor Emulator ausgeführt werden.
+        <!-- TODO : SOME TEXT GOES HERE -->
+    </s:String>
+    
     <s:String x:Key="msg_err">Fehler</s:String>
     <s:String x:Key="msg_suc">OK<!-- TODO --></s:String>
     <s:String x:Key="msg_war">Warnung</s:String>

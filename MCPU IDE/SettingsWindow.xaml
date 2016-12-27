@@ -5,8 +5,10 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MCPU.IDE"
         mc:Ignorable="d"
+        Background="{StaticResource BG}"
+        Foreground="{StaticResource FG}"
+        WindowStartupLocation="CenterOwner"
         Title="SettingsWindow" Height="300" Width="300">
     <Grid>
-        
     </Grid>
 </Window>

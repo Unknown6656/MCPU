@@ -295,9 +295,9 @@ namespace MCPU.IDE
 
         }
 
-        private void mih_github(object sender, ExecutedRoutedEventArgs e) => Process.Start(@"https://github.com/Unknown6656/MCPU/").Dispose();
+        internal void mih_github(object sender, ExecutedRoutedEventArgs e) => Process.Start(@"https://github.com/Unknown6656/MCPU/").Dispose();
 
-        private void mih_about(object sender, ExecutedRoutedEventArgs e) => new AboutWindow().ShowDialog();
+        private void mih_about(object sender, ExecutedRoutedEventArgs e) => new AboutWindow(this).ShowDialog();
 
         #endregion
     }

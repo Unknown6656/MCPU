@@ -11,6 +11,10 @@
                 <ResourceDictionary Source="pack://application:,,,/Selen.Wpf.SystemStyles;component/TextBoxStyles.xaml"/>
                 -->
                 <ResourceDictionary Source="pack://application:,,,/Selen.Wpf.SystemStyles;component/Styles.xaml"/>
+                <ResourceDictionary>
+                    <SolidColorBrush x:Key="BG" Color="#ff404040"/>
+                    <SolidColorBrush x:Key="FG" Color="WhiteSmoke"/>
+                </ResourceDictionary>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>

@@ -12,8 +12,6 @@
         Closing="Window_Closing"
         Loaded="Window_Loaded">
     <Window.Resources>
-        <SolidColorBrush x:Key="BG" Color="#ff404040"/>
-        <SolidColorBrush x:Key="FG" Color="WhiteSmoke"/>
         <Style x:Key="st_stat" TargetType="Label">
             <Setter Property="Padding" Value="5,0"/>
             <Setter Property="Foreground" Value="{StaticResource FG}"/>
