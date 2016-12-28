@@ -40,7 +40,7 @@ namespace MPCU.Testing
                   where l.Contains(ERROR_LOC)
                   select nr).First();
             
-            code = code.Replace($"{ERROR_LOC}", "");
+            code = code.Replace(ERROR_LOC, ';');
 
             MCPUCompilerException ex = Throws<MCPUCompilerException>(delegate {
                 throw MCPUCompiler.Compile(code).AsB;
@@ -54,15 +54,17 @@ namespace MPCU.Testing
         public static Instruction[] Compile(string code) => MCPUCompiler.Compile(code).AsA.Instructions;
 
         public static bool Contains(Instruction[] instr, OPCode opc) => instr?.Any(i => i.OPCode.Number == opc.Number) ?? false;
+        
 
+        public CompilerTests() => MCPUCompiler.ResetLanguage();
 
         [TestMethod]
         public void Test_01()
         {
             var ex = CompileExpectError(@"
-§   mov [0] [0] ; <--- missing main token
+    mov [0] [0]   §### ERROR
 ");
-            IsTrue(ex.Message.Contains(".main"));
+            IsTrue(ex.Message == MCPUCompiler.GetString("INSTR_OUTSIDE_MAIN"));
         }
 
         [TestMethod]
@@ -70,9 +72,21 @@ namespace MPCU.Testing
         {
             var ex = CompileExpectError(@"
     .main
-§   kernel 1 ; <--- use .kernel instead
+    kernel 1   §### ERROR
 ");
-            IsTrue(ex.Message.Contains(".kernel"));
+            IsTrue(ex.Message == MCPUCompiler.GetString("DONT_USE_KERNEL"));
+        }
+
+        [TestMethod]
+        public void Test_03()
+        {
+            var ex = CompileExpectError(@"
+func f1
+    mov [3] [1]
+end func
+end func   §### ERROR
+");
+            IsTrue(ex.Message == MCPUCompiler.GetString("MISSING_FUNC_DECL"));
         }
     }
 }
