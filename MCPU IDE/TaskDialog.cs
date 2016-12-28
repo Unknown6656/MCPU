@@ -66,7 +66,7 @@ namespace MCPU.IDE
         /// </summary>
         /// <param name="frm">WinForms instance</param>
         public IWIN32WINDOWCONVERTER(Form frm)
-            : this(frm == null ? IntPtr.Zero : frm.Handle)
+            : this(frm?.Handle ?? IntPtr.Zero)
         {
         }
 

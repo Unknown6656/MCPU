@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.Windows.Documents;
 using System.Windows.Controls;
 using System.Threading.Tasks;
+using System.ComponentModel;
 using System.Windows.Shapes;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Data;
 using System.Diagnostics;
+using Microsoft.Win32;
 using System.Windows;
 using System.Linq;
 using System.Text;
@@ -16,18 +18,22 @@ using System;
 
 using FastColoredTextBoxNS;
 
+using WinForms = System.Windows.Forms;
+
 namespace MCPU.IDE
 {
     using MCPU.Compiler;
+    using MCPU.IDE;
     using MCPU;
 
     public partial class MainWindow
         : Window
     {
-        public FastColoredTextBox fctb => fctb_host.fctb;
-        public Processor proc;
-        public IntPtr handle;
-        public string path;
+        internal FastColoredTextBox fctb => fctb_host.fctb;
+        internal Processor proc;
+        internal IntPtr handle;
+        internal bool changed;
+        internal string path;
 
 
         public MainWindow() => InitializeComponent();
@@ -52,34 +58,149 @@ namespace MCPU.IDE
                 mie_zoom_out.IsEnabled = st != -1;
                 mie_zoom_res.IsEnabled = nz != 100;
             };
-            fctb.CursorChanged += (o, a) => lb_pos.Content = $"{fctb.Cursor.Handle}";
+            fctb.SelectionChanged += Fctb_SelectionChanged;
             fctb.OnTextChanged(); // update control after loading
+
+            Fctb_SelectionChanged(null, null);
+            global_insert(null, null);
+
+            changed = false;
+
+            mif_new(null, null);
         }
 
-        private void Save()
+        private void Window_Closing(object sender, CancelEventArgs e) => e.Cancel = !Save();
+
+        private void global_insert(object sender, ExecutedRoutedEventArgs e)
         {
-            if (path == null)
+            lb_ins.Content = (WinForms.Control.IsKeyLocked(WinForms.Keys.Insert) ? "mw_OVR" : "mw_INS").GetStr();
+
+            if (sender != null)
             {
-                // select file
-                // touch file
+                fctb.ProcessKey(WinForms.Keys.Insert);
+                fctb.Invalidate();
             }
-            else
+        }
+
+        private void Fctb_SelectionChanged(object sender, EventArgs e)
+        {
+            string ToString(Place p) => $"{"global_abbrv_ln".GetStr()} {p.iLine + 1} {"global_abbrv_ch".GetStr()} {p.iChar + 1}";
+
+            Place st = fctb.Selection.Start;
+            Place end = fctb.Selection.End;
+
+            lb_pos.Content = st == end ? ToString(st) : $"{ToString(st)} : {ToString(end)}";
+        }
+
+        private bool Open()
+        {
+            bool __open()
             {
-                FileInfo nfo = new FileInfo(path);
-
-                if (!nfo.Exists)
+                OpenFileDialog ofd = new OpenFileDialog
                 {
-                    //error
+                    DefaultExt = ".mcpu",
+                    Filter = "MCPU Assembly files (*.mcpu)|*.mcpu|All files|*.*",
+                    CheckFileExists = true,
+                };
 
-                    path = null;
+                if (ofd.ShowDialog(this) ?? false)
+                    try
+                    {
+                        using (FileStream fs = new FileStream(ofd.FileName, FileMode.Open, FileAccess.Read, FileShare.Read))
+                        using (StreamReader sr = new StreamReader(fs))
+                            fctb.Text = sr.ReadToEnd();
 
-                    Save();
-                }
+                        fctb.Invalidate();
+
+                        changed = false;
+                    }
+                    catch
+                    {
+                        TaskDialog.Show(handle, "msg_err_filenfound".GetStr(), "msg_err".GetStr(), "msg_errtxt_filenfound".GetStr(path), TaskDialogButtons.Ok, TaskDialogIcon.SecurityError);
+
+                        path = null;
+
+                        return Open();
+                    }
                 else
-                {
-                    // save file
-                }
+                    return false;
+
+                return true;
             }
+            bool res = __open();
+
+            if (res)
+            {
+                changed = false;
+
+                fctb.Selection = new Range(fctb, 0, 0, 0, 0);
+            }
+
+            return res;
+        }
+
+        private bool Save(bool prompt = true)
+        {
+            bool __save()
+            {
+                if (changed)
+                {
+                    if (prompt)
+                        if (TaskDialog.Show(handle, "msg_war_unsaved".GetStr(), "msg_war".GetStr(), "msg_wartxt_unsaved".GetStr(), TaskDialogButtons.Yes | TaskDialogButtons.No | TaskDialogButtons.Cancel, TaskDialogIcon.SecurityWarning) == TaskDialogResult.Yes)
+                            return true;
+
+                    if (path == null)
+                    {
+                        SaveFileDialog sfd = new SaveFileDialog
+                        {
+                            DefaultExt = ".mcpu",
+                            Filter = "MCPU Assembly files (*.mcpu)|*.mcpu|All files|*.*",
+                            OverwritePrompt = true,
+                        };
+
+                        if (path != null)
+                            sfd.FileName = path;
+
+                        if (sfd.ShowDialog(this) ?? false)
+                        {
+                            path = sfd.FileName;
+
+                            return Save();
+                        }
+                        else
+                            return false;
+                    }
+                    else
+                    {
+                        FileInfo nfo = new FileInfo(path);
+                        DirectoryInfo dir = nfo.Directory;
+
+                        if (!dir.Exists)
+                            dir.Create();
+
+                        try
+                        {
+                            using (FileStream fs = new FileStream(nfo.FullName, FileMode.Create, FileAccess.ReadWrite, FileShare.Read))
+                            using (StreamWriter wr = new StreamWriter(fs))
+                                wr.Write(fctb.Text);
+                        }
+                        catch (Exception ex)
+                        {
+                            TaskDialog.Show(handle, "msg_err_filesave".GetStr(), "msg_err".GetStr(), "msg_errtxt_filesave".GetStr(path, ex.Message), TaskDialogButtons.Ok, TaskDialogIcon.SecurityError);
+
+                            return false;
+                        }
+                    }
+                }
+
+                return true;
+            }
+            bool res = __save();
+            
+            if (res)
+                changed = false;
+
+            return res;
         }
 
         #region MENU ITEMS
@@ -106,39 +227,68 @@ namespace MCPU.IDE
 
         private void mif_open(object sender, ExecutedRoutedEventArgs e)
         {
-            Save();
-
-
+            if (Save())
+                Open();
         }
 
-        private void mif_save(object sender, ExecutedRoutedEventArgs e) => Save();
+        private void mif_save(object sender, ExecutedRoutedEventArgs e) => Save(false);
 
         private void mif_save_as(object sender, ExecutedRoutedEventArgs e)
         {
+            string oldpath = path;
 
+            path = null;
+
+            if (!Save(false))
+                path = oldpath;
         }
 
         private void mif_export_html(object sender, ExecutedRoutedEventArgs e)
         {
+            SaveFileDialog sfd = new SaveFileDialog
+            {
+                DefaultExt = ".html",
+                Filter = "HTML document files (*.html)|*.html|All files|*.*",
+                OverwritePrompt = true,
+            };
 
+            if (sfd.ShowDialog(this) ?? false)
+                try
+                {
+                    FileInfo nfo = new FileInfo(sfd.FileName);
+                    DirectoryInfo dir = nfo.Directory;
+
+                    if (!dir.Exists)
+                        dir.Create();
+
+                    using (FileStream fs = new FileStream(nfo.FullName, FileMode.Create, FileAccess.ReadWrite, FileShare.Read))
+                    using (StreamWriter wr = new StreamWriter(fs))
+                        wr.Write(fctb.Html);
+
+                    if (TaskDialog.Show(handle, "msg_suc_html".GetStr(), "msg_suc".GetStr(), "msg_suctxt_html".GetStr(nfo.FullName), TaskDialogButtons.Yes | TaskDialogButtons.No | TaskDialogButtons.Cancel, TaskDialogIcon.SecuritySuccess) == TaskDialogResult.Yes)
+                        Process.Start($"\"{nfo.FullName}\"").Dispose();
+                }
+                catch (Exception ex)
+                {
+                    TaskDialog.Show(handle, "msg_err_html".GetStr(), "msg_err".GetStr(), "msg_errtxt_html".GetStr(ex.Message), TaskDialogButtons.Ok, TaskDialogIcon.SecurityError);
+                }
         }
 
-        private void mif_settings(object sender, ExecutedRoutedEventArgs e)
-        {
+        private void mif_settings(object sender, ExecutedRoutedEventArgs e) => new SettingsWindow().ShowDialog();
 
-        }
-
-        private void mif_exit(object sender, ExecutedRoutedEventArgs e)
-        {
-            Save();
-            Close();
-        }
+        private void mif_exit(object sender, ExecutedRoutedEventArgs e) => Close();
 
         private void mif_new(object sender, ExecutedRoutedEventArgs e)
         {
-            Save();
+            if (Save())
+            {
+                fctb.Clear();
+                fctb.Text = new string(' ', fctb.TabLength);
+                fctb.Selection = new Range(fctb, fctb.TabLength - 1, 0, fctb.TabLength - 1, 0);
 
-            fctb.Clear();
+                path = null;
+                changed = false;
+            }
         }
 
         private void mic_compile(object sender, ExecutedRoutedEventArgs e)
@@ -157,31 +307,34 @@ namespace MCPU.IDE
             {
                 MCPUCompilerException ex = res;
 
-                TaskDialog.Show(handle, "Compiler error", "Error", $"The code could not be compiled due to the following compiler error:\n'{ex.Message}' on line {ex.LineNr}");
+                TaskDialog.Show(handle, "msg_err_compiler".GetStr(), "msg_err".GetStr(), "msg_errtxt_compiler".GetStr(ex.Message, ex.LineNr), TaskDialogButtons.Ok, TaskDialogIcon.SecurityError);
             }
         }
 
         private void mip_reset(object sender, ExecutedRoutedEventArgs e)
         {
+            proc.Reset();
 
+            // TODO ?
         }
 
         private void mip_start(object sender, ExecutedRoutedEventArgs e)
         {
+            proc.Process();
 
+            // SOME ASYNC SHIT HAS TO GO HERE OR EVERYTHING WILL RUN INSIDE THE UI-THREAD --> NOT GOOD !
         }
 
         private void mip_stop(object sender, ExecutedRoutedEventArgs e)
         {
+            proc.Halt();
 
+            // TODO ?
         }
 
-        private void mih_github(object sender, ExecutedRoutedEventArgs e) => Process.Start(@"https://github.com/Unknown6656/MCPU/").Dispose();
+        internal void mih_github(object sender, ExecutedRoutedEventArgs e) => Process.Start(@"https://github.com/Unknown6656/MCPU/").Dispose();
 
-        private void mih_about(object sender, ExecutedRoutedEventArgs e)
-        {
-
-        }
+        private void mih_about(object sender, ExecutedRoutedEventArgs e) => new AboutWindow(this).ShowDialog();
 
         #endregion
     }
@@ -192,14 +345,13 @@ namespace MCPU.IDE
              new RoutedUICommand(name, name, typeof(Commands), new InputGestureCollection { new KeyGesture(key, mod) });
 
 
-        public static readonly RoutedUICommand New = create(nameof(New), Key.OemPlus);
-        public static readonly RoutedUICommand Open = create(nameof(Open), Key.OemPlus);
-        public static readonly RoutedUICommand Save = create(nameof(Save), Key.OemPlus);
-        public static readonly RoutedUICommand SaveAs = create(nameof(SaveAs), Key.OemPlus);
-        public static readonly RoutedUICommand ExportAsHTML = create(nameof(ExportAsHTML), Key.OemPlus);
-        public static readonly RoutedUICommand Preferences = create(nameof(Preferences), Key.OemPlus);
+        public static readonly RoutedUICommand New = create(nameof(New), Key.N);
+        public static readonly RoutedUICommand Open = create(nameof(Open), Key.O);
+        public static readonly RoutedUICommand Save = create(nameof(Save), Key.S);
+        public static readonly RoutedUICommand SaveAs = create(nameof(SaveAs), Key.S, ModifierKeys.Control | ModifierKeys.Shift);
+        public static readonly RoutedUICommand ExportAsHTML = create(nameof(ExportAsHTML), Key.E);
+        public static readonly RoutedUICommand Preferences = create(nameof(Preferences), Key.F10, ModifierKeys.None);
         public static readonly RoutedUICommand Exit = create(nameof(Exit), Key.F4, ModifierKeys.Alt);
-
         public static readonly RoutedUICommand ZoomIn = create(nameof(ZoomIn), Key.OemPlus);
         public static readonly RoutedUICommand ZoomOut = create(nameof(ZoomOut), Key.OemMinus);
         public static readonly RoutedUICommand ZoomReset = create(nameof(ZoomReset), Key.D0);
@@ -210,15 +362,13 @@ namespace MCPU.IDE
         public static readonly RoutedUICommand Delete = create(nameof(Delete), Key.Delete, ModifierKeys.None);
         public static readonly RoutedUICommand Undo = create(nameof(Undo), Key.Z);
         public static readonly RoutedUICommand Redo = create(nameof(Redo), Key.Y);
-
         public static readonly RoutedUICommand Compile = create(nameof(Compile), Key.F5, ModifierKeys.None);
-
         public static readonly RoutedUICommand Start = create(nameof(Start), Key.F6, ModifierKeys.None);
         public static readonly RoutedUICommand Stop = create(nameof(Stop), Key.F6, ModifierKeys.Shift);
         public static readonly RoutedUICommand Reset = create(nameof(Reset), Key.F6);
-
         public static readonly RoutedUICommand About = create(nameof(Reset), Key.F1, ModifierKeys.None);
         public static readonly RoutedUICommand GitHub = create(nameof(Reset), Key.F2, ModifierKeys.None);
+        public static readonly RoutedUICommand InsertDelete = create(nameof(InsertDelete), Key.Insert, ModifierKeys.None);
     }
 }
 

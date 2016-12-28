@@ -9,10 +9,9 @@
         mc:Ignorable="d"
         Height="500" Width="750"
         Title="{DynamicResource mw_title}"
+        Closing="Window_Closing"
         Loaded="Window_Loaded">
     <Window.Resources>
-        <SolidColorBrush x:Key="BG" Color="#ff404040"/>
-        <SolidColorBrush x:Key="FG" Color="WhiteSmoke"/>
         <Style x:Key="st_stat" TargetType="Label">
             <Setter Property="Padding" Value="5,0"/>
             <Setter Property="Foreground" Value="{StaticResource FG}"/>
@@ -43,6 +42,7 @@
         <CommandBinding Command="local:Commands.Reset" Executed="mip_reset"/>
         <CommandBinding Command="local:Commands.About" Executed="mih_about"/>
         <CommandBinding Command="local:Commands.GitHub" Executed="mih_github"/>
+        <CommandBinding Command="local:Commands.InsertDelete" Executed="global_insert"/>
     </Window.CommandBindings>
     <DockPanel>
         <Menu DockPanel.Dock="Top" Height="21">
@@ -93,9 +93,10 @@
             </MenuItem>
         </Menu>
         <StatusBar DockPanel.Dock="Bottom" Height="20" Padding="0" FontSize="10" Background="{StaticResource BG}" Foreground="{StaticResource FG}">
+            <Label Content="{DynamicResource lang_iso}" Style="{StaticResource st_stat}"/>
             <Label x:Name="lb_zoom" Content="100 %" Style="{StaticResource st_stat}"/>
-            <Label x:Name="lb_ins" Content="INS" Style="{StaticResource st_stat}"/>
-            <Label x:Name="lb_pos" Content="Ln ---- Ch ----" Style="{StaticResource st_stat}"/>
+            <Label x:Name="lb_ins" Content="{DynamicResource mw_INS}" Style="{StaticResource st_stat}"/>
+            <Label x:Name="lb_pos" Content="Ln. ---- Ch. --- : Ln. ---- Ch. ---" Style="{StaticResource st_stat}" Width="160"/>
         </StatusBar>
         <WindowsFormsHost>
             <WindowsFormsHost.Child>

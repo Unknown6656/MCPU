@@ -1,6 +1,15 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:s="clr-namespace:System;assembly=mscorlib">
+    <s:String x:Key="lang_iso">DEU</s:String>
+    <s:String x:Key="lang_code">de-DE</s:String>
+    <s:String x:Key="lang_name">Deutsch</s:String>
+
+    <s:String x:Key="global_abbrv_ln">L.</s:String>
+    <s:String x:Key="global_abbrv_ch">Z.</s:String>
+    <s:String x:Key="global_close">Schließen</s:String>
+    <s:String x:Key="global_copyright">Copyright</s:String>
+
     <s:String x:Key="mw_title">MCPU Entwicklungsumgebung</s:String>
     <s:String x:Key="mw_file">_DATEI</s:String>
     <s:String x:Key="mw_file_new">_Neu</s:String>
@@ -36,4 +45,35 @@
     <s:String x:Key="mw_help">_HILFE</s:String>
     <s:String x:Key="mw_help_about">_Über</s:String>
     <s:String x:Key="mw_help_github">_Auf GitHub ansehen</s:String>
+    <s:String x:Key="mw_INS">EINF</s:String>
+    <s:String x:Key="mw_OVR">ÜBR</s:String>
+
+    <s:String x:Key="aw_title">Über die MCPU Entwicklungsumgebung</s:String>
+    <s:String x:Key="aw_version">Version:</s:String>
+    <s:String x:Key="aw_version_str">V {0}</s:String>
+    <s:String x:Key="aw_github">GitHub-Projekt besuchen</s:String>
+    <s:String x:Key="aw_github_issues">Feedback geben oder einen technischen Fehler melden</s:String>
+    <s:String x:Key="aw_description">
+        Diese IDE (Entwicklungsumgebung ist für die effiziente Erstellung, Änderung, Auführung und Fehleranalyse von MCPU Assembly Programmen konzipiert,
+        welche auf dem hierfür dedizierten MCPU Prozessor Emulator ausgeführt werden.
+    </s:String>
+    <s:String x:Key="aw_fctb_before">Das Haupt-texteingabefeld des Editors wurde mithilfe des</s:String>
+    <s:String x:Key="aw_fctb_after">umgesetzt.</s:String>
+    <s:String x:Key="aw_fctb_desc">FastColoredTextBox-Projektes</s:String>
+    
+    <s:String x:Key="msg_err">Fehler</s:String>
+    <s:String x:Key="msg_suc">OK<!-- TODO --></s:String>
+    <s:String x:Key="msg_war">Warnung</s:String>
+    <s:String x:Key="msg_suc_html">HTML efolgreich exportiert</s:String>
+    <s:String x:Key="msg_suctxt_html">Die Code-Datei konnte erfolgreich als HTML-Dokument exportiert werden und wurde in die Datei '{0}' geschrieben&#10;Möchten Sie das exportierte HTML-Dokument jetzt öffnen?</s:String>
+    <s:String x:Key="msg_war_unsaved">Änderungen verwerfen?</s:String>
+    <s:String x:Key="msg_wartxt_unsaved">Sie besitzen ungespeicherte Änderungen ihrer Code-Datei. Sollen diese verworfen werden?</s:String>
+    <s:String x:Key="msg_err_compiler">Compilerfehler</s:String>
+    <s:String x:Key="msg_errtxt_compiler">Der Quellcode konnte aufgrund des folgenden fehlers nicht kompiliert werden:&#10;'{0}' in Linie {1}.</s:String>
+    <s:String x:Key="msg_err_filenfound">Datei nicht gefunden</s:String>
+    <s:String x:Key="msg_errtxt_filenfound">Die Datei '{0}' konnte nicht geöffnet oder gefunden werden.</s:String>
+    <s:String x:Key="msg_err_filesave">Datei nicht gespeichert</s:String>
+    <s:String x:Key="msg_errtxt_filesave">Die Datei '{0}' konnte aufgrund des folgenden Fehlers nicht gespeichert werden:&#10;{1}</s:String>
+    <s:String x:Key="msg_err_html">HTML nicht exportiert</s:String>
+    <s:String x:Key="msg_errtxt_html">Die Code-Datei konnte aufgrund des folgenden Fehlers nicht als HTML-Dokument exportiert werden:&#10;{0}</s:String>
 </ResourceDictionary>

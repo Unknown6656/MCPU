@@ -49,7 +49,7 @@ using System.Windows.Markup;
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("1.0.*")]
-[assembly: NeutralResourcesLanguage("en-GB")]
+[assembly: NeutralResourcesLanguage(MCPU.IDE.LanguageExtensions.DEFAULT_LANG)]
 [assembly: Guid("7090F85B-529A-4E20-818C-73886DB10A26")]
 
 
