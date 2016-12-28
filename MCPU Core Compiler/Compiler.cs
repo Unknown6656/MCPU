@@ -243,7 +243,7 @@ namespace MCPU.Compiler
 
                 if ((line = line.Trim()).Length > 0)
                 {
-                    if (line.StartsWith("."))
+                    if (line.StartsWith(".") && !line.ToLower().StartsWith(".inline"))
                         switch (line = line.Remove(0, 1).Trim().ToLower())
                         {
                             case "main":
@@ -376,7 +376,7 @@ namespace MCPU.Compiler
                             curr_func.Instructions.Add(new Instruction(OPCodes.CodesByToken[token], args.ToArray()));
                         }
                     else
-                        return Error(GetString("", line));
+                        return Error(GetString("LINE_NPARSED", line));
                 }
             }
 
