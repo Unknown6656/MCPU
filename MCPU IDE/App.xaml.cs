@@ -10,6 +10,8 @@ using System.Windows;
 using System.Data;
 using System.Linq;
 using System;
+using MCPU.Compiler;
+using System.Reflection;
 
 namespace MCPU.IDE
 {
@@ -19,6 +21,8 @@ namespace MCPU.IDE
     public partial class App
         : Application
     {
+        internal static Dictionary<string, string> def_compiler_table = typeof(MCPUCompiler).GetField("__defstrtable", BindingFlags.Static | BindingFlags.NonPublic)
+                                                                                            .GetValue(null) as Dictionary<string, string>;
         internal ResourceDictionary previousdir = null;
         
         protected override void OnStartup(StartupEventArgs args)
@@ -64,6 +68,18 @@ namespace MCPU.IDE
             foreach (Window hwnd in Current.Windows)
                 if (hwnd != null)
                     hwnd.Language = XmlLanguage.GetLanguage(CultureInfo.CurrentCulture.IetfLanguageTag);
+
+            ResourceDictionary compiler_dic = Current.Resources["global_compiler_msg"] as ResourceDictionary;
+            Dictionary<string, string> compiler_table = (from object key in compiler_dic?.Keys ?? new object[0]
+                                                         select new {
+                                                             Key = key as string,
+                                                             Value = compiler_dic?[key] as string
+                                                         }).ToDictionary(_ => _.Key, _ => _.Value);
+
+            if (def_compiler_table.Keys.All(_ => compiler_table.ContainsKey(_)))
+                MCPUCompiler.SetLanguage(compiler_table);
+            else
+                MCPUCompiler.ResetLanguage();
         }
     }
     
@@ -75,7 +91,7 @@ namespace MCPU.IDE
         /// <summary>
         /// The application's and assembly's default language
         /// </summary>
-        public const string DEFAULT_LANG = "en-GB";
+        public const string DEFAULT_LANG = "de-DE";
 
         /// <summary>
         /// Returns the language-specific string associated with the given resource key
@@ -94,7 +110,7 @@ namespace MCPU.IDE
     }
 
     /// <summary>
-    /// 
+    /// Represents the language import module
     /// </summary>
     public sealed class LanguageImportModule
     {
@@ -105,7 +121,7 @@ namespace MCPU.IDE
         /// </summary>
         public static LanguageImportModule Instance => _instance = _instance ?? new LanguageImportModule();
         /// <summary>
-        /// 
+        /// The resource dictionary list
         /// </summary>
         [ImportMany(typeof(ResourceDictionary))]
         public IEnumerable<Lazy<ResourceDictionary, IDictionary<string, object>>> ResourceDictionaryList { get; set; }
