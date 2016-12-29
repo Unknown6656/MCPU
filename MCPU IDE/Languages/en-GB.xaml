@@ -14,6 +14,9 @@
     </ResourceDictionary>
     <s:String x:Key="global_compiler_error">Compiler error</s:String>
 
+    <s:String x:Key="autocomp_func">Function {0}&#10;The function {1} which has been defined on line {2}</s:String>
+    <s:String x:Key="autocomp_label">Label '{0}'&#10;The label {1} which has been defined on line {2}</s:String>
+    
     <s:String x:Key="mw_title">MCPU Integrated Development Environment</s:String>
     <s:String x:Key="mw_file">_FILE</s:String>
     <s:String x:Key="mw_file_new">_New</s:String>

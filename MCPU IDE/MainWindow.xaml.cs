@@ -49,7 +49,12 @@ namespace MCPU.IDE
             }
         }
 
-        public MainWindow() => InitializeComponent();
+        public MainWindow()
+        {
+            InitializeComponent();
+
+            InitProcessor(/* read from settings */ 0x100000); // 4mb
+        }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
@@ -82,6 +87,7 @@ namespace MCPU.IDE
             // mif_new(null, null);
 
             fctb_host.Select();
+            fctb.Select();
         }
 
         private void Window_Closing(object sender, CancelEventArgs e) => e.Cancel = !Save();
@@ -224,6 +230,17 @@ namespace MCPU.IDE
             return res;
         }
         
+        private void InitProcessor(int memsz)
+        {
+            proc?.Halt();
+            proc?.Dispose();
+
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+
+            proc = new Processor(memsz);
+        }
+
         #region MENU ITEMS
 
         private void mie_zoom_in_Click(object sender, ExecutedRoutedEventArgs e) => fctb.Zoom = (int)(fctb.Zoom * 1.2);
@@ -323,7 +340,7 @@ namespace MCPU.IDE
                 fctb_host.labels = cmpres.Labels;
                 fctb_host.functions = cmpres.Functions;
                 fctb_host.UpdateAutocomplete();
-                // proc.Instructions = cmpres.Instructions;
+                proc.Instructions = cmpres.Instructions;
             }
             else
             {
