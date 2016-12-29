@@ -30,11 +30,24 @@ namespace MCPU.IDE
         : Window
     {
         internal FastColoredTextBox fctb => fctb_host.fctb;
+        internal readonly Setter st_stat;
         internal Processor proc;
         internal IntPtr handle;
         internal bool changed;
         internal string path;
 
+        internal MCPUCompilerException Error
+        {
+            get => fctb_host.Error;
+            set
+            {
+                Color col = (Color)Application.Current.Resources[value == null ? "BG" : "BGERR"];
+
+                (Resources["stat_bg"] as SolidColorBrush).Color = col;
+                statbar.Background = new SolidColorBrush(col);
+                statbar.InvalidateVisual();
+            }
+        }
 
         public MainWindow() => InitializeComponent();
 
@@ -66,7 +79,7 @@ namespace MCPU.IDE
 
             changed = false;
 
-            mif_new(null, null);
+            // mif_new(null, null);
         }
 
         private void Window_Closing(object sender, CancelEventArgs e) => e.Cancel = !Save();
@@ -202,7 +215,7 @@ namespace MCPU.IDE
 
             return res;
         }
-
+        
         #region MENU ITEMS
 
         private void mie_zoom_in_Click(object sender, ExecutedRoutedEventArgs e) => fctb.Zoom = (int)(fctb.Zoom * 1.2);
@@ -306,6 +319,8 @@ namespace MCPU.IDE
             else
             {
                 MCPUCompilerException ex = res;
+
+                fctb_host.Error = ex;
 
                 TaskDialog.Show(handle, "msg_err_compiler".GetStr(), "msg_err".GetStr(), "msg_errtxt_compiler".GetStr(ex.Message, ex.LineNr), TaskDialogButtons.Ok, TaskDialogIcon.SecurityError);
             }

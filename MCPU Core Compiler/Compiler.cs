@@ -72,7 +72,7 @@ namespace MCPU.Compiler
 
         internal static readonly Dictionary<string, string> __defstrtable = new Dictionary<string, string>
         {
-            { "JMP_INSIDE_FUNC", "An jump label may only be used inside a function or after the '.main'-token." },
+            { "JMP_INSIDE_FUNC", "A jump label may only be used inside a function or after the '.main'-token." },
             { "FUNC_ALREADY_EXISTS_SP", "A function called '{0}' does already exist." },
             { "LABEL_ALREADY_EXISTS_SP", "The label '{0}' does already exist on line {1}." },
             { "TOKEN_NOT_PARSED", "The token '.{0}' could not be parsed." },

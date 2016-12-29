@@ -29,6 +29,7 @@ namespace MCPU.IDE
 
         internal static TextStyle CreateStyle(int rgb, FontStyle f) => new TextStyle(new SolidBrush(Color.FromArgb((int)(0xff000000u | rgb))), null, f);
 
+        public static readonly ErrorStyle style_error = new ErrorStyle();
         public static readonly TextStyle style_param = CreateStyle(0x92CAF4, FontStyle.Regular);
         public static readonly TextStyle style_addr = CreateStyle(0xEFF284, FontStyle.Regular);
         public static readonly TextStyle style_labels = CreateStyle(0x4EC9B0, FontStyle.Italic);
@@ -56,13 +57,43 @@ namespace MCPU.IDE
 
         public new event EventHandler<TextChangedEventArgs> TextChanged;
 
-        public MainWindow Parent { set; get; }
-
         internal MCPUFunctionMetadata[] functions = new MCPUFunctionMetadata[0];
         internal MCPULabelMetadata[] labels = new MCPULabelMetadata[0];
         internal AutocompleteItem[] std_autocompitems;
         internal AutocompleteMenu autocomp;
-        
+        private MCPUCompilerException err;
+        private Range err_range;
+
+        public MainWindow Parent { set; get; }
+
+
+        internal MCPUCompilerException Error
+        {
+            get => err;
+            set
+            {
+                fctb.Range.ClearStyle(style_error);
+
+                err_range = null;
+
+                if (value != null)
+                {
+                    int line = value.LineNr - 1;
+
+                    if (line > 0)
+                    {
+                        string ln = fctb.Lines[line];
+                        int start = ln.Length - ln.TrimStart().Length;
+                        int end = (ln.Contains(MCPUCompiler.COMMENT_START) ? ln.Remove(ln.IndexOf(MCPUCompiler.COMMENT_START)) : ln).Trim().Length;
+
+                        err_range = new Range(fctb, start, line, start + end, line);
+                        err_range.SetStyle(style_error);
+                    }
+                }
+                
+                Parent.Error = err = value;
+            }
+        }
 
         public HighlightnerForm()
             : this(App.Current.MainWindow as MainWindow)
@@ -93,13 +124,13 @@ namespace MCPU.IDE
             fctb.TextChanged += Fctb_TextChanged;
             fctb.ToolTipNeeded += Fctb_ToolTipNeeded;
             fctb.AutoIndentNeeded += Fctb_AutoIndentNeeded;
-            fctb.ToolTip = new DarkTooltip();
+            // fctb.ToolTip = new DarkTooltip();
             fctb.ToolTip.BackColor = fctb.BackColor;
             fctb.ToolTip.ForeColor = fctb.ForeColor;
             fctb.Select();
 
             autocomp = new AutocompleteMenu(fctb);
-            autocomp.ToolTip = new DarkTooltip();
+            // autocomp.ToolTip = new DarkTooltip();
             autocomp.ToolTip.BackColor = fctb.BackColor;
             autocomp.ToolTip.ForeColor = fctb.ForeColor;
             autocomp.BackColor = fctb.BackColor;
@@ -149,8 +180,15 @@ namespace MCPU.IDE
 
         private void Fctb_ToolTipNeeded(object sender, ToolTipNeededEventArgs e)
         {
-            if (!string.IsNullOrEmpty(e.HoveredWord))
+            if ((Error != null) && (err_range?.Contains(e.Place) ?? false))
             {
+                e.ToolTipTitle = "global_compiler_error".GetStr();
+                e.ToolTipText = err.Message;
+                e.ToolTipIcon = ToolTipIcon.Error;
+            }
+            else if (!string.IsNullOrEmpty(e.HoveredWord))
+            {
+                e.ToolTipIcon = ToolTipIcon.None;
                 e.ToolTipTitle = e.HoveredWord;
                 
                 // TODO
@@ -183,6 +221,8 @@ namespace MCPU.IDE
 
         private void Fctb_TextChanged(object sender, TextChangedEventArgs e)
         {
+            Error = null;
+
             Range rng = fctb.Range;
 
             e.ChangedRange.ClearFoldingMarkers();
@@ -207,6 +247,23 @@ namespace MCPU.IDE
 
             if (sender != null)
                 Parent.changed = true;
+        }
+    }
+
+    public class ErrorStyle
+        : MarkerStyle
+    {
+        internal WavyLineStyle wls;
+
+
+        public ErrorStyle()
+            : base(new SolidBrush(Color.FromArgb(0x60ff0000))) => wls = new WavyLineStyle(255, Color.Red);
+
+        public override void Draw(Graphics gr, Point position, Range range)
+        {
+            base.Draw(gr, position, range);
+
+            wls.Draw(gr, position, range);
         }
     }
 }

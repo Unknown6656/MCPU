@@ -12,10 +12,11 @@
         Closing="Window_Closing"
         Loaded="Window_Loaded">
     <Window.Resources>
+        <SolidColorBrush x:Key="stat_bg" Color="{DynamicResource BG}"/>
         <Style x:Key="st_stat" TargetType="Label">
-            <Setter Property="Padding" Value="5,0"/>
+            <Setter Property="Background" Value="{StaticResource stat_bg}"/>
             <Setter Property="Foreground" Value="{StaticResource FG}"/>
-            <Setter Property="Background" Value="{StaticResource BG}"/>
+            <Setter Property="Padding" Value="5,0"/>
         </Style>
     </Window.Resources>
     <Window.CommandBindings>
@@ -92,7 +93,7 @@
                 <MenuItem Header="{DynamicResource mw_help_github}" Command="local:Commands.GitHub"/>
             </MenuItem>
         </Menu>
-        <StatusBar DockPanel.Dock="Bottom" Height="20" Padding="0" FontSize="10" Background="{StaticResource BG}" Foreground="{StaticResource FG}">
+        <StatusBar x:Name="statbar" DockPanel.Dock="Bottom" Height="20" Padding="0" FontSize="10" Foreground="{StaticResource FG}" Background="{StaticResource stat_bg}">
             <Label Content="{DynamicResource lang_iso}" Style="{StaticResource st_stat}"/>
             <Label x:Name="lb_zoom" Content="100 %" Style="{StaticResource st_stat}"/>
             <Label x:Name="lb_ins" Content="{DynamicResource mw_INS}" Style="{StaticResource st_stat}"/>

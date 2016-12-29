@@ -9,7 +9,29 @@
     <s:String x:Key="global_abbrv_ch">Z.</s:String>
     <s:String x:Key="global_close">Schließen</s:String>
     <s:String x:Key="global_copyright">Copyright</s:String>
-
+    <ResourceDictionary x:Key="global_compiler_msg">
+        <s:String x:Key="JMP_INSIDE_FUNC">Eine Sprungmarke kann nur innerhalb einer Funktion oder nach der '.main'-Marke deklariert werden.</s:String>
+        <s:String x:Key="FUNC_ALREADY_EXISTS_SP">Eine Funktion namens '{0}' existiert bereits.</s:String>
+        <s:String x:Key="LABEL_ALREADY_EXISTS_SP">Eine Sprungmarke namens '{0}' wurde bereits in Zeile {1} deklariert.</s:String>
+        <s:String x:Key="TOKEN_NOT_PARSED">Die Marke '.{0}' konnte nicht analysiert werden.</s:String>
+        <s:String x:Key="TOKEN_INSIDE_FUNC">Die Marke '.{0}' kann nur innerhalb einer Funktion oder nach der '.main'-Marke verwendet werden.</s:String>
+        <s:String x:Key="FUNC_NOT_NESTED">Funktionen können nicht geschachtelt werden. Bitte schließen Sie die aktuelle Funktion mit 'END FUNC' ab.</s:String>
+        <s:String x:Key="FUNC_AFTER_MAIN">Funktionen können nicht nach der '.main'-Marke definiert werden.</s:String>
+        <s:String x:Key="FUNC_ALREADY_EXISTS">Die Funktion '{0}' existiert bereits.</s:String>
+        <s:String x:Key="LABEL_ALREADY_EXISTS">Eine Sprungmarke namens '{0}' existiert bereits.</s:String>
+        <s:String x:Key="MISSING_FUNC_DECL">Eine Funktionsdeklaration muss einem 'END FUNC' vorangehen.</s:String>
+        <s:String x:Key="INSTR_OUTSIDE_MAIN">Instruktionen können nur innerhalb einer Funktion oder nach der '.main'-Marke verwendet werden.</s:String>
+        <s:String x:Key="INSTR_NFOUND">Die Instruktion '{0}' konnte nicht gefunden werden.</s:String>
+        <s:String x:Key="DONT_USE_KERNEL">Die Instruktion 'KERNEL' sollte nicht direkt verwendet werden. Bitte verwenden Sie stattdessen '.kernel' oder '.user'.</s:String>
+        <s:String x:Key="ARGTYPE_NDET">Der Datentyp des Argumentes '{0}' konnte nicht determiniert werden.</s:String>
+        <s:String x:Key="INVALID_ARG">Ungültiges Argument '{0}'.</s:String>
+        <s:String x:Key="LABEL_FUNC_NFOUND">Die Funktion oder Sprungmarke '{0}' konnte nicht gefunden werden.</s:String>
+        <s:String x:Key="LINE_NPARSED">Die Zeile '{0}' konnte nicht analysiert werden.</s:String>
+        <s:String x:Key="MAIN_TOKEN_MISSING">Die '.main'-Marke fehlt.</s:String>
+        <s:String x:Key="INLINE_NYET_SUPP">'.inline' wird derzeitig noch nicht unterstützt</s:String>
+    </ResourceDictionary>
+    <s:String x:Key="global_compiler_error">Compilerfehler</s:String>
+    
     <s:String x:Key="mw_title">MCPU Entwicklungsumgebung</s:String>
     <s:String x:Key="mw_file">_DATEI</s:String>
     <s:String x:Key="mw_file_new">_Neu</s:String>
@@ -69,7 +91,7 @@
     <s:String x:Key="msg_war_unsaved">Änderungen verwerfen?</s:String>
     <s:String x:Key="msg_wartxt_unsaved">Sie besitzen ungespeicherte Änderungen ihrer Code-Datei. Sollen diese verworfen werden?</s:String>
     <s:String x:Key="msg_err_compiler">Compilerfehler</s:String>
-    <s:String x:Key="msg_errtxt_compiler">Der Quellcode konnte aufgrund des folgenden fehlers nicht kompiliert werden:&#10;'{0}' in Linie {1}.</s:String>
+    <s:String x:Key="msg_errtxt_compiler">Der Quellcode konnte aufgrund des folgenden fehlers nicht kompiliert werden:&#10;'{0}'&#10;in Zeile {1}.</s:String>
     <s:String x:Key="msg_err_filenfound">Datei nicht gefunden</s:String>
     <s:String x:Key="msg_errtxt_filenfound">Die Datei '{0}' konnte nicht geöffnet oder gefunden werden.</s:String>
     <s:String x:Key="msg_err_filesave">Datei nicht gespeichert</s:String>
