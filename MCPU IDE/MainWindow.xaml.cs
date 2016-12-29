@@ -80,6 +80,8 @@ namespace MCPU.IDE
             changed = false;
 
             // mif_new(null, null);
+
+            fctb_host.Select();
         }
 
         private void Window_Closing(object sender, CancelEventArgs e) => e.Cancel = !Save();
@@ -320,7 +322,8 @@ namespace MCPU.IDE
                 
                 fctb_host.labels = cmpres.Labels;
                 fctb_host.functions = cmpres.Functions;
-                proc.Instructions = cmpres.Instructions;
+                fctb_host.UpdateAutocomplete();
+                // proc.Instructions = cmpres.Instructions;
             }
             else
             {

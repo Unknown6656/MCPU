@@ -185,8 +185,24 @@
       <Name>MCPU Library</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
-    <Folder Include="Resources\" />
+    <None Include="Resources\autocomp_address.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\autocomp_directive.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\autocomp_function.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\autocomp_instruction.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\autocomp_keyword.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\autocomp_label.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

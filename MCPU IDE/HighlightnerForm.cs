@@ -44,15 +44,20 @@ namespace MCPU.IDE
             { style_comments, REGEX_COMMENT },
             { style_stoken, REGEX_STOKEN },
             { style_param, REGEX_PARAM },
-            { style_kword, $@"({REGEX_FUNC}|{REGEX_END_FUNC}|\b((sys)?call|halt|ret|reset)\b)" },
+            { style_kword, $@"({REGEX_FUNC}|{REGEX_END_FUNC}|\b((sys)?call|halt|ret|reset|___main)\b)" },
             // { style_labels, @"(^(\s|\b)+\w+\:|(?:\bfunc\s+)\w+\s*$)" },
             { style_float, $@"\b({MCPUCompiler.FLOAT_CORE})\b" },
             { style_int, $@"\b({MCPUCompiler.INTEGER_CORE})\b" },
             { style_addr, REGEX_ADDR },
         };
-        internal static readonly Dictionary<string, Bitmap> autocomp_images = new Dictionary<string, Bitmap>
+        private static readonly Dictionary<string, Bitmap> autocomp_images = new Dictionary<string, Bitmap>
         {
-            { "opcode", new Bitmap(1, 1) },
+            { "opcode", Properties.Resources.autocomp_instruction },
+            { "address", Properties.Resources.autocomp_address },
+            { "directive", Properties.Resources.autocomp_directive },
+            { "function", Properties.Resources.autocomp_function },
+            { "label", Properties.Resources.autocomp_label },
+            { "keyword", Properties.Resources.autocomp_keyword },
         };
 
         public new event EventHandler<TextChangedEventArgs> TextChanged;
@@ -104,30 +109,30 @@ namespace MCPU.IDE
         {
             InitializeComponent();
 
+            MinimumSize = new Size(500, 300);
             Parent = parent;
 
             Load += HighlightnerForm_Load;
             SizeChanged += HighlightnerForm_SizeChanged;
-        }
 
-        private void HighlightnerForm_SizeChanged(object sender, EventArgs e)
-        {
-            docmap.Width = 100;
-        }
-
-        private void HighlightnerForm_Load(object sender, EventArgs e)
-        {
-            MinimumSize = new Size(500, 300);
-            
             fctb.AutoIndent = true;
             fctb.KeyDown += Fctb_KeyDown;
             fctb.TextChanged += Fctb_TextChanged;
             fctb.ToolTipNeeded += Fctb_ToolTipNeeded;
             fctb.AutoIndentNeeded += Fctb_AutoIndentNeeded;
-            fctb.ToolTip = new DarkTooltip() {
+            fctb.ToolTip = new DarkTooltip()
+            {
                 BackColor = fctb.BackColor,
                 ForeColor = fctb.ForeColor,
             };
+            fctb.ServiceColors.CollapseMarkerBorderColor =
+            fctb.ServiceColors.CollapseMarkerForeColor =
+            fctb.ServiceColors.ExpandMarkerBorderColor =
+            fctb.ServiceColors.ExpandMarkerForeColor =
+            fctb.ServiceLinesColor;
+            fctb.ServiceColors.CollapseMarkerBackColor =
+            fctb.ServiceColors.ExpandMarkerBackColor =
+            fctb.BackColor;
             fctb.Select();
 
             autocomp = new AutocompleteMenu(fctb);
@@ -136,13 +141,10 @@ namespace MCPU.IDE
             autocomp.ToolTip.ForeColor = fctb.ForeColor;
             autocomp.BackColor = fctb.BackColor;
             autocomp.ForeColor = fctb.ForeColor;
-            autocomp.Opening += Autocomp_Opening;
             autocomp.ImageList = new ImageList();
             autocomp.AllowTabKey = true;
             autocomp.AppearInterval = 100;
-            autocomp.MinFragmentLength = 1;
-            autocomp.SearchPattern = ".";
-            
+
             foreach (var kvp in autocomp_images)
                 autocomp.ImageList.Images.Add(kvp.Key, kvp.Value);
 
@@ -155,16 +157,28 @@ namespace MCPU.IDE
                                      MenuText = nv,
                                      ToolTipTitle = $"Instruction '{nv}'",
                                      ToolTipText = $"The instrucion {kvp.Value}",
-                                     ImageIndex = autocomp.ImageList.Images.IndexOfKey("opcode"),
+                                     ImageIndex = GetImageIndex("opcode"),
                                  }).ToArray();
 
-            autocomp.Items.SetAutocompleteItems(std_autocompitems);
+            UpdateAutocomplete();
+
             // autocomp.Items.MinimumSize = new Size(200, 300);
             autocomp.Items.Width = 500;
-
-            fctb.OnSyntaxHighlight(new TextChangedEventArgs(fctb.Range));
+            autocomp.MinFragmentLength = 0;
         }
 
+        private int GetImageIndex(string name) => autocomp.ImageList.Images.IndexOfKey(name);
+
+        private void HighlightnerForm_SizeChanged(object sender, EventArgs e)
+        {
+            docmap.Width = 100;
+        }
+
+        private void HighlightnerForm_Load(object sender, EventArgs e)
+        {
+            fctb.OnSyntaxHighlight(new TextChangedEventArgs(fctb.Range));
+        }
+        
         private void Fctb_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyData == (Keys.Space | Keys.Control))
@@ -196,18 +210,26 @@ namespace MCPU.IDE
             }
         }
 
-        private void Autocomp_Opening(object sender, CancelEventArgs e) =>
-            autocomp.Items.SetAutocompleteItems(std_autocompitems.Concat(from f in functions
+        internal void UpdateAutocomplete() =>
+            autocomp.Items.SetAutocompleteItems(std_autocompitems.Concat(from f in functions ?? new MCPUFunctionMetadata[0]
                                                                          select new AutocompleteItem
                                                                          {
-                                                                             // TODO
+                                                                             Text = f.Name,
+                                                                             MenuText = f.Name,
+                                                                             ToolTipTitle = $"Function '{f.Name}'",
+                                                                             ToolTipText = $"The function {f} (defined on line {f.DefinedLine})",
+                                                                             ImageIndex = GetImageIndex("function"),
                                                                          })
-                                                                 .Concat(from l in labels
+                                                                 .Concat(from l in labels ?? new MCPULabelMetadata[0]
                                                                          select new AutocompleteItem
                                                                          {
-                                                                             // TODO
+                                                                             Text = l.Name,
+                                                                             MenuText = l.Name,
+                                                                             ToolTipTitle = $"Label '{l.Name}'",
+                                                                             ToolTipText = $"The label {l} (defined on line {l.DefinedLine})",
+                                                                             ImageIndex = GetImageIndex("label"),
                                                                          }));
-
+        
         private void Fctb_AutoIndentNeeded(object sender, AutoIndentEventArgs e)
         {
             if (Regex.IsMatch(e.LineText, REGEX_FUNC) ||

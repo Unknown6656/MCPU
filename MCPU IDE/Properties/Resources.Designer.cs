@@ -61,14 +61,76 @@ namespace MCPU.IDE.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap autocomp_address {
+            get {
+                object obj = ResourceManager.GetObject("autocomp_address", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap autocomp_directive {
+            get {
+                object obj = ResourceManager.GetObject("autocomp_directive", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap autocomp_function {
+            get {
+                object obj = ResourceManager.GetObject("autocomp_function", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap autocomp_instruction {
+            get {
+                object obj = ResourceManager.GetObject("autocomp_instruction", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap autocomp_keyword {
+            get {
+                object obj = ResourceManager.GetObject("autocomp_keyword", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap autocomp_label {
+            get {
+                object obj = ResourceManager.GetObject("autocomp_label", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &lt;ResourceDictionary xmlns=&quot;http://schemas.microsoft.com/winfx/2006/xaml/presentation&quot;
         ///                    xmlns:x=&quot;http://schemas.microsoft.com/winfx/2006/xaml&quot;
         ///                    xmlns:s=&quot;clr-namespace:System;assembly=mscorlib&quot;&gt;
-        ///    &lt;s:String x:Key=&quot;mw_title&quot;&gt;MCPU Integrated Development Environment&lt;/s:String&gt;
-        ///    &lt;s:String x:Key=&quot;mw_file&quot;&gt;_FILE&lt;/s:String&gt;
-        ///    &lt;s:String x:Key=&quot;mw_file_new&quot;&gt;_New&lt;/s:String&gt;
-        ///    &lt;s:String x:Key=&quot;mw_file_open&quot;&gt;_Open ...&lt;/s:String&gt;
-        ///    &lt;s:String x:Key=&quot;mw_file_save&quot;&gt;_Sav [rest of string was truncated]&quot;;.
+        ///    &lt;s:String x:Key=&quot;lang_iso&quot;&gt;ENG&lt;/s:String&gt;
+        ///    &lt;s:String x:Key=&quot;lang_code&quot;&gt;en-GB&lt;/s:String&gt;
+        ///    &lt;s:String x:Key=&quot;lang_name&quot;&gt;English&lt;/s:String&gt;
+        ///
+        ///    &lt;s:String x:Key=&quot;global_abbrv_ln&quot;&gt;Ln.&lt;/s:String&gt;
+        ///    &lt;s:String x:Key=&quot;global_abbrv_ch&quot;&gt;Ch.&lt;/s:String&gt;
+        ///    &lt;s:String x:Key [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string en_GB {
             get {
