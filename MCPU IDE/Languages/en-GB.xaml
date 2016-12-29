@@ -70,8 +70,8 @@
     <s:String x:Key="msg_war">Warning</s:String>
     <s:String x:Key="msg_suc_html">Successfully exported HTML</s:String>
     <s:String x:Key="msg_suctxt_html">The current code file could successfully be exported as HTML document and has been save inside the file '{0}'&#10;Do you want to open the HTML document?</s:String>
-    <s:String x:Key="msg_war_unsaved">Discard unsaved changes?</s:String>
-    <s:String x:Key="msg_wartxt_unsaved">You have modified the code file since the last save. Do you want to discard all currently unsaved changes?</s:String>
+    <s:String x:Key="msg_war_unsaved">Save changes?</s:String>
+    <s:String x:Key="msg_wartxt_unsaved">You have modified the code file since the last save. Do you want to save all changes?</s:String>
     <s:String x:Key="msg_err_compiler">Compiler error</s:String>
     <s:String x:Key="msg_errtxt_compiler">The code could not be compiled due to the following compiler error:&#10;'{0}'&#10;on line {1}.</s:String>
     <s:String x:Key="msg_err_filenfound">File not found</s:String>

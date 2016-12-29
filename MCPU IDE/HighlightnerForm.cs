@@ -124,13 +124,14 @@ namespace MCPU.IDE
             fctb.TextChanged += Fctb_TextChanged;
             fctb.ToolTipNeeded += Fctb_ToolTipNeeded;
             fctb.AutoIndentNeeded += Fctb_AutoIndentNeeded;
-            // fctb.ToolTip = new DarkTooltip();
-            fctb.ToolTip.BackColor = fctb.BackColor;
-            fctb.ToolTip.ForeColor = fctb.ForeColor;
+            fctb.ToolTip = new DarkTooltip() {
+                BackColor = fctb.BackColor,
+                ForeColor = fctb.ForeColor,
+            };
             fctb.Select();
 
             autocomp = new AutocompleteMenu(fctb);
-            // autocomp.ToolTip = new DarkTooltip();
+            autocomp.ToolTip = new DarkTooltip();
             autocomp.ToolTip.BackColor = fctb.BackColor;
             autocomp.ToolTip.ForeColor = fctb.ForeColor;
             autocomp.BackColor = fctb.BackColor;
@@ -182,18 +183,16 @@ namespace MCPU.IDE
         {
             if ((Error != null) && (err_range?.Contains(e.Place) ?? false))
             {
-                e.ToolTipTitle = "global_compiler_error".GetStr();
-                e.ToolTipText = err.Message;
+                e.ToolTipText = $"{"global_compiler_error".GetStr()}\n{err.Message}";
                 e.ToolTipIcon = ToolTipIcon.Error;
             }
             else if (!string.IsNullOrEmpty(e.HoveredWord))
             {
                 e.ToolTipIcon = ToolTipIcon.None;
-                e.ToolTipTitle = e.HoveredWord;
                 
                 // TODO
 
-                e.ToolTipText = "This is the tooltip for '" + e.HoveredWord + "'";
+                e.ToolTipText = $"{e.HoveredWord}\nThis is the tooltip for '{e.HoveredWord}'";
             }
         }
 

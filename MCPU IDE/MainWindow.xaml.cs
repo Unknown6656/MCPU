@@ -159,8 +159,14 @@ namespace MCPU.IDE
                 if (changed)
                 {
                     if (prompt)
-                        if (TaskDialog.Show(handle, "msg_war_unsaved".GetStr(), "msg_war".GetStr(), "msg_wartxt_unsaved".GetStr(), TaskDialogButtons.Yes | TaskDialogButtons.No | TaskDialogButtons.Cancel, TaskDialogIcon.SecurityWarning) == TaskDialogResult.Yes)
+                    {
+                        TaskDialogResult tdr = TaskDialog.Show(handle, "msg_war_unsaved".GetStr(), "msg_war".GetStr(), "msg_wartxt_unsaved".GetStr(), TaskDialogButtons.Yes | TaskDialogButtons.No | TaskDialogButtons.Cancel, TaskDialogIcon.SecurityWarning);
+
+                        if (tdr == TaskDialogResult.No)
                             return true;
+                        else if (tdr == TaskDialogResult.Cancel)
+                            return false;
+                    }
 
                     if (path == null)
                     {
