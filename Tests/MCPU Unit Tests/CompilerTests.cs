@@ -73,7 +73,8 @@ namespace MPCU.Testing
             
             code = code.Replace(ERROR_LOC, ';');
 
-            MCPUCompilerException ex = Throws<MCPUCompilerException>(delegate {
+            MCPUCompilerException ex = Throws<MCPUCompilerException>(delegate
+            {
                 throw MCPUCompiler.Compile(code).AsB;
             });
 
@@ -89,7 +90,7 @@ namespace MPCU.Testing
             IsTrue(ApproximateFormatStringEqual(ex.Message, message));
         }
 
-        public static Instruction[] Compile(string code) => MCPUCompiler.Compile(code).AsA.Instructions;
+        public static MCPUCompilerResult Compile(string code) => MCPUCompiler.Compile(code).AsA;
 
         public static bool Contains(Instruction[] instr, OPCode opc) => instr?.Any(i => i.OPCode.Number == opc.Number) ?? false;
         
@@ -161,6 +162,7 @@ end func
 func f1
     NOP
 end func
+
 func f1   §### ERROR
     MOV [0] 42
 end func
@@ -209,5 +211,53 @@ end func
 
     .main
 ", MCPUCompiler.GetString("INLINE_NYET_SUPP"));
+
+        [TestMethod]
+        public void Test_15() => CompileExpectError(@"
+func myfunc
+    NOP
+end func
+    .kernel   §### ERROR
+    .main
+    halt
+", MCPUCompiler.GetString("TOKEN_INSIDE_FUNC"));
+
+        [TestMethod]
+        public void Test_16() => CompileExpectError(@"
+    .main
+    mov [4.2]   §### ERROR
+", MCPUCompiler.GetString("INVALID_ARG"));
+
+        [TestMethod]
+        public void Test_17() => CompileExpectError(@"
+    .main
+    mov +   §### ERROR
+", MCPUCompiler.GetString("INVALID_ARG"));
+
+        [TestMethod]
+        public void Test_18() => CompileExpectError(@"
+    .main
+    mov kk[0]   §### ERROR
+", MCPUCompiler.GetString("LABEL_FUNC_NFOUND"));
+
+        [TestMethod]
+        public void Test_19() => CompileExpectError(@"
+    .main
+    mov [1] ffffffffffffffffh   §### ERROR
+", MCPUCompiler.GetString("INVALID_ARG"));
+
+        [TestMethod]
+        public void Test_20()
+        {
+            MCPUCompilerResult res = Compile(@"
+    .main
+label1:
+    NOP
+label2:
+    MOV [315] 42.0
+");
+            IsTrue(res.Labels.Length == 2);
+            IsTrue(res.Functions.Length == 1);
+        }
     }
 }
