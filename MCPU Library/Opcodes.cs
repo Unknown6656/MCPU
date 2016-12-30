@@ -267,7 +267,7 @@ namespace MCPU.Instructions
     {
         public mov()
             : base(2, (p, _) => {
-                AssertNotInstructionSpace(0, _);
+                AssertAddress(0, _);
                 AssertNotInstructionSpace(1, _);
 
                 *p.TranslateAddress(_[0]) = *p.TranslateAddress(_[1]);
