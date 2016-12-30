@@ -11,9 +11,9 @@ This project is a microprocessor emulator, which comes with its own instruction 
 
 ### TODO-List
 
-- [ ] Documentation (!)
+- [ ] IDE Documentation (!)
 - [x] Floating-point arithmetic
-- [ ] Unit Tests (!)
+- [x] Unit Tests
 - [x] Push releases (used [name generator](http://www.codenamegenerator.com/))
 - [x] Instruction serialization
 - [x] Instruction-space management
@@ -25,7 +25,7 @@ This project is a microprocessor emulator, which comes with its own instruction 
 - [ ] IDE/Editor **(currently in progress)**
     - [x] compiler
     - [x] syntax highlighting
-    - [X] multi-language support **(Nearly finished)**
+    - [X] multi-language support **(currently in progress)**
         - [x] English
         - [x] German
         - [ ] French

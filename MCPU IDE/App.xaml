@@ -13,7 +13,8 @@
                 -->
                 <ResourceDictionary Source="pack://application:,,,/Selen.Wpf.SystemStyles;component/Styles.xaml"/>
                 <ResourceDictionary>
-                    <SolidColorBrush x:Key="BG" Color="#ff404040"/>
+                    <Color x:Key="BG" A="255" R="64" G="64" B="64"/>
+                    <Color x:Key="BGERR" A="255" R="128" G="64" B="64"/>
                     <SolidColorBrush x:Key="FG" Color="WhiteSmoke"/>
                 </ResourceDictionary>
             </ResourceDictionary.MergedDictionaries>
