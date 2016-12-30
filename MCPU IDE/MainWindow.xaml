@@ -14,7 +14,7 @@
     <Window.Resources>
         <SolidColorBrush x:Key="stat_bg" Color="{DynamicResource BG}"/>
         <Style x:Key="st_stat" TargetType="Label">
-            <Setter Property="Background" Value="{StaticResource stat_bg}"/>
+            <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Foreground" Value="{StaticResource FG}"/>
             <Setter Property="Padding" Value="5,0"/>
         </Style>
@@ -30,6 +30,14 @@
         <CommandBinding Command="local:Commands.ZoomIn" Executed="mie_zoom_in_Click"/>
         <CommandBinding Command="local:Commands.ZoomOut" Executed="mie_zoom_out_Click"/>
         <CommandBinding Command="local:Commands.ZoomReset" Executed="mie_zoom_res_Click"/>
+        <CommandBinding Command="local:Commands.Search" Executed="mie_search"/>
+        <CommandBinding Command="local:Commands.Replace" Executed="mie_replace"/>
+        <CommandBinding Command="local:Commands.CreateBookmark" Executed="mie_bm_create"/>
+        <CommandBinding Command="local:Commands.DeleteBookmark" Executed="mie_bm_delete"/>
+        <CommandBinding Command="local:Commands.PreviousBookmark" Executed="mie_bm_prev"/>
+        <CommandBinding Command="local:Commands.NextBookmark" Executed="mie_bm_next"/>
+        <CommandBinding Command="local:Commands.FoldAll" Executed="mie_fold"/>
+        <CommandBinding Command="local:Commands.UnfoldAll" Executed="mie_unfold"/>
         <CommandBinding Command="local:Commands.New" Executed="mif_new"/>
         <CommandBinding Command="local:Commands.Exit" Executed="mif_exit"/>
         <CommandBinding Command="local:Commands.Open" Executed="mif_open"/>
@@ -70,9 +78,20 @@
                 <Separator/>
                 <MenuItem Header="{DynamicResource mw_edit_insert}"/>
                 <Separator/>
+                <MenuItem Header="{DynamicResource mw_edit_search}" Command="local:Commands.Search"/>
+                <MenuItem Header="{DynamicResource mw_edit_replace}" Command="local:Commands.Replace"/>
+                <Separator/>
+                <MenuItem Header="{DynamicResource mw_edit_bm_create}" Command="local:Commands.CreateBookmark"/>
+                <MenuItem Header="{DynamicResource mw_edit_bm_delete}" Command="local:Commands.DeleteBookmark"/>
+                <MenuItem Header="{DynamicResource mw_edit_bm_prev}" Command="local:Commands.PreviousBookmark"/>
+                <MenuItem Header="{DynamicResource mw_edit_bm_next}" Command="local:Commands.NextBookmark"/>
+                <Separator/>
                 <MenuItem x:Name="mie_zoom_in" Header="{DynamicResource mw_edit_zin}" Command="local:Commands.ZoomIn"/>
                 <MenuItem x:Name="mie_zoom_out" Header="{DynamicResource mw_edit_zout}" Command="local:Commands.ZoomOut"/>
                 <MenuItem x:Name="mie_zoom_res" Header="{DynamicResource mw_edit_zres}" Command="local:Commands.ZoomReset"/>
+                <Separator/>
+                <MenuItem Header="{DynamicResource mw_edit_fold}" Command="local:Commands.FoldAll"/>
+                <MenuItem Header="{DynamicResource mw_edit_unfold}" Command="local:Commands.UnfoldAll"/>
             </MenuItem>
             <MenuItem Header="{DynamicResource mw_compiler}">
                 <MenuItem Header="{DynamicResource mw_compiler_compile}" Command="local:Commands.Compile"/>

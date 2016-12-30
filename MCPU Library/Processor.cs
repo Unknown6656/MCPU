@@ -47,16 +47,6 @@ namespace MCPU
 
                 *p.TranslateAddress(_[0]) = p.Ticks;
             } },
-            { 5, (p, _) => {
-                p.debugger = ;// ATTACH DEBUGGER
-                
-                
-                p.DebuggerAttached?.Invoke(p, p.debugger);
-            } },
-            { 6, (p, _) => {
-                p.debugger = null;
-                p.DebuggerReleased?.Invoke(p);
-            } },
         };
 #if !WINDOWS
         private const string IVPEX_MSG = "The memory watcher unit requires a Win32-Environment with the corresponding API.";
@@ -79,21 +69,12 @@ namespace MCPU
         public const int MAX_MEMSZ = 0x10000000; // 1GB of memory
         public const int MAX_STACKSZ = 0x400000; // 16MB of stack space
 #endif
-        internal IProcessorDebugger debugger = null;
         internal bool disposed = false;
         internal byte* raw;
 
         #endregion
         #region EVENTS
-
-        /// <summary>
-        /// Raised after a debugger has been attached to the current processor
-        /// </summary>
-        public event ProcessorEventHandler<IProcessorDebugger> DebuggerAttached;
-        /// <summary>
-        /// Raised after a debugger has been released from the current processor
-        /// </summary>
-        public event ProcessorEventHandler DebuggerReleased;
+        
         /// <summary>
         /// Raised after an instruction has been executed
         /// </summary>
@@ -751,15 +732,7 @@ namespace MCPU
 
         #endregion
     }
-
-    public interface IProcessorDebugger
-    {
-        Processor Processor { set; get; }
-
-        void OnHalt();
-        void OnProcess();
-    }
-
+    
     /// <summary>
     /// Represents an exception, which occures if a 'regular' user tries to perform kernel actions
     /// </summary>

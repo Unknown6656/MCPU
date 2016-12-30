@@ -53,9 +53,17 @@
     <s:String x:Key="mw_edit_delete">Ent_fernen</s:String>
     <s:String x:Key="mw_edit_select">A_lles auswählen</s:String>
     <s:String x:Key="mw_edit_insert">A_usschnitt einfügen ...</s:String>
+    <s:String x:Key="mw_edit_search">Suchen ...</s:String>
+    <s:String x:Key="mw_edit_replace">Ersetzen ...</s:String>
+    <s:String x:Key="mw_edit_bm_create">Lesezeichen erstellen</s:String>
+    <s:String x:Key="mw_edit_bm_delete">Lesezeichen löschen</s:String>
+    <s:String x:Key="mw_edit_bm_prev">Nächstes Lesezeichen</s:String>
+    <s:String x:Key="mw_edit_bm_next">Vorheriges Lesezeichen</s:String>
     <s:String x:Key="mw_edit_zin">Zoom _in</s:String>
     <s:String x:Key="mw_edit_zout">Zoom _out</s:String>
     <s:String x:Key="mw_edit_zres">_Zoom zurücksetzen</s:String>
+    <s:String x:Key="mw_edit_fold">Alle Regionen falten</s:String>
+    <s:String x:Key="mw_edit_unfold">Alle Region entfalten</s:String>
     <s:String x:Key="mw_compiler">_ERSTELLEN</s:String>
     <s:String x:Key="mw_compiler_compile">_Erstellen</s:String>
     <s:String x:Key="mw_compiler_errors">_Fehlerliste</s:String>

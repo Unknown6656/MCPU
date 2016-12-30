@@ -35,9 +35,17 @@
     <s:String x:Key="mw_edit_delete">_Delete</s:String>
     <s:String x:Key="mw_edit_select">_Select All</s:String>
     <s:String x:Key="mw_edit_insert">Insert Sni_ppet ...</s:String>
+    <s:String x:Key="mw_edit_search">Search ...</s:String>
+    <s:String x:Key="mw_edit_replace">Replace ...</s:String>
+    <s:String x:Key="mw_edit_bm_create">Create Bookmark</s:String>
+    <s:String x:Key="mw_edit_bm_delete">Delete Bookmark</s:String>
+    <s:String x:Key="mw_edit_bm_prev">Previous Bookmark</s:String>
+    <s:String x:Key="mw_edit_bm_next">Next Bookmark</s:String>
     <s:String x:Key="mw_edit_zin">Zoom _in</s:String>
     <s:String x:Key="mw_edit_zout">Zoom _out</s:String>
     <s:String x:Key="mw_edit_zres">Reset _Zoom</s:String>
+    <s:String x:Key="mw_edit_fold">Fold all sections</s:String>
+    <s:String x:Key="mw_edit_unfold">Unfold all sections</s:String>
     <s:String x:Key="mw_compiler">_COMPILER</s:String>
     <s:String x:Key="mw_compiler_compile">_Compile</s:String>
     <s:String x:Key="mw_compiler_errors">_Error list</s:String>
