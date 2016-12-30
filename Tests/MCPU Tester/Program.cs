@@ -35,8 +35,8 @@ namespace MCPU
             int addr = 44;
             foreach (byte b in Encoding.ASCII.GetBytes("hello! top kek lulz /foo/bar/"))
                 proc.UserSpace[addr++] = b;
-            
-            var instr = MCPUCompiler.Compile(@"
+
+            var res = MCPUCompiler.Compile(@"
 func test
     .kernel
     syscall $0
@@ -53,7 +53,8 @@ end func
     mov [7dh] 42
     add [7ch] [7dh]
     call test 1
-").AsA.Instructions;
+");
+            var instr = res.AsA.Instructions;
             ConsoleExtensions.HexDump(Instruction.SerializeMultiple(instr));
             
             proc.ProcessWithoutReset(instr);

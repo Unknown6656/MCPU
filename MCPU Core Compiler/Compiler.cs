@@ -243,7 +243,7 @@ namespace MCPU.Compiler
 
                 if ((line = line.Trim()).Length > 0)
                 {
-                    if (line.StartsWith("."))
+                    if (line.StartsWith(".") && !line.ToLower().StartsWith(".inline"))
                         switch (line = line.Remove(0, 1).Trim().ToLower())
                         {
                             case "main":
@@ -308,75 +308,86 @@ namespace MCPU.Compiler
                             foreach (string arg in (line = line.Remove(match.Index, match.Length).Trim()).Split(' ', ','))
                                 if ((arg ?? "").Trim().Length > 0)
                                     if ((match = ARGUMENT_CORE.Match(arg)).Success)
-                                    {
-                                        InstructionArgument iarg = new InstructionArgument();
-                                        string val;
+                                        try
+                                        {
+                                            InstructionArgument iarg = new InstructionArgument();
+                                            string val;
                                         
-                                        if (CheckGroup("ptr", out val))
-                                        {
-                                            iarg.Value = ParseIntArg(val);
-                                            iarg.Type = ArgumentType.IndirectAddress;
-
-                                            if (arg.StartsWith("k"))
-                                                iarg.Type |= ArgumentType.KernelMode;
-                                        }
-                                        else if (CheckGroup("addr", out val))
-                                        {
-                                            iarg.Value = ParseIntArg(val);
-                                            iarg.Type = ArgumentType.Address;
-
-                                            if (arg.StartsWith("k"))
-                                                iarg.Type |= ArgumentType.KernelMode;
-                                        }
-                                        else if (CheckGroup("float", out val))
-                                        {
-                                            iarg.Type = ArgumentType.Constant;
-                                            iarg.Value = ParseFloatArg(val.ToLower());
-                                        }
-                                        else if (CheckGroup("const", out val))
-                                        {
-                                            iarg.Value = ParseIntArg(val);
-                                            iarg.Type = ArgumentType.Constant;
-                                        }
-                                        else if (CheckGroup("name", out val))
-                                        {
-                                            var dic = functions.ToDictionary(_ => _.Name.ToLower(), _ => _.ID);
-
-                                            val = val.ToLower();
-
-                                            if (dic.ContainsKey(val))
+                                            if (CheckGroup("ptr", out val))
                                             {
-                                                iarg.Value = dic[val];
-                                                iarg.Type = ArgumentType.Function;
+                                                iarg.Value = ParseIntArg(val);
+                                                iarg.Type = ArgumentType.IndirectAddress;
+
+                                                if (arg.StartsWith("k"))
+                                                    iarg.Type |= ArgumentType.KernelMode;
                                             }
-                                            else
+                                            else if (CheckGroup("addr", out val))
                                             {
-                                                iarg.Type = ArgumentType.Label;
+                                                iarg.Value = ParseIntArg(val);
+                                                iarg.Type = ArgumentType.Address;
 
-                                                if (labels.ContainsKey(val))
-                                                    iarg.Value = labels[val];
+                                                if (arg.StartsWith("k"))
+                                                    iarg.Type |= ArgumentType.KernelMode;
+                                            }
+                                            else if (CheckGroup("float", out val))
+                                            {
+                                                if (val.Contains('[') || val.Contains(']'))
+                                                    return Error(GetString("INVALID_ARG", arg));
+
+                                                iarg.Type = ArgumentType.Constant;
+                                                iarg.Value = ParseFloatArg(val.ToLower());
+                                            }
+                                            else if (CheckGroup("const", out val))
+                                            {
+                                                iarg.Value = ParseIntArg(val);
+                                                iarg.Type = ArgumentType.Constant;
+                                            }
+                                            else if (CheckGroup("name", out val))
+                                            {
+                                                if (val.Contains('[') || val.Contains(']'))
+                                                    return Error(GetString("INVALID_ARG", arg));
+
+                                                var dic = functions.ToDictionary(_ => _.Name.ToLower(), _ => _.ID);
+
+                                                val = val.ToLower();
+
+                                                if (dic.ContainsKey(val))
+                                                {
+                                                    iarg.Value = dic[val];
+                                                    iarg.Type = ArgumentType.Function;
+                                                }
                                                 else
                                                 {
-                                                    iarg.Value = labels[val] = ++id;
-                                                    unmapped.Add((linenr, val, id));
+                                                    iarg.Type = ArgumentType.Label;
+
+                                                    if (labels.ContainsKey(val))
+                                                        iarg.Value = labels[val];
+                                                    else
+                                                    {
+                                                        iarg.Value = labels[val] = ++id;
+                                                        unmapped.Add((linenr, val, id));
+                                                    }
                                                 }
                                             }
+                                            else
+                                                return Error(GetString("ARGTYPE_NDET", arg));
+
+                                            if (arg.Contains('$'))
+                                                iarg.Type |= ArgumentType.Parameter;
+
+                                            args.Add(iarg);
                                         }
-                                        else
-                                            return Error(GetString("ARGTYPE_NDET", arg));
-
-                                        if (arg.Contains('$'))
-                                            iarg.Type |= ArgumentType.Parameter;
-
-                                        args.Add(iarg);
-                                    }
+                                        catch
+                                        {
+                                            return Error(GetString("INVALID_ARG", arg));
+                                        }
                                     else
                                         return Error(GetString("INVALID_ARG", arg));
 
                             curr_func.Instructions.Add(new Instruction(OPCodes.CodesByToken[token], args.ToArray()));
                         }
                     else
-                        return Error(GetString("", line));
+                        return Error(GetString("LINE_NPARSED", line));
                 }
             }
 
