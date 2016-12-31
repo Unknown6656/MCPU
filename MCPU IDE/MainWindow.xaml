@@ -81,10 +81,10 @@
                 <MenuItem Header="{DynamicResource mw_edit_search}" Command="local:Commands.Search"/>
                 <MenuItem Header="{DynamicResource mw_edit_replace}" Command="local:Commands.Replace"/>
                 <Separator/>
-                <MenuItem Header="{DynamicResource mw_edit_bm_create}" Command="local:Commands.CreateBookmark"/>
-                <MenuItem Header="{DynamicResource mw_edit_bm_delete}" Command="local:Commands.DeleteBookmark"/>
-                <MenuItem Header="{DynamicResource mw_edit_bm_prev}" Command="local:Commands.PreviousBookmark"/>
-                <MenuItem Header="{DynamicResource mw_edit_bm_next}" Command="local:Commands.NextBookmark"/>
+                <MenuItem x:Name="mie_bmc" Header="{DynamicResource mw_edit_bm_create}" Command="local:Commands.CreateBookmark"/>
+                <MenuItem x:Name="mie_bmd" Header="{DynamicResource mw_edit_bm_delete}" Command="local:Commands.DeleteBookmark"/>
+                <MenuItem x:Name="mie_bmp" Header="{DynamicResource mw_edit_bm_prev}" Command="local:Commands.PreviousBookmark"/>
+                <MenuItem x:Name="mie_bmn" Header="{DynamicResource mw_edit_bm_next}" Command="local:Commands.NextBookmark"/>
                 <Separator/>
                 <MenuItem x:Name="mie_zoom_in" Header="{DynamicResource mw_edit_zin}" Command="local:Commands.ZoomIn"/>
                 <MenuItem x:Name="mie_zoom_out" Header="{DynamicResource mw_edit_zout}" Command="local:Commands.ZoomOut"/>

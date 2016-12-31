@@ -132,6 +132,7 @@ namespace MCPU.IDE
             fctb.ServiceLinesColor;
             fctb.ServiceColors.CollapseMarkerBackColor =
             fctb.ServiceColors.ExpandMarkerBackColor =
+            fctb.BookmarkColor =
             fctb.BackColor;
             fctb.Select();
 

@@ -41,6 +41,8 @@ namespace MCPU.IDE
         {
             tb_version.Text = "aw_version_str".GetStr(AssemblyName.GetAssemblyName(Assembly.GetExecutingAssembly().Location).Version);
             curr_year.Text = DateTime.Now.Year.ToString();
+            hl_github.NavigateUri = new Uri("github_base_url".GetStr());
+            hl_github_issues.NavigateUri = new Uri("github_base_url".GetStr() + "/issues");
         }
     }
 }

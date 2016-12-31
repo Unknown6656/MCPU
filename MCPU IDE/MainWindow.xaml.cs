@@ -49,11 +49,14 @@ namespace MCPU.IDE
             }
         }
 
+
+        ~MainWindow() => DisposeProcessor();
+
         public MainWindow()
         {
             InitializeComponent();
 
-            InitProcessor(/* read from settings */ 0x100000); // 4mb
+            InitProcessor(Properties.Settings.Default?.MemorySize ?? 0x100000 /* 4MB */);
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -229,14 +232,19 @@ namespace MCPU.IDE
 
             return res;
         }
-        
-        private void InitProcessor(int memsz)
+
+        private void DisposeProcessor()
         {
             proc?.Halt();
             proc?.Dispose();
 
             GC.Collect();
             GC.WaitForPendingFinalizers();
+        }
+
+        private void InitProcessor(int memsz)
+        {
+            DisposeProcessor();
 
             proc = new Processor(memsz);
         }
@@ -389,7 +397,7 @@ namespace MCPU.IDE
             // TODO ?
         }
 
-        internal void mih_github(object sender, ExecutedRoutedEventArgs e) => Process.Start(@"https://github.com/Unknown6656/MCPU/").Dispose();
+        internal void mih_github(object sender, ExecutedRoutedEventArgs e) => Process.Start("github_base_url".GetStr()).Dispose();
 
         private void mih_about(object sender, ExecutedRoutedEventArgs e) => new AboutWindow(this).ShowDialog();
 
