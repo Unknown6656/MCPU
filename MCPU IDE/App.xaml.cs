@@ -52,10 +52,11 @@ namespace MCPU.IDE
             base.OnExit(e);
         }
 
-        public static void AddImageResources()
+        internal static void AddImageResources()
         {
             Assembly asm = typeof(App).Assembly;
             string resbase = asm.GetName().Name + ".g.resources";
+            const int img_size = 20;
             Match m;
 
             using (Stream stream = asm.GetManifestResourceStream(resbase))
@@ -64,8 +65,8 @@ namespace MCPU.IDE
                     if ((m = Regex.Match(res, @"\/(?<name>.+)\.(?<ext>(png|bmp|gif|je?pg))", RegexOptions.Compiled | RegexOptions.IgnoreCase)).Success)
                         Current.Resources.Add(m.Groups["name"].ToString(), new Image
                         {
-                            Width = 16,
-                            Height = 16,
+                            Width = img_size,
+                            Height = img_size,
                             Source = new BitmapImage(new Uri($"Resources/{m.Groups["name"]}.{m.Groups["ext"]}", UriKind.RelativeOrAbsolute)),
                         });
         }

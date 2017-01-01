@@ -235,7 +235,6 @@ namespace MCPU.IDE
 
         private void DisposeProcessor()
         {
-            proc?.Halt();
             proc?.Dispose();
 
             GC.Collect();
