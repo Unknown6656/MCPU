@@ -1,15 +1,19 @@
 ﻿using System.ComponentModel.Composition.Hosting;
 using System.ComponentModel.Composition;
+using System.Text.RegularExpressions;
+using System.Windows.Media.Imaging;
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.Windows.Controls;
 using System.Windows.Markup;
 using System.Globalization;
-using System.Configuration;
+using System.Collections;
 using System.Reflection;
+using System.Resources;
 using System.Threading;
 using System.Windows;
 using System.Data;
 using System.Linq;
+using System.IO;
 using System;
 
 using MCPU.Compiler;
@@ -36,6 +40,8 @@ namespace MCPU.IDE
 
             ChangeLanguage(IDE.Properties.Settings.Default?.Language ?? LanguageExtensions.DEFAULT_LANG);
 
+            AddImageResources();
+
             base.OnStartup(args);
         }
 
@@ -44,6 +50,24 @@ namespace MCPU.IDE
             IDE.Properties.Settings.Default.Language = "lang_code".GetStr();
 
             base.OnExit(e);
+        }
+
+        public static void AddImageResources()
+        {
+            Assembly asm = typeof(App).Assembly;
+            string resbase = asm.GetName().Name + ".g.resources";
+            Match m;
+
+            using (Stream stream = asm.GetManifestResourceStream(resbase))
+            using (ResourceReader reader = new ResourceReader(stream))
+                foreach (string res in reader.Cast<DictionaryEntry>().Select(entry => (string)entry.Key))
+                    if ((m = Regex.Match(res, @"\/(?<name>.+)\.(?<ext>(png|bmp|gif|je?pg))", RegexOptions.Compiled | RegexOptions.IgnoreCase)).Success)
+                        Current.Resources.Add(m.Groups["name"].ToString(), new Image
+                        {
+                            Width = 16,
+                            Height = 16,
+                            Source = new BitmapImage(new Uri($"Resources/{m.Groups["name"]}.{m.Groups["ext"]}", UriKind.RelativeOrAbsolute)),
+                        });
         }
 
         /// <summary>

@@ -75,7 +75,9 @@
     <s:String x:Key="aw_fctb_before">The editor's main text box is implemented using the</s:String>
     <s:String x:Key="aw_fctb_after">.</s:String>
     <s:String x:Key="aw_fctb_desc">FastColoredTextBox-Project</s:String>
-    
+
+    <s:String x:Key="sw_title">MCPU IDE - Settings</s:String>
+
     <s:String x:Key="msg_err">Error</s:String>
     <s:String x:Key="msg_suc">Success</s:String>
     <s:String x:Key="msg_war">Warning</s:String>

@@ -5,10 +5,13 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MCPU.IDE"
         mc:Ignorable="d"
-        Background="{StaticResource BG}"
-        Foreground="{StaticResource FG}"
+        Background="{DynamicResource bg_brush}"
+        Foreground="{DynamicResource FG}"
         WindowStartupLocation="CenterOwner"
-        Title="SettingsWindow" Height="300" Width="300">
+        Title="{DynamicResource sw_title}" Height="300" Width="500">
+    <Window.Resources>
+        <SolidColorBrush x:Key="bg_brush" Color="{DynamicResource BG}"/>
+    </Window.Resources>
     <Grid>
     </Grid>
 </Window>

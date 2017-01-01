@@ -93,7 +93,9 @@
     <s:String x:Key="aw_fctb_before">Das Haupt-texteingabefeld des Editors wurde mithilfe des</s:String>
     <s:String x:Key="aw_fctb_after">umgesetzt.</s:String>
     <s:String x:Key="aw_fctb_desc">FastColoredTextBox-Projektes</s:String>
-    
+
+    <s:String x:Key="sw_title">MCPU Entwicklungsumgebung - Einstellungen</s:String>
+
     <s:String x:Key="msg_err">Fehler</s:String>
     <s:String x:Key="msg_suc">OK<!-- TODO --></s:String>
     <s:String x:Key="msg_war">Warnung</s:String>
