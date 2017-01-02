@@ -11,6 +11,7 @@ using System.Reflection;
 using System.Threading;
 using System.Linq;
 using System.Text;
+using System.IO;
 using System;
 
 namespace MCPU
@@ -27,7 +28,7 @@ namespace MCPU
     /// <param name="p">Processor instance</param>
     /// <param name="args">Argument of type T</param>
     public delegate void ProcessorEventHandler<T>(Processor p, T args);
-
+    
     /// <summary>
     /// Represents the MCPU-processor
     /// </summary>
@@ -38,10 +39,10 @@ namespace MCPU
 
         internal static readonly Dictionary<int, ProcessingDelegate> __syscalltable = new Dictionary<int, ProcessingDelegate> {
             { -1, delegate { /*  ABK INSTRUCTION  */ } },
-            { 0, (p, _) => Console.WriteLine($"MCPU v. {Assembly.GetEntryAssembly().GetName().Version} created by Unknown6656") },
+            { 0, (p, _) => p.stdout.WriteLine($"MCPU v. {Assembly.GetEntryAssembly().GetName().Version} created by Unknown6656") },
             { 1, (p, _) => ConsoleExtensions.HexDump(p.ToBytes()) },
-            { 2, (p, _) => Console.WriteLine(string.Join(", ", from arg in _ select $"0x{p.TranslateConstant(arg):x8}")) },
-            { 3, (p, _) => Console.WriteLine(string.Join(", ", from arg in _ select p.TranslateFloatConstant(arg))) },
+            { 2, (p, _) => p.stdout.WriteLine(string.Join(", ", from arg in _ select $"0x{p.TranslateConstant(arg):x8}")) },
+            { 3, (p, _) => p.stdout.WriteLine(string.Join(", ", from arg in _ select p.TranslateFloatConstant(arg))) },
             { 4, (p, _) => {
                 OPCode.AssertAddress(0, _);
 
@@ -69,6 +70,7 @@ namespace MCPU
         public const int MAX_MEMSZ = 0x10000000; // 1GB of memory
         public const int MAX_STACKSZ = 0x400000; // 16MB of stack space
 #endif
+        internal TextWriter stdout = Console.Out;
         internal bool disposed = false;
         internal byte* raw;
 
@@ -117,6 +119,15 @@ namespace MCPU
 #endif
         #endregion
         #region PROPERTIES
+
+        /// <summary>
+        /// Sets or gets the processor's debugging standard output stream
+        /// </summary>
+        public TextWriter StandardOutput
+        {
+            set => stdout = value ?? Console.Out;
+            get => stdout;
+        }
 
         /// <summary>
         /// Sets or gets whether the current processor is being executed using kernel privileges/kernel elevation
@@ -274,7 +285,6 @@ namespace MCPU
             }
         }
 #endif
-
         /// <summary>
         /// The stack size (in 4-byte blocks)
         /// </summary>
@@ -325,6 +335,13 @@ namespace MCPU
         [DllImport("kernel32.dll")]
         internal static extern uint GetWriteWatch(uint dwFlags, int* lpBaseAddress, uint* dwRegionSize, out IntPtr lpAddresses, ref UIntPtr lpdwCount, out uint lpdwGranularity);
 #endif
+        /// <summary>
+        /// Executes the syscall function associated with the given syscall number
+        /// </summary>
+        /// <param name="num">Syscall number</param>
+        /// <param name="args">Syscall arguments</param>
+        public void Syscall(int num, params InstructionArgument[] args) => __syscalltable[num](this, args);
+
         /// <summary>
         /// Halts the processor
         /// </summary>
@@ -653,7 +670,12 @@ namespace MCPU
         /// <returns>Address</returns>
         public int GetKernelAddress(int* addr) => (int)(addr - KernelSpace);
 
-        internal int UserToKernel(int addr) => VerifyUserspaceAddr(addr, addr + MEM_OFFS);
+        /// <summary>
+        /// Translates the given user-space address to the corresponding kernel-space address
+        /// </summary>
+        /// <param name="addr">User-space address</param>
+        /// <returns>Kernel-space address</returns>
+        public int UserToKernel(int addr) => VerifyUserspaceAddr(addr, addr + MEM_OFFS);
 
         internal void VerifyUserspaceAddr(int addr) => VerifyUserspaceAddr<object>(addr, null);
 
@@ -708,11 +730,24 @@ namespace MCPU
         /// <param name="size">Userspace size</param>
         /// <param name="cpuid">CPU ID</param>
         public Processor(int size, int cpuid)
+            : this(size, MAX_STACKSZ, cpuid)
+        {
+        }
+
+        /// <summary>
+        /// Creates a new MCPU-processor instance with the given userspace-size (in 4-byte-blocks) and callstack size (in 4-byte-blocks) and assigns the given CPUID to the processor
+        /// </summary>
+        /// <param name="size">Userspace size</param>
+        /// <param name="stacksize">Callstack size</param>
+        /// <param name="cpuid">CPU ID</param>
+        public Processor(int size, int stacksize, int cpuid)
         {
             if (size > MAX_MEMSZ)
                 throw new OutOfMemoryException($"The (currently) maximum supported memory size are {MAX_MEMSZ * 4} bytes.");
-
-            int raw_size = 4 * size + MEM_OFFS + MAX_STACKSZ * 4;
+            if (stacksize > MAX_STACKSZ)
+                throw new OutOfMemoryException($"The (currently) maximum supported callstack size are {MAX_STACKSZ * 4} bytes.");
+            
+            int raw_size = 4 * size + MEM_OFFS + stacksize * 4;
 
             raw = (byte*)Marshal.AllocHGlobal(raw_size);
 
@@ -732,7 +767,7 @@ namespace MCPU
 
         #endregion
     }
-    
+
     /// <summary>
     /// Represents an exception, which occures if a 'regular' user tries to perform kernel actions
     /// </summary>

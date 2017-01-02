@@ -76,14 +76,16 @@ namespace MCPU
 
             cmc fc = cmd.ForegroundColor;
             cmc bc = cmd.BackgroundColor;
-            
+            bool cv = cmd.CursorVisible;
             int w = cmd.WindowWidth - 16;
             int l = (w - 3) / 4;
+            byte b;
 
             l -= l % 16;
 
             int h = (int)Ceiling((float)value.Length / l);
 
+            cmd.CursorVisible = false;
             cmd.WriteLine();
             cmd.ForegroundColor = cmc.White;
             cmd.BackgroundColor = cmc.Black;
@@ -106,8 +108,14 @@ namespace MCPU
                 cmd.Write($"{i * l:x8}:  ");
 
                 for (int j = 0; (j < l) && (i * l + j < value.Length); j++)
-                    cmd.Write($"{value[i * l + j]:x2} ");
+                {
+                    b = value[i * l + j];
 
+                    cmd.ForegroundColor = b == 0 ? cmc.Gray : cmc.Yellow;
+                    cmd.Write($"{b:x2} ");
+                }
+
+                cmd.ForegroundColor = cmc.White;
                 cmd.CursorLeft = 3 * l + 11;
                 cmd.Write("| ");
 
@@ -118,6 +126,7 @@ namespace MCPU
             }
 
             cmd.WriteLine();
+            cmd.CursorVisible = cv;
             cmd.ForegroundColor = fc;
             cmd.BackgroundColor = bc;
         }
