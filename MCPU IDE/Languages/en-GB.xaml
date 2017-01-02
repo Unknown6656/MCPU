@@ -5,6 +5,7 @@
     <s:String x:Key="lang_code">en-GB</s:String>
     <s:String x:Key="lang_name">English</s:String>
 
+    <s:String x:Key="global_error_in">Error on {0} {1}</s:String>
     <s:String x:Key="global_abbrv_ln">Ln.</s:String>
     <s:String x:Key="global_abbrv_ch">Ch.</s:String>
     <s:String x:Key="global_close">Close</s:String>
@@ -14,6 +15,9 @@
     </ResourceDictionary>
     <s:String x:Key="global_compiler_error">Compiler error</s:String>
 
+    <s:String x:Key="autocomp_func">Function {0}&#10;The function {1} which has been defined on line {2}</s:String>
+    <s:String x:Key="autocomp_label">Label '{0}'&#10;The label {1} which has been defined on line {2}</s:String>
+    
     <s:String x:Key="mw_title">MCPU Integrated Development Environment</s:String>
     <s:String x:Key="mw_file">_FILE</s:String>
     <s:String x:Key="mw_file_new">_New</s:String>
@@ -32,9 +36,17 @@
     <s:String x:Key="mw_edit_delete">_Delete</s:String>
     <s:String x:Key="mw_edit_select">_Select All</s:String>
     <s:String x:Key="mw_edit_insert">Insert Sni_ppet ...</s:String>
+    <s:String x:Key="mw_edit_search">Search ...</s:String>
+    <s:String x:Key="mw_edit_replace">Replace ...</s:String>
+    <s:String x:Key="mw_edit_bm_create">Create Bookmark</s:String>
+    <s:String x:Key="mw_edit_bm_delete">Delete Bookmark</s:String>
+    <s:String x:Key="mw_edit_bm_prev">Previous Bookmark</s:String>
+    <s:String x:Key="mw_edit_bm_next">Next Bookmark</s:String>
     <s:String x:Key="mw_edit_zin">Zoom _in</s:String>
     <s:String x:Key="mw_edit_zout">Zoom _out</s:String>
     <s:String x:Key="mw_edit_zres">Reset _Zoom</s:String>
+    <s:String x:Key="mw_edit_fold">Fold all sections</s:String>
+    <s:String x:Key="mw_edit_unfold">Unfold all sections</s:String>
     <s:String x:Key="mw_compiler">_COMPILER</s:String>
     <s:String x:Key="mw_compiler_compile">_Compile</s:String>
     <s:String x:Key="mw_compiler_errors">_Error list</s:String>
@@ -64,7 +76,9 @@
     <s:String x:Key="aw_fctb_before">The editor's main text box is implemented using the</s:String>
     <s:String x:Key="aw_fctb_after">.</s:String>
     <s:String x:Key="aw_fctb_desc">FastColoredTextBox-Project</s:String>
-    
+
+    <s:String x:Key="sw_title">MCPU IDE - Settings</s:String>
+
     <s:String x:Key="msg_err">Error</s:String>
     <s:String x:Key="msg_suc">Success</s:String>
     <s:String x:Key="msg_war">Warning</s:String>

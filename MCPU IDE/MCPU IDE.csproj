@@ -148,7 +148,7 @@
     <None Include="App.manifest" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
-      <Generator>SettingsSingleFileGenerator</Generator>
+      <Generator>PublicSettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
   </ItemGroup>
@@ -185,7 +185,20 @@
       <Name>MCPU Library</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Resource Include="Resources\menu_bmc.png" />
+    <Resource Include="Resources\menu_bmd.png" />
+    <Resource Include="Resources\menu_bmn.png" />
+    <Resource Include="Resources\menu_bmp.png" />
+    <Resource Include="Resources\menu_copy.png" />
+    <Resource Include="Resources\menu_cut.png" />
+    <Resource Include="Resources\menu_delete.png" />
+    <Resource Include="Resources\menu_github.png" />
+    <Resource Include="Resources\menu_new.png" />
+    <Resource Include="Resources\menu_open.png" />
+    <Resource Include="Resources\menu_paste.png" />
+    <Resource Include="Resources\menu_save.png" />
+  </ItemGroup>
   <ItemGroup>
     <None Include="Resources\autocomp_address.png" />
   </ItemGroup>

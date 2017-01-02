@@ -127,9 +127,8 @@ namespace MCPU.Compiler
         /// <returns>Formatted string value</returns>
         public static string GetString(string key, params object[] args) => string.Format(GetString(key), args);
         
-        internal static unsafe (MCPUFunction[], MCPULabelMetadata[], int, string) Precompile(string code)
+        internal static unsafe (MCPUFunction[], MCPULabelMetadata[], int, string) Precompile(params string[] lines)
         {
-            string[] lines = (code ?? "").Split('\n');
             List<(int, string, int)> unmapped = new List<(int, string, int)>();
             List<MCPULabelMetadata> labelmeta = new List<MCPULabelMetadata>();
             Dictionary<string, int> labels = new Dictionary<string, int>();
@@ -402,18 +401,26 @@ namespace MCPU.Compiler
             else
                 return (functions.ToArray(), labelmeta.ToArray(), -1, "");
         }
-
+        
         /// <summary>
         /// Compiles the given MCPU assembly code to a list of instructions and metadata, which can be executed by a MCPU processor or analyzed by an IDE
         /// </summary>
         /// <param name="code">MCPU assembly code</param>
         /// <exception cref="MCPUCompilerException">Possible compiler errors</exception>
         /// <returns>Compiled instructions and metadata</returns>
-        public static MCPUCompilerResult CompileWithMetadata(string code)
+        public static MCPUCompilerResult CompileWithMetadata(string code) => CompileWithMetadata((code ?? "").Split('\n'));
+
+        /// <summary>
+        /// Compiles the given MCPU assembly code to a list of instructions and metadata, which can be executed by a MCPU processor or analyzed by an IDE
+        /// </summary>
+        /// <param name="lines">MCPU assembly code lines</param>
+        /// <exception cref="MCPUCompilerException">Possible compiler errors</exception>
+        /// <returns>Compiled instructions and metadata</returns>
+        public static MCPUCompilerResult CompileWithMetadata(params string[] lines)
         {
             try
             {
-                (MCPUFunction[] func, MCPULabelMetadata[] labels, int errln, string errmsg) = Precompile(code);
+                (MCPUFunction[] func, MCPULabelMetadata[] labels, int errln, string errmsg) = Precompile(lines);
 
                 if ((errln != -1) || !string.IsNullOrEmpty(errmsg))
                     throw new MCPUCompilerException(errln, errmsg);
@@ -482,11 +489,18 @@ namespace MCPU.Compiler
         /// </summary>
         /// <param name="code">MCPU assembly code</param>
         /// <returns>Compiler result</returns>
-        public static Union<MCPUCompilerResult, MCPUCompilerException> Compile(string code)
+        public static Union<MCPUCompilerResult, MCPUCompilerException> Compile(string code) => Compile((code ?? "").Split('\n'));
+
+        /// <summary>
+        /// Compiles the given MCPU assembly code to a list of instructions, which can be executed by a MCPU processor
+        /// </summary>
+        /// <param name="lines">MCPU assembly code lines</param>
+        /// <returns>Compiler result</returns>
+        public static Union<MCPUCompilerResult, MCPUCompilerException> Compile(params string[] lines)
         {
             try
             {
-                return CompileWithMetadata(code);
+                return CompileWithMetadata(lines);
             }
             catch (MCPUCompilerException ex)
             {

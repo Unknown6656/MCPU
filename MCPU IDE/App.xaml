@@ -16,6 +16,7 @@
                     <Color x:Key="BG" A="255" R="64" G="64" B="64"/>
                     <Color x:Key="BGERR" A="255" R="128" G="64" B="64"/>
                     <SolidColorBrush x:Key="FG" Color="WhiteSmoke"/>
+                    <s:String x:Key="github_base_url">https://github.com/Unknown6656/MCPU</s:String>
                 </ResourceDictionary>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>

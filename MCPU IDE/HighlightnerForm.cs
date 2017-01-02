@@ -132,6 +132,7 @@ namespace MCPU.IDE
             fctb.ServiceLinesColor;
             fctb.ServiceColors.CollapseMarkerBackColor =
             fctb.ServiceColors.ExpandMarkerBackColor =
+            fctb.BookmarkColor =
             fctb.BackColor;
             fctb.Select();
 
@@ -210,26 +211,28 @@ namespace MCPU.IDE
             }
         }
 
-        internal void UpdateAutocomplete() =>
-            autocomp.Items.SetAutocompleteItems(std_autocompitems.Concat(from f in functions ?? new MCPUFunctionMetadata[0]
-                                                                         select new AutocompleteItem
-                                                                         {
-                                                                             Text = f.Name,
-                                                                             MenuText = f.Name,
-                                                                             ToolTipTitle = $"Function '{f.Name}'",
-                                                                             ToolTipText = $"The function {f} (defined on line {f.DefinedLine})",
-                                                                             ImageIndex = GetImageIndex("function"),
-                                                                         })
-                                                                 .Concat(from l in labels ?? new MCPULabelMetadata[0]
-                                                                         select new AutocompleteItem
-                                                                         {
-                                                                             Text = l.Name,
-                                                                             MenuText = l.Name,
-                                                                             ToolTipTitle = $"Label '{l.Name}'",
-                                                                             ToolTipText = $"The label {l} (defined on line {l.DefinedLine})",
-                                                                             ImageIndex = GetImageIndex("label"),
-                                                                         }));
-        
+        internal void UpdateAutocomplete()
+        {
+            autocomp.Items.SetAutocompleteItems((from f in functions ?? new MCPUFunctionMetadata[0]
+                                                 select new AutocompleteItem
+                                                 {
+                                                     Text = f.Name,
+                                                     MenuText = f.Name,
+                                                     ToolTipText = "autocomp_func".GetStr(f.Name, f, f.DefinedLine),
+                                                     ImageIndex = GetImageIndex("function"),
+                                                 })
+                                         .Concat(from l in labels ?? new MCPULabelMetadata[0]
+                                                 select new AutocompleteItem
+                                                 {
+                                                     Text = l.Name,
+                                                     MenuText = l.Name,
+                                                     ToolTipText = "autocomp_label".GetStr(l.Name, l, l.DefinedLine),
+                                                     ImageIndex = GetImageIndex("label"),
+                                                 })
+                                         .Concat(std_autocompitems));
+            autocomp.Items.Invalidate();
+        }   
+
         private void Fctb_AutoIndentNeeded(object sender, AutoIndentEventArgs e)
         {
             if (Regex.IsMatch(e.LineText, REGEX_FUNC) ||

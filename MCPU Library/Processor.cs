@@ -1,4 +1,5 @@
 ﻿// #define USE_INSTRUCTION_CACHE
+#define WINDOWS
 
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -18,29 +19,14 @@ namespace MCPU
     /// A general MCPU processor event handler
     /// </summary>
     /// <param name="p">Processor instance</param>
-    public delegate void ProcessEventHandler(Processor p);
-
-    /// <summary>
-    /// A general MCPU processor event handler
-    /// </summary>
-    /// <param name="p">Processor instance</param>
-    public delegate void CopyOfProcessEventHandler(Processor p);
+    public delegate void ProcessorEventHandler(Processor p);
     /// <summary>
     /// A general generic MCPU processor event handler
     /// </summary>
     /// <typeparam name="T">Generic argument type T</typeparam>
     /// <param name="p">Processor instance</param>
     /// <param name="args">Argument of type T</param>
-    public delegate void ProcessEventHandler<T>(Processor p, T args);
-
-    /// <summary>
-    /// A general generic MCPU processor event handler
-    /// </summary>
-    /// <typeparam name="T">Generic argument type T</typeparam>
-    /// <param name="p">Processor instance</param>
-    /// <param name="args">Argument of type T</param>
-    public delegate void CopyOfProcessEventHandler<T>(Processor p, T args);
-
+    public delegate void ProcessorEventHandler<T>(Processor p, T args);
 
     /// <summary>
     /// Represents the MCPU-processor
@@ -62,7 +48,9 @@ namespace MCPU
                 *p.TranslateAddress(_[0]) = p.Ticks;
             } },
         };
-        
+#if !WINDOWS
+        private const string IVPEX_MSG = "The memory watcher unit requires a Win32-Environment with the corresponding API.";
+#endif
         public const int IP_OFFS = 0x04;
         public const int FLAG_OFFS = 0x08;
         public const int RESV_OFFS = 0x0a;
@@ -86,36 +74,47 @@ namespace MCPU
 
         #endregion
         #region EVENTS
-
+        
         /// <summary>
         /// Raised after an instruction has been executed
         /// </summary>
-        public event ProcessEventHandler<Instruction> InstructionExecuted;
+        public event ProcessorEventHandler<Instruction> InstructionExecuted;
         /// <summary>
         /// Rasied when a user-space memory access occures. The event is NOT raised, if the processor is running in elevated (kernel) mode
         /// </summary>
-        public event ProcessEventHandler<int> UserspaceWriteAccess;
+        public event ProcessorEventHandler<int> UserspaceWriteAccess;
         /// <summary>
         /// Raised when the status flags are changed
         /// </summary>
-        public event ProcessEventHandler<StatusFlags> StatusFlagsChanged;
+        public event ProcessorEventHandler<StatusFlags> StatusFlagsChanged;
         /// <summary>
         /// Raised when the information flags are changed
         /// </summary>
-        public event ProcessEventHandler<InformationFlags> InformationFlagsChanged;
+        public event ProcessorEventHandler<InformationFlags> InformationFlagsChanged;
         /// <summary>
         /// Raised when the processor is halted
         /// </summary>
-        public event ProcessEventHandler ProcessorHalted;
+        public event ProcessorEventHandler ProcessorHalted;
         /// <summary>
         /// Rasied when the processor is resetted to its original state
         /// </summary>
-        public event ProcessEventHandler ProcessorReset;
+        public event ProcessorEventHandler ProcessorReset;
         /// <summary>
         /// Raised if an exception occurs
         /// </summary>
-        public event ProcessEventHandler<Exception> OnError;
-
+        public event ProcessorEventHandler<Exception> OnError;
+        /// <summary>
+        /// Raised if the kernel memory's byte at the returned byte offset has changed
+        /// </summary>
+        public event ProcessorEventHandler<int> OnMemoryChanged
+#if WINDOWS
+            ;
+#else
+        {
+            add => throw new InvalidProgramException(IVPEX_MSG);
+            remove => throw new InvalidProgramException(IVPEX_MSG);
+        }
+#endif
         #endregion
         #region PROPERTIES
 
@@ -322,7 +321,10 @@ namespace MCPU
 
         #endregion
         #region METHODS
-
+#if WINDOWS
+        [DllImport("kernel32.dll")]
+        internal static extern uint GetWriteWatch(uint dwFlags, int* lpBaseAddress, uint* dwRegionSize, out IntPtr lpAddresses, ref UIntPtr lpdwCount, out uint lpdwGranularity);
+#endif
         /// <summary>
         /// Halts the processor
         /// </summary>
@@ -730,7 +732,7 @@ namespace MCPU
 
         #endregion
     }
-
+    
     /// <summary>
     /// Represents an exception, which occures if a 'regular' user tries to perform kernel actions
     /// </summary>
