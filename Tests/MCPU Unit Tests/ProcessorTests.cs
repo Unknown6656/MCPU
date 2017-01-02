@@ -51,7 +51,7 @@ namespace MCPU.Testing
             wr = new StreamWriter(new MemoryStream());
 
             proc?.Dispose();
-            proc = new Processor(0x200, 0x100, -1);
+            proc = new Processor(0x800, 0x100, unchecked((int)0xdeadbeafu));
             proc.StandardOutput = wr;
         }
 
@@ -62,27 +62,56 @@ namespace MCPU.Testing
 
             Execute(@"
     .main
-    .kernel
     MOV [10h] 42
-    LEA [0] [10h]
     MOV [1] 315
     MOV [2] 5
-    MOV [[2]] 88
-    .user
+    MOV [0b0101] -1
+    MOV [0o10] 88
 ");
-            proc.Syscall(1);
-
             IsTrue(proc[0x10] == 42);
             IsTrue(proc[1] == 315);
             IsTrue(proc[2] == 5);
-            IsTrue(proc[proc[2]] == 88);
-            IsTrue(proc[0] == proc.UserToKernel(0x10));
+            IsTrue(proc[5] == -1);
+            IsTrue(proc[8] == 88);
         }
 
         [TestMethod]
         public void Test_02()
         {
+            proc.StandardOutput = null;
 
+            Execute(@"
+    .main
+    MOV [2] 5
+    MOV [[2]] -1
+");
+            IsTrue(proc[2] == 5);
+            IsTrue(proc[5] == -1);
+            IsTrue(proc[proc[2]] == -1);
+        }
+
+        [TestMethod]
+        public void Test_03()
+        {
+            proc.StandardOutput = null;
+
+            const int base_addr = 0;
+            const int targ_addr = 0x315;
+            const int count = 0x100;
+
+            for (int i = 0; i < count; i++)
+                proc[i + base_addr] = (i << 24)
+                                    ^ (~i << 16)
+                                    ^ (-i << 8)
+                                    ^ i;
+
+            Execute($@"
+    .main
+    COPY [{base_addr}] [{targ_addr:x}h] {count:x}h
+");
+
+            for (int i = 0; i < count; i++)
+                IsTrue(proc[i + base_addr] == proc[i + targ_addr]);
         }
     }
 }

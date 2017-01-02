@@ -236,9 +236,10 @@ namespace MCPU
         /// <returns>Value</returns>
         public int this[int addr]
         {
-            get => VerifyUserspaceAddr(addr, () => ((int*)(raw + MEM_OFFS))[addr]);
-            set => VerifyUserspaceAddr(addr, () => {
-                ((int*)(raw + MEM_OFFS))[addr] = value;
+            get => VerifyUserspaceAddr(addr, () => ((int*)UserSpace)[addr]);
+            set => VerifyUserspaceAddr(addr, () =>
+            {
+                ((int*)UserSpace)[addr] = value;
 
                 UserspaceWriteAccess?.Invoke(this, addr);
             });
@@ -351,7 +352,7 @@ namespace MCPU
 
             ProcessorHalted?.Invoke(this);
 
-            // TODO
+            // TODO : async halt
         }
 
         /// <summary>
@@ -363,10 +364,8 @@ namespace MCPU
             if (ms > 0)
             {
                 Thread.Sleep(ms);
-
-
-                // TODO
-
+                
+                // TODO : async sleep
             }
         }
 
@@ -571,7 +570,7 @@ namespace MCPU
             {
                 int val = arg.Value;
 
-                if (arg.Type.HasFlag(ArgumentType.Parameter))
+                if (arg.IsParameter)
                 {
                     FunctionCall call = PeekCall();
                     int argc = call.Arguments.Length;
@@ -582,11 +581,18 @@ namespace MCPU
                 if (arg.IsAddress)
                 {
                     if (!arg.IsKernel)
-                        val += MEM_OFFS;
+                        val = UserToKernel(val);
                     else if (!IsElevated)
                         throw new MissingPrivilegeException();
-
-                    return KernelSpace + (arg.Type.HasFlag(ArgumentType.Indirect) ? KernelSpace[val] : val);
+                    
+                    if (arg.IsIndirect)
+                    {
+                        val = KernelSpace[val];
+                        
+                        return KernelSpace + (arg.IsKernel ? val : UserToKernel(val));
+                    }
+                    else
+                        return KernelSpace + val;
                 }
                 else
                     return &val;
@@ -675,11 +681,12 @@ namespace MCPU
         /// </summary>
         /// <param name="addr">User-space address</param>
         /// <returns>Kernel-space address</returns>
-        public int UserToKernel(int addr) => VerifyUserspaceAddr(addr, addr + MEM_OFFS);
+        public int UserToKernel(int addr) => VerifyUserspaceAddr(addr, addr + MEM_OFFS / 4);
 
         internal void VerifyUserspaceAddr(int addr) => VerifyUserspaceAddr<object>(addr, null);
 
-        internal void VerifyUserspaceAddr(int addr, Action action) => VerifyUserspaceAddr(addr, () => {
+        internal void VerifyUserspaceAddr(int addr, Action action) => VerifyUserspaceAddr(addr, () =>
+        {
             action();
 
             return null as object;
