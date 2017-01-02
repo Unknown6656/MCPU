@@ -211,7 +211,8 @@ namespace MCPU.IDE
             }
         }
 
-        internal void UpdateAutocomplete() =>
+        internal void UpdateAutocomplete()
+        {
             autocomp.Items.SetAutocompleteItems((from f in functions ?? new MCPUFunctionMetadata[0]
                                                  select new AutocompleteItem
                                                  {
@@ -229,6 +230,8 @@ namespace MCPU.IDE
                                                      ImageIndex = GetImageIndex("label"),
                                                  })
                                          .Concat(std_autocompitems));
+            autocomp.Items.Invalidate();
+        }   
 
         private void Fctb_AutoIndentNeeded(object sender, AutoIndentEventArgs e)
         {

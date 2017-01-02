@@ -5,8 +5,9 @@
     <s:String x:Key="lang_code">de-DE</s:String>
     <s:String x:Key="lang_name">Deutsch</s:String>
 
-    <s:String x:Key="global_abbrv_ln">L.</s:String>
-    <s:String x:Key="global_abbrv_ch">Z.</s:String>
+    <s:String x:Key="global_error_in">Fehler in {0} {1}</s:String>
+    <s:String x:Key="global_abbrv_ln">Z.</s:String>
+    <s:String x:Key="global_abbrv_ch">$</s:String>
     <s:String x:Key="global_close">Schließen</s:String>
     <s:String x:Key="global_copyright">Copyright</s:String>
     <ResourceDictionary x:Key="global_compiler_msg">

@@ -5,6 +5,7 @@
     <s:String x:Key="lang_code">en-GB</s:String>
     <s:String x:Key="lang_name">English</s:String>
 
+    <s:String x:Key="global_error_in">Error on {0} {1}</s:String>
     <s:String x:Key="global_abbrv_ln">Ln.</s:String>
     <s:String x:Key="global_abbrv_ch">Ch.</s:String>
     <s:String x:Key="global_close">Close</s:String>

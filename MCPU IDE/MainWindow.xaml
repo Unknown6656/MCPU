@@ -116,7 +116,8 @@
             <Label Content="{DynamicResource lang_iso}" Style="{StaticResource st_stat}"/>
             <Label x:Name="lb_zoom" Content="100 %" Style="{StaticResource st_stat}"/>
             <Label x:Name="lb_ins" Content="{DynamicResource mw_INS}" Style="{StaticResource st_stat}"/>
-            <Label x:Name="lb_pos" Content="Ln. ---- Ch. --- : Ln. ---- Ch. ---" Style="{StaticResource st_stat}" Width="160"/>
+            <Label x:Name="lb_pos" Content="Ln. ---- Ch. --- : Ln. ---- Ch. ---" Style="{StaticResource st_stat}"/>
+            <Label x:Name="lb_err" Content="Error in Ln. ----" Style="{StaticResource st_stat}"/>
         </StatusBar>
         <WindowsFormsHost>
             <WindowsFormsHost.Child>

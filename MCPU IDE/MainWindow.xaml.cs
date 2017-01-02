@@ -41,7 +41,11 @@ namespace MCPU.IDE
             get => fctb_host.Error;
             set
             {
-                Color col = (Color)Application.Current.Resources[value == null ? "BG" : "BGERR"];
+                bool error = value != null;
+
+                Color col = (Color)Application.Current.Resources[error ? "BGERR" : "BG"];
+
+                lb_err.Content = error ? "global_error_in".GetStr(value.LineNr, "global_abbrv_ln".GetStr()) : "";
 
                 (Resources["stat_bg"] as SolidColorBrush).Color = col;
                 statbar.Background = new SolidColorBrush(col);
@@ -79,6 +83,7 @@ namespace MCPU.IDE
                 mie_zoom_out.IsEnabled = st != -1;
                 mie_zoom_res.IsEnabled = nz != 100;
             };
+            // fctb.TextChanged += (o, a) => new Task(() => Compile(fctb.Text, true)).Start();
             fctb.SelectionChanged += Fctb_SelectionChanged;
             fctb.OnTextChanged(); // update control after loading
 
@@ -91,6 +96,8 @@ namespace MCPU.IDE
 
             fctb_host.Select();
             fctb.Select();
+
+            Compile(fctb.Text, true);
         }
 
         private void Window_Closing(object sender, CancelEventArgs e) => e.Cancel = !Save();
@@ -248,6 +255,31 @@ namespace MCPU.IDE
             proc = new Processor(memsz);
         }
 
+        private void Compile(string code, bool silent = false)
+        {
+            Union<MCPUCompilerResult, MCPUCompilerException> res = MCPUCompiler.Compile(code);
+
+            if (res.IsA)
+            {
+                MCPUCompilerResult cmpres = res;
+
+                fctb_host.labels = cmpres.Labels;
+                fctb_host.functions = cmpres.Functions;
+                fctb_host.UpdateAutocomplete();
+
+                if (!silent)
+                    proc.Instructions = cmpres.Instructions;
+            }
+            else if (!silent)
+            {
+                MCPUCompilerException ex = res;
+
+                fctb_host.Error = ex;
+
+                TaskDialog.Show(handle, "msg_err_compiler".GetStr(), "msg_err".GetStr(), "msg_errtxt_compiler".GetStr(ex.Message, ex.LineNr), TaskDialogButtons.Ok, TaskDialogIcon.SecurityError);
+            }
+        }
+
         #region MENU ITEMS
 
         private void mie_zoom_in_Click(object sender, ExecutedRoutedEventArgs e) => fctb.Zoom = (int)(fctb.Zoom * 1.2);
@@ -352,28 +384,7 @@ namespace MCPU.IDE
             }
         }
 
-        private void mic_compile(object sender, ExecutedRoutedEventArgs e)
-        {
-            Union<MCPUCompilerResult, MCPUCompilerException> res = MCPUCompiler.Compile(fctb.Text);
-
-            if (res.IsA)
-            {
-                MCPUCompilerResult cmpres = res;
-                
-                fctb_host.labels = cmpres.Labels;
-                fctb_host.functions = cmpres.Functions;
-                fctb_host.UpdateAutocomplete();
-                proc.Instructions = cmpres.Instructions;
-            }
-            else
-            {
-                MCPUCompilerException ex = res;
-
-                fctb_host.Error = ex;
-
-                TaskDialog.Show(handle, "msg_err_compiler".GetStr(), "msg_err".GetStr(), "msg_errtxt_compiler".GetStr(ex.Message, ex.LineNr), TaskDialogButtons.Ok, TaskDialogIcon.SecurityError);
-            }
-        }
+        private void mic_compile(object sender, ExecutedRoutedEventArgs e) => Compile(fctb.Text);
 
         private void mip_reset(object sender, ExecutedRoutedEventArgs e)
         {
