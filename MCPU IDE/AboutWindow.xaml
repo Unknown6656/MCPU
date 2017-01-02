@@ -3,19 +3,23 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
         xmlns:local="clr-namespace:MCPU.IDE"
         mc:Ignorable="d"
         ResizeMode="NoResize"
         Loaded="Window_Loaded"
         KeyDown="Window_KeyDown"
-        Background="{StaticResource BG}"
-        Foreground="{StaticResource FG}"
+        Background="{DynamicResource bg_brush}"
+        Foreground="{DynamicResource FG}"
         WindowStartupLocation="CenterOwner"
-        Title="{DynamicResource aw_title}" Height="280.666" Width="460">
-    <Canvas Height="241" Width="443" VerticalAlignment="Top" HorizontalAlignment="Left">
+        Title="{DynamicResource aw_title}" Height="281" Width="520">
+    <Window.Resources>
+        <SolidColorBrush x:Key="bg_brush" Color="{DynamicResource BG}"/>
+    </Window.Resources>
+    <Canvas Height="241" Width="490" VerticalAlignment="Top" HorizontalAlignment="Left">
         <Label Content="{DynamicResource aw_version}" Foreground="{StaticResource FG}" Canvas.Left="10" Canvas.Top="5" Padding="0" Width="80" Height="19"/>
         <TextBox x:Name="tb_version" Text="v 0.0.0.0" FontFamily="Consolas" IsEnabled="False" Height="20" Canvas.Left="95" TextWrapping="Wrap" Width="171" Canvas.Top="4"/>
-        <TextBlock Canvas.Left="10" TextWrapping="Wrap" Canvas.Top="25" Height="186" Width="423">
+        <TextBlock Canvas.Left="10" TextWrapping="Wrap" Canvas.Top="25" Height="206" Width="470">
             <Run Text="{DynamicResource mw_title}"/>
             <LineBreak/>
             <Run Text="{DynamicResource global_copyright}"/> © 2016-<Run x:Name="curr_year"/>, Unknown6656
@@ -32,18 +36,18 @@
             <Run Text="{DynamicResource aw_fctb_after}"/>
             <LineBreak/>
             <LineBreak/>
-            <Hyperlink NavigateUri="https://github.com/Unknown6656/MCPU" RequestNavigate="Hyperlink_RequestNavigate" Foreground="PowderBlue">
+            <Hyperlink x:Name="hl_github" RequestNavigate="Hyperlink_RequestNavigate" Foreground="PowderBlue">
                 <Hyperlink.Inlines>
                     <Run Text="{DynamicResource aw_github}"/>
                 </Hyperlink.Inlines>
             </Hyperlink>
             <LineBreak/>
-            <Hyperlink NavigateUri="https://github.com/Unknown6656/MCPU/issues" RequestNavigate="Hyperlink_RequestNavigate" Foreground="PowderBlue">
+            <Hyperlink x:Name="hl_github_issues" RequestNavigate="Hyperlink_RequestNavigate" Foreground="PowderBlue">
                 <Hyperlink.Inlines>
                     <Run Text="{DynamicResource aw_github_issues}"/>
                 </Hyperlink.Inlines>
             </Hyperlink>
         </TextBlock>
-        <Button Content="{DynamicResource global_close}" Canvas.Left="333" Canvas.Top="211" Width="100" Height="20"/>
+        <Button Content="{DynamicResource global_close}" Canvas.Left="380" Canvas.Top="211" Width="100" Height="20"/>
     </Canvas>
 </Window>

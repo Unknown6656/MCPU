@@ -41,7 +41,11 @@ namespace MCPU.IDE
             get => fctb_host.Error;
             set
             {
-                Color col = (Color)Application.Current.Resources[value == null ? "BG" : "BGERR"];
+                bool error = value != null;
+
+                Color col = (Color)Application.Current.Resources[error ? "BGERR" : "BG"];
+
+                lb_err.Content = error ? "global_error_in".GetStr(value.LineNr, "global_abbrv_ln".GetStr()) : "";
 
                 (Resources["stat_bg"] as SolidColorBrush).Color = col;
                 statbar.Background = new SolidColorBrush(col);
@@ -49,7 +53,15 @@ namespace MCPU.IDE
             }
         }
 
-        public MainWindow() => InitializeComponent();
+
+        ~MainWindow() => DisposeProcessor();
+
+        public MainWindow()
+        {
+            InitializeComponent();
+
+            InitProcessor(Properties.Settings.Default?.MemorySize ?? 0x100000 /* 4MB */);
+        }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
@@ -71,6 +83,7 @@ namespace MCPU.IDE
                 mie_zoom_out.IsEnabled = st != -1;
                 mie_zoom_res.IsEnabled = nz != 100;
             };
+            // fctb.TextChanged += (o, a) => new Task(() => Compile(fctb.Text, true)).Start();
             fctb.SelectionChanged += Fctb_SelectionChanged;
             fctb.OnTextChanged(); // update control after loading
 
@@ -82,6 +95,9 @@ namespace MCPU.IDE
             // mif_new(null, null);
 
             fctb_host.Select();
+            fctb.Select();
+
+            Compile(fctb.Text, true);
         }
 
         private void Window_Closing(object sender, CancelEventArgs e) => e.Cancel = !Save();
@@ -223,7 +239,47 @@ namespace MCPU.IDE
 
             return res;
         }
-        
+
+        private void DisposeProcessor()
+        {
+            proc?.Dispose();
+
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+        }
+
+        private void InitProcessor(int memsz)
+        {
+            DisposeProcessor();
+
+            proc = new Processor(memsz);
+        }
+
+        private void Compile(string code, bool silent = false)
+        {
+            Union<MCPUCompilerResult, MCPUCompilerException> res = MCPUCompiler.Compile(code);
+
+            if (res.IsA)
+            {
+                MCPUCompilerResult cmpres = res;
+
+                fctb_host.labels = cmpres.Labels;
+                fctb_host.functions = cmpres.Functions;
+                fctb_host.UpdateAutocomplete();
+
+                if (!silent)
+                    proc.Instructions = cmpres.Instructions;
+            }
+            else if (!silent)
+            {
+                MCPUCompilerException ex = res;
+
+                fctb_host.Error = ex;
+
+                TaskDialog.Show(handle, "msg_err_compiler".GetStr(), "msg_err".GetStr(), "msg_errtxt_compiler".GetStr(ex.Message, ex.LineNr), TaskDialogButtons.Ok, TaskDialogIcon.SecurityError);
+            }
+        }
+
         #region MENU ITEMS
 
         private void mie_zoom_in_Click(object sender, ExecutedRoutedEventArgs e) => fctb.Zoom = (int)(fctb.Zoom * 1.2);
@@ -245,6 +301,22 @@ namespace MCPU.IDE
         private void mie_redo(object sender, ExecutedRoutedEventArgs e) => fctb.Redo();
 
         private void mie_cut(object sender, ExecutedRoutedEventArgs e) => fctb.Cut();
+
+        private void mie_search(object sender, ExecutedRoutedEventArgs e) => fctb.ProcessKey(WinForms.Keys.F | WinForms.Keys.Control);
+
+        private void mie_replace(object sender, ExecutedRoutedEventArgs e) => fctb.ProcessKey(WinForms.Keys.H | WinForms.Keys.Control);
+
+        private void mie_bm_create(object sender, ExecutedRoutedEventArgs e) => fctb.ProcessKey(WinForms.Keys.B | WinForms.Keys.Control);
+
+        private void mie_bm_delete(object sender, ExecutedRoutedEventArgs e) => fctb.ProcessKey(WinForms.Keys.B | WinForms.Keys.Control | WinForms.Keys.Shift);
+
+        private void mie_bm_prev(object sender, ExecutedRoutedEventArgs e) => fctb.ProcessKey(WinForms.Keys.N | WinForms.Keys.Control | WinForms.Keys.Shift);
+
+        private void mie_bm_next(object sender, ExecutedRoutedEventArgs e) => fctb.ProcessKey(WinForms.Keys.N | WinForms.Keys.Control);
+
+        private void mie_fold(object sender, ExecutedRoutedEventArgs e) => fctb.ProcessKey(WinForms.Keys.F | WinForms.Keys.Alt);
+
+        private void mie_unfold(object sender, ExecutedRoutedEventArgs e) => fctb.ProcessKey(WinForms.Keys.F | WinForms.Keys.Alt | WinForms.Keys.Shift);
 
         private void mif_open(object sender, ExecutedRoutedEventArgs e)
         {
@@ -312,28 +384,7 @@ namespace MCPU.IDE
             }
         }
 
-        private void mic_compile(object sender, ExecutedRoutedEventArgs e)
-        {
-            Union<MCPUCompilerResult, MCPUCompilerException> res = MCPUCompiler.Compile(fctb.Text);
-
-            if (res.IsA)
-            {
-                MCPUCompilerResult cmpres = res;
-                
-                fctb_host.labels = cmpres.Labels;
-                fctb_host.functions = cmpres.Functions;
-                fctb_host.UpdateAutocomplete();
-                // proc.Instructions = cmpres.Instructions;
-            }
-            else
-            {
-                MCPUCompilerException ex = res;
-
-                fctb_host.Error = ex;
-
-                TaskDialog.Show(handle, "msg_err_compiler".GetStr(), "msg_err".GetStr(), "msg_errtxt_compiler".GetStr(ex.Message, ex.LineNr), TaskDialogButtons.Ok, TaskDialogIcon.SecurityError);
-            }
-        }
+        private void mic_compile(object sender, ExecutedRoutedEventArgs e) => Compile(fctb.Text);
 
         private void mip_reset(object sender, ExecutedRoutedEventArgs e)
         {
@@ -356,7 +407,7 @@ namespace MCPU.IDE
             // TODO ?
         }
 
-        internal void mih_github(object sender, ExecutedRoutedEventArgs e) => Process.Start(@"https://github.com/Unknown6656/MCPU/").Dispose();
+        internal void mih_github(object sender, ExecutedRoutedEventArgs e) => Process.Start("github_base_url".GetStr()).Dispose();
 
         private void mih_about(object sender, ExecutedRoutedEventArgs e) => new AboutWindow(this).ShowDialog();
 
@@ -393,6 +444,14 @@ namespace MCPU.IDE
         public static readonly RoutedUICommand About = create(nameof(Reset), Key.F1, ModifierKeys.None);
         public static readonly RoutedUICommand GitHub = create(nameof(Reset), Key.F2, ModifierKeys.None);
         public static readonly RoutedUICommand InsertDelete = create(nameof(InsertDelete), Key.Insert, ModifierKeys.None);
+        public static readonly RoutedUICommand Search = create(nameof(Search), Key.F);
+        public static readonly RoutedUICommand Replace = create(nameof(Replace), Key.H);
+        public static readonly RoutedUICommand NextBookmark = create(nameof(NextBookmark), Key.N);
+        public static readonly RoutedUICommand PreviousBookmark = create(nameof(PreviousBookmark), Key.N, ModifierKeys.Shift | ModifierKeys.Control);
+        public static readonly RoutedUICommand CreateBookmark = create(nameof(CreateBookmark), Key.B);
+        public static readonly RoutedUICommand DeleteBookmark = create(nameof(DeleteBookmark), Key.B, ModifierKeys.Shift | ModifierKeys.Control);
+        public static readonly RoutedUICommand FoldAll = create(nameof(FoldAll), Key.F, ModifierKeys.Alt);
+        public static readonly RoutedUICommand UnfoldAll = create(nameof(UnfoldAll), Key.F, ModifierKeys.Alt | ModifierKeys.Shift);
     }
 }
 

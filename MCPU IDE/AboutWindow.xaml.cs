@@ -1,18 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
+﻿using System.Windows.Navigation;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+using System.Reflection;
+using System.Windows;
+using System;
 
 namespace MCPU.IDE
 {
@@ -41,6 +31,8 @@ namespace MCPU.IDE
         {
             tb_version.Text = "aw_version_str".GetStr(AssemblyName.GetAssemblyName(Assembly.GetExecutingAssembly().Location).Version);
             curr_year.Text = DateTime.Now.Year.ToString();
+            hl_github.NavigateUri = new Uri("github_base_url".GetStr());
+            hl_github_issues.NavigateUri = new Uri("github_base_url".GetStr() + "/issues");
         }
     }
 }

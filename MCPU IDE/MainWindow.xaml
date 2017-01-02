@@ -14,7 +14,7 @@
     <Window.Resources>
         <SolidColorBrush x:Key="stat_bg" Color="{DynamicResource BG}"/>
         <Style x:Key="st_stat" TargetType="Label">
-            <Setter Property="Background" Value="{StaticResource stat_bg}"/>
+            <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Foreground" Value="{StaticResource FG}"/>
             <Setter Property="Padding" Value="5,0"/>
         </Style>
@@ -30,6 +30,14 @@
         <CommandBinding Command="local:Commands.ZoomIn" Executed="mie_zoom_in_Click"/>
         <CommandBinding Command="local:Commands.ZoomOut" Executed="mie_zoom_out_Click"/>
         <CommandBinding Command="local:Commands.ZoomReset" Executed="mie_zoom_res_Click"/>
+        <CommandBinding Command="local:Commands.Search" Executed="mie_search"/>
+        <CommandBinding Command="local:Commands.Replace" Executed="mie_replace"/>
+        <CommandBinding Command="local:Commands.CreateBookmark" Executed="mie_bm_create"/>
+        <CommandBinding Command="local:Commands.DeleteBookmark" Executed="mie_bm_delete"/>
+        <CommandBinding Command="local:Commands.PreviousBookmark" Executed="mie_bm_prev"/>
+        <CommandBinding Command="local:Commands.NextBookmark" Executed="mie_bm_next"/>
+        <CommandBinding Command="local:Commands.FoldAll" Executed="mie_fold"/>
+        <CommandBinding Command="local:Commands.UnfoldAll" Executed="mie_unfold"/>
         <CommandBinding Command="local:Commands.New" Executed="mif_new"/>
         <CommandBinding Command="local:Commands.Exit" Executed="mif_exit"/>
         <CommandBinding Command="local:Commands.Open" Executed="mif_open"/>
@@ -48,9 +56,9 @@
     <DockPanel>
         <Menu DockPanel.Dock="Top" Height="21">
             <MenuItem Header="{DynamicResource mw_file}">
-                <MenuItem Header="{DynamicResource mw_file_new}" Command="local:Commands.New"/>
-                <MenuItem Header="{DynamicResource mw_file_open}" Command="local:Commands.Open"/>
-                <MenuItem Header="{DynamicResource mw_file_save}" Command="local:Commands.Save"/>
+                <MenuItem Header="{DynamicResource mw_file_new}" Command="local:Commands.New" Icon="{DynamicResource menu_new}"/>
+                <MenuItem Header="{DynamicResource mw_file_open}" Command="local:Commands.Open" Icon="{DynamicResource menu_open}"/>
+                <MenuItem Header="{DynamicResource mw_file_save}" Command="local:Commands.Save" Icon="{DynamicResource menu_save}"/>
                 <MenuItem Header="{DynamicResource mw_file_saveall}" Command="local:Commands.SaveAs"/>
                 <MenuItem Header="{DynamicResource mw_file_export}" Command="local:Commands.ExportAsHTML"/>
                 <Separator/>
@@ -62,17 +70,28 @@
                 <MenuItem Header="{DynamicResource mw_edit_undo}" Command="local:Commands.Undo"/>
                 <MenuItem Header="{DynamicResource mw_edit_redo}" Command="local:Commands.Redo"/>
                 <Separator/>
-                <MenuItem Header="{DynamicResource mw_edit_copy}" Command="local:Commands.Copy"/>
-                <MenuItem Header="{DynamicResource mw_edit_cut}" Command="local:Commands.Cut"/>
-                <MenuItem Header="{DynamicResource mw_edit_paste}" Command="local:Commands.Paste"/>
-                <MenuItem Header="{DynamicResource mw_edit_delete}" Command="local:Commands.Delete"/>
+                <MenuItem Header="{DynamicResource mw_edit_copy}" Command="local:Commands.Copy" Icon="{DynamicResource menu_copy}"/>
+                <MenuItem Header="{DynamicResource mw_edit_cut}" Command="local:Commands.Cut" Icon="{DynamicResource menu_cut}"/>
+                <MenuItem Header="{DynamicResource mw_edit_paste}" Command="local:Commands.Paste" Icon="{DynamicResource menu_paste}"/>
+                <MenuItem Header="{DynamicResource mw_edit_delete}" Command="local:Commands.Delete" Icon="{DynamicResource menu_delete}"/>
                 <MenuItem Header="{DynamicResource mw_edit_select}" Command="local:Commands.SelectAll"/>
                 <Separator/>
                 <MenuItem Header="{DynamicResource mw_edit_insert}"/>
                 <Separator/>
+                <MenuItem Header="{DynamicResource mw_edit_search}" Command="local:Commands.Search"/>
+                <MenuItem Header="{DynamicResource mw_edit_replace}" Command="local:Commands.Replace"/>
+                <Separator/>
+                <MenuItem x:Name="mie_bmc" Header="{DynamicResource mw_edit_bm_create}" Command="local:Commands.CreateBookmark" Icon="{DynamicResource menu_bmc}"/>
+                <MenuItem x:Name="mie_bmd" Header="{DynamicResource mw_edit_bm_delete}" Command="local:Commands.DeleteBookmark" Icon="{DynamicResource menu_bmd}"/>
+                <MenuItem x:Name="mie_bmp" Header="{DynamicResource mw_edit_bm_prev}" Command="local:Commands.PreviousBookmark" Icon="{DynamicResource menu_bmp}"/>
+                <MenuItem x:Name="mie_bmn" Header="{DynamicResource mw_edit_bm_next}" Command="local:Commands.NextBookmark" Icon="{DynamicResource menu_bmn}"/>
+                <Separator/>
                 <MenuItem x:Name="mie_zoom_in" Header="{DynamicResource mw_edit_zin}" Command="local:Commands.ZoomIn"/>
                 <MenuItem x:Name="mie_zoom_out" Header="{DynamicResource mw_edit_zout}" Command="local:Commands.ZoomOut"/>
                 <MenuItem x:Name="mie_zoom_res" Header="{DynamicResource mw_edit_zres}" Command="local:Commands.ZoomReset"/>
+                <Separator/>
+                <MenuItem Header="{DynamicResource mw_edit_fold}" Command="local:Commands.FoldAll"/>
+                <MenuItem Header="{DynamicResource mw_edit_unfold}" Command="local:Commands.UnfoldAll"/>
             </MenuItem>
             <MenuItem Header="{DynamicResource mw_compiler}">
                 <MenuItem Header="{DynamicResource mw_compiler_compile}" Command="local:Commands.Compile"/>
@@ -90,14 +109,15 @@
             </MenuItem>
             <MenuItem Header="{DynamicResource mw_help}">
                 <MenuItem Header="{DynamicResource mw_help_about}" Command="local:Commands.About"/>
-                <MenuItem Header="{DynamicResource mw_help_github}" Command="local:Commands.GitHub"/>
+                <MenuItem Header="{DynamicResource mw_help_github}" Command="local:Commands.GitHub" Icon="{DynamicResource menu_github}"/>
             </MenuItem>
         </Menu>
         <StatusBar x:Name="statbar" DockPanel.Dock="Bottom" Height="20" Padding="0" FontSize="10" Foreground="{StaticResource FG}" Background="{StaticResource stat_bg}">
             <Label Content="{DynamicResource lang_iso}" Style="{StaticResource st_stat}"/>
             <Label x:Name="lb_zoom" Content="100 %" Style="{StaticResource st_stat}"/>
             <Label x:Name="lb_ins" Content="{DynamicResource mw_INS}" Style="{StaticResource st_stat}"/>
-            <Label x:Name="lb_pos" Content="Ln. ---- Ch. --- : Ln. ---- Ch. ---" Style="{StaticResource st_stat}" Width="160"/>
+            <Label x:Name="lb_pos" Content="Ln. ---- Ch. --- : Ln. ---- Ch. ---" Style="{StaticResource st_stat}"/>
+            <Label x:Name="lb_err" Content="Error in Ln. ----" Style="{StaticResource st_stat}"/>
         </StatusBar>
         <WindowsFormsHost>
             <WindowsFormsHost.Child>
