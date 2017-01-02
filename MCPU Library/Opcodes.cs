@@ -195,7 +195,7 @@ namespace MCPU.Instructions
             : base(2, (p, _) => {
                 AssertNotInstructionSpace(0, _);
                 AssertAddress(1, _);
-
+                
                 *p.TranslateAddress(_[1]) = p.IO[p.TranslateConstant(_[0])].Value;
             })
         {
@@ -210,7 +210,7 @@ namespace MCPU.Instructions
             : base(2, (p, _) => {
                 AssertNotInstructionSpace(0, _);
                 AssertNotInstructionSpace(1, _);
-
+                
                 p.IO.SetValue(p.TranslateConstant(_[0]), (byte)(p.TranslateConstant(_[1]) & 0xff));
             })
         {

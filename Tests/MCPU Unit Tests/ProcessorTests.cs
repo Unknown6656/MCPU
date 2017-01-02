@@ -58,8 +58,6 @@ namespace MCPU.Testing
         [TestMethod]
         public void Test_01()
         {
-            proc.StandardOutput = null;
-
             Execute(@"
     .main
     MOV [10h] 42
@@ -78,8 +76,6 @@ namespace MCPU.Testing
         [TestMethod]
         public void Test_02()
         {
-            proc.StandardOutput = null;
-
             Execute(@"
     .main
     MOV [2] 5
@@ -93,8 +89,6 @@ namespace MCPU.Testing
         [TestMethod]
         public void Test_03()
         {
-            proc.StandardOutput = null;
-
             const int base_addr = 0;
             const int targ_addr = 0x315;
             const int count = 0x100;
@@ -109,9 +103,81 @@ namespace MCPU.Testing
     .main
     COPY [{base_addr}] [{targ_addr:x}h] {count:x}h
 ");
-
             for (int i = 0; i < count; i++)
                 IsTrue(proc[i + base_addr] == proc[i + targ_addr]);
+        }
+
+        [TestMethod]
+        public void Test_04()
+        {
+            Execute(@"
+    .main
+    .kernel
+    MOV [2] 5
+    MOV k[12h] 42
+    MOV [3] baaaaaadh
+    LEA [4] [3]
+    MOV k[[14h]] -1
+");
+            IsTrue(proc[2] == 42);
+            IsTrue(proc[3] == -1);
+        }
+
+        [TestMethod]
+        public void Test_05()
+        {
+            Execute(@"
+func kimv
+    ; kimv a b  is equivalent with
+    ; mov [a] [k[b]]
+
+    MOV [100h] k[$1]
+    MOV [$0] [[100h]]
+end func
+
+    .main
+    .kernel
+    MOV k[17h] 5
+    MOV [5] 42
+    CALL kimv 3 17h
+");
+            IsTrue(proc[3] == 42);
+            IsTrue(proc[5] == 42);
+            IsTrue(proc[7] == 5);
+        }
+
+        [TestMethod]
+        public void Test_06()
+        {
+            Execute(@"
+    .main
+    MOV [0] 42
+    JMPREL 2
+    MOV [0] -1
+    HALT
+    MOV [0] 315
+");
+            IsTrue(proc[0] == 42);
+        }
+
+        [TestMethod]
+        public void Test_07()
+        {
+            proc.StandardOutput = null;
+            proc.IO.SetValue(5, 12);
+
+            Execute(@"
+    .main
+    IO 5 1
+    IO 7 0
+    MOV [10] 3
+    IN 5 [2]
+    OUT 7 [10]
+");
+            proc.Syscall(1);
+
+            IsTrue(proc.IO[7] == (IODirection.Out, 3));
+            IsTrue(proc[10] == 12); // TODO : fix !!
         }
     }
 }

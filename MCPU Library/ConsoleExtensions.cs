@@ -103,27 +103,31 @@ namespace MCPU
 
             cmd.WriteLine();
 
-            for (int i = 0; i < h; i++)
-            {
-                cmd.Write($"{i * l:x8}:  ");
-
-                for (int j = 0; (j < l) && (i * l + j < value.Length); j++)
+            fixed (byte* ptr = value)
+                for (int i = 0; i < h; i++)
                 {
-                    b = value[i * l + j];
+                    cmd.Write($"{i * l:x8}:  ");
 
-                    cmd.ForegroundColor = b == 0 ? cmc.Gray : cmc.Yellow;
-                    cmd.Write($"{b:x2} ");
+                    bool cflag;
+
+                    for (int j = 0; (j < l) && (i * l + j < value.Length); j++)
+                    {
+                        b = ptr[i * l + j];
+                        cflag = *((int*)(ptr + i * l + (j / 4) * 4)) != 0;
+
+                        cmd.ForegroundColor = b == 0 ? cflag ? cmc.White : cmc.DarkGray : cmc.Yellow;
+                        cmd.Write($"{b:x2} ");
+                    }
+
+                    cmd.ForegroundColor = cmc.White;
+                    cmd.CursorLeft = 3 * l + 11;
+                    cmd.Write("| ");
+
+                    for (int j = 0; (j < l) && (i * l + j < value.Length); j++)
+                        cmd.Write(__conv(ptr[i * l + j]));
+
+                    cmd.Write("\n");
                 }
-
-                cmd.ForegroundColor = cmc.White;
-                cmd.CursorLeft = 3 * l + 11;
-                cmd.Write("| ");
-
-                for (int j = 0; (j < l) && (i * l + j < value.Length); j++)
-                    cmd.Write(__conv(value[i * l + j]));
-
-                cmd.Write("\n");
-            }
 
             cmd.WriteLine();
             cmd.CursorVisible = cv;

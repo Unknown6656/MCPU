@@ -848,7 +848,7 @@ namespace MCPU
         /// <returns>I/O-port</returns>
         public IOPort this[int port]
         {
-            get => IsInRange(port) ? *(ports + port + Processor.IO_OFFS)
+            get => IsInRange(port) ? *((IOPort*)((byte*)ports + Processor.IO_OFFS + port))
                                    : throw new IndexOutOfRangeException($"The I/O-port index must be a positive value between 0 and {Processor.IO_OFFS}.");
             set
             {
@@ -857,11 +857,10 @@ namespace MCPU
                 if ((old.Direction == IODirection.In) && (value.Value != old.Value))
                     throw new InvalidOperationException($"The I/O-port no. {port} is set to read-only.");
                 else
-                    *(ports + port + Processor.IO_OFFS) = value;
+                    *((IOPort*)((byte*)ports + Processor.IO_OFFS + port)) = value;
             }
         }
         
-
         /// <summary>
         /// Sets the value of the given I/O-port to the given direction
         /// </summary>
@@ -898,7 +897,7 @@ namespace MCPU
     /// <summary>
     /// Represents an I/O-port
     /// </summary>
-    [Serializable, NativeCppClass, StructLayout(LayoutKind.Sequential, Size = 1, Pack = 1)]
+    [Serializable, NativeCppClass, StructLayout(LayoutKind.Sequential, Size = 1, Pack = 0)]
     public struct IOPort
     {
         internal byte raw;
@@ -922,6 +921,12 @@ namespace MCPU
             get => (IODirection)(raw >> 7);
             set => raw = (byte)((raw & 0x0f) | ((int)value << 7));
         }
+
+        public override string ToString() => $"{raw:x2}: ({Value}, {Direction})";
+
+        public static bool operator ==(IOPort p1, IOPort p2) => p1.raw == p2.raw;
+
+        public static bool operator !=(IOPort p1, IOPort p2) => !(p1 == p2);
 
         public static implicit operator (IODirection, byte) (IOPort port) => (port.Direction, port.Value);
 
