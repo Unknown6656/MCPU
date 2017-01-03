@@ -45,7 +45,7 @@ namespace MCPU.IDE
 
                 Color col = (Color)Application.Current.Resources[error ? "BGERR" : "BG"];
 
-                lb_err.Content = error ? "global_error_in".GetStr(value.LineNr, "global_abbrv_ln".GetStr()) : "";
+                lb_err.Content = error ? "global_error_in".GetStr("global_abbrv_ln".GetStr(), value.LineNr) : "";
 
                 (Resources["stat_bg"] as SolidColorBrush).Color = col;
                 statbar.Background = new SolidColorBrush(col);

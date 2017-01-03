@@ -17,6 +17,10 @@
 
     <s:String x:Key="autocomp_func">Function {0}&#10;The function {1} which has been defined on line {2}</s:String>
     <s:String x:Key="autocomp_label">Label '{0}'&#10;The label {1} which has been defined on line {2}</s:String>
+    <s:String x:Key="autocomp_kernel">.kernel directive&#10;Grants the current processor kernel privileges</s:String>
+    <s:String x:Key="autocomp_user">.user directive&#10;Grants the current processor user privileges</s:String>
+    <s:String x:Key="autocomp_main">Main entry point&#10;The application's main entry point</s:String>
+    <s:String x:Key="autocomp_instr">Instruction '{0}'&#10;The assembly instrucion {1}</s:String>
     
     <s:String x:Key="mw_title">MCPU Integrated Development Environment</s:String>
     <s:String x:Key="mw_file">_FILE</s:String>
