@@ -8,5 +8,8 @@
     <Setting Name="MemorySize" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">1048576</Value>
     </Setting>
+    <Setting Name="CallStackSize" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">131072</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

@@ -28,6 +28,7 @@ namespace MCPU.IDE
 
     public partial class MainWindow
         : Window
+        , ILanguageSensitiveWindow
     {
         internal FastColoredTextBox fctb => fctb_host.fctb;
         internal readonly Setter st_stat;
@@ -60,7 +61,7 @@ namespace MCPU.IDE
         {
             InitializeComponent();
 
-            InitProcessor(Properties.Settings.Default?.MemorySize ?? 0x100000 /* 4MB */);
+            InitProcessor(Properties.Settings.Default.MemorySize);
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -95,7 +96,9 @@ namespace MCPU.IDE
             // mif_new(null, null);
 
             fctb_host.Select();
+            fctb_host.Focus();
             fctb.Select();
+            fctb.Focus();
 
             Compile(fctb.Text, true);
         }
@@ -280,6 +283,15 @@ namespace MCPU.IDE
             }
         }
 
+        public void OnLanguageChanged(string code)
+        {
+            Fctb_SelectionChanged(fctb, null);
+
+            fctb_host.Error = fctb_host.Error;
+
+            // TODO : refresh other stuff 
+        }
+
         #region MENU ITEMS
 
         private void mie_zoom_in_Click(object sender, ExecutedRoutedEventArgs e) => fctb.Zoom = (int)(fctb.Zoom * 1.2);
@@ -367,7 +379,7 @@ namespace MCPU.IDE
                 }
         }
 
-        private void mif_settings(object sender, ExecutedRoutedEventArgs e) => new SettingsWindow().ShowDialog();
+        private void mif_settings(object sender, ExecutedRoutedEventArgs e) => new SettingsWindow(this).ShowDialog();
 
         private void mif_exit(object sender, ExecutedRoutedEventArgs e) => Close();
 

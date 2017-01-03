@@ -48,6 +48,6 @@
                 </Hyperlink.Inlines>
             </Hyperlink>
         </TextBlock>
-        <Button Content="{DynamicResource global_close}" Canvas.Left="380" Canvas.Top="211" Width="100" Height="20"/>
+        <Button Content="{DynamicResource global_close}" Canvas.Left="380" Canvas.Top="211" Width="100" Height="20" Click="Button_Click"/>
     </Canvas>
 </Window>

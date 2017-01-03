@@ -217,5 +217,11 @@
   <ItemGroup>
     <None Include="Resources\autocomp_label.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\de-de.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\en-gb.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
