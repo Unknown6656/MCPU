@@ -96,7 +96,9 @@ namespace MCPU.IDE
             // mif_new(null, null);
 
             fctb_host.Select();
+            fctb_host.Focus();
             fctb.Select();
+            fctb.Focus();
 
             Compile(fctb.Text, true);
         }

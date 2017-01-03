@@ -13,15 +13,40 @@
         Title="{DynamicResource sw_title}" Height="281" Width="520">
     <Window.Resources>
         <SolidColorBrush x:Key="bg_brush" Color="{DynamicResource BG}"/>
-        <ControlTemplate x:Key="lst_tmplt" TargetType="ListBoxItem">
-            <ListBoxItem Padding="0" Margin="0">
-                <Label Content="{TemplateBinding Content}" Padding="0" Margin="0" Foreground="{DynamicResource FG}"/>
-            </ListBoxItem>
-        </ControlTemplate>
+        <Style TargetType="ListViewItem">
+            <Setter Property="Padding" Value="5,2"/>
+            <Setter Property="Foreground" Value="{DynamicResource FG}"/>
+        </Style>
     </Window.Resources>
     <Canvas Height="241" Width="490" VerticalAlignment="Top" HorizontalAlignment="Left">
-        <Label Content="{DynamicResource sw_applang}" Width="200" Foreground="{DynamicResource FG}" Canvas.Left="10" Canvas.Top="10" Height="26"/>
-        <ListBox x:Name="lst_lang" Height="165" Width="200" Canvas.Top="41" Foreground="{DynamicResource FG}" SelectionChanged="lst_lang_SelectionChanged" Padding="0" Margin="0" Background="#303030" BorderThickness="1" Canvas.Left="10"/>
+        <Label Content="{DynamicResource sw_applang}" Width="260" Foreground="{DynamicResource FG}" Canvas.Left="10" Canvas.Top="10" Height="26"/>
+        <ListView x:Name="lst_lang" Height="165" Width="260" Canvas.Top="41" Foreground="{DynamicResource FG}" SelectionChanged="lst_lang_SelectionChanged"
+                  Padding="0" Margin="0" Background="#303030" BorderThickness="1" Canvas.Left="10">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <Grid Width="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListViewItem}},Path=ActualWidth}">
+                        <Image Source="{Binding Image}" Width="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListViewItem}},Path=ActualWidth}"
+                               Opacity="0.2" HorizontalAlignment="Stretch" Height="32" Stretch="Fill">
+                            <Image.Effect>
+                                <BlurEffect/>
+                            </Image.Effect>
+                        </Image>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                            <Image Source="{Binding Image}" Width="48" Height="32" Opacity="0.9" Stretch="Fill"/>
+                            <TextBlock Margin="10,0">
+                                <Bold>
+                                    <Run Text="{Binding VisibleName}"/>
+                                </Bold>
+                                <LineBreak/>
+                                <Italic>
+                                    (<Run Text="{Binding Code}"/>)
+                                </Italic>
+                            </TextBlock>
+                        </StackPanel>
+                    </Grid>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
         <Button Content="{DynamicResource global_cancel}" Canvas.Left="380" Canvas.Top="211" Width="100" Height="20" Click="Button_cancel_Click"/>
         <Button Content="{DynamicResource global_reset}" Canvas.Left="170" Canvas.Top="211" Width="100" Height="20" Click="Button_reset_Click"/>
         <Button Content="{DynamicResource global_ok}" Canvas.Left="275" Canvas.Top="211" Width="100" Height="20" Click="Button_save_Click"/>

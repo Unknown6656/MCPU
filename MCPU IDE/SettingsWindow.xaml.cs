@@ -23,7 +23,7 @@ namespace MCPU.IDE
     public partial class SettingsWindow
         : Window
     {
-        internal (string, int) settings;
+        internal (string, int, int) settings;
 
 
         public SettingsWindow(MainWindow mainWindow)
@@ -31,7 +31,7 @@ namespace MCPU.IDE
             InitializeComponent();
 
             Owner = mainWindow;
-            settings = (Settings.Default.Language, Settings.Default.MemorySize);
+            settings = (Settings.Default.Language, Settings.Default.MemorySize, Settings.Default.CallStackSize);
         }
         
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -40,17 +40,24 @@ namespace MCPU.IDE
             lst_lang.Items.Clear();
 
             foreach (string lang in App.available_languages)
-                lst_lang.Items.Add(new ListBoxItem {
-                    Content = lang,
-                    IsSelected = lang.Equals("lang_code".GetStr(), StringComparison.InvariantCultureIgnoreCase),
+                lst_lang.Items.Add(new LanguageInfo
+                {
+                    Code = lang,
+                    VisibleName = "<<< TODO >>>",
+                    Image = new BitmapImage(new Uri($"Resources/{lang}.png", UriKind.RelativeOrAbsolute)),
                 });
+
+            lst_lang.SelectedItem = (from LanguageInfo i in lst_lang.Items
+                                     where i.Code.Equals("lang_code".GetStr(), StringComparison.InvariantCultureIgnoreCase)
+                                     select i).FirstOrDefault();
+            lst_lang.Focus();
         }
         
         private void lst_lang_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (lst_lang.SelectedIndex != -1)
             {
-                settings.Item1 = (lst_lang.SelectedItem as ListBoxItem)?.Content as string ?? LanguageExtensions.DEFAULT_LANG;
+                settings.Item1 = (lst_lang.SelectedItem as LanguageInfo)?.Code as string ?? LanguageExtensions.DEFAULT_LANG;
 
                 (Application.Current as App).ChangeLanguage(settings.Item1);
             }
@@ -63,11 +70,19 @@ namespace MCPU.IDE
         private void Button_save_Click(object sender, RoutedEventArgs e)
         {
             (Settings.Default.Language,
-             Settings.Default.MemorySize) = settings;
+             Settings.Default.MemorySize,
+             Settings.Default.CallStackSize) = settings;
             
             App.UpdateSaveSettings();
 
             Close();
         }
+    }
+
+    public class LanguageInfo
+    {
+        public string Code { set; get; }
+        public string VisibleName { set; get; }
+        public ImageSource Image { set; get; }
     }
 }

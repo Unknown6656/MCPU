@@ -18,6 +18,8 @@ using System;
 
 using MCPU.Compiler;
 
+using static System.Math;
+
 using Settings = MCPU.IDE.Properties.Settings;
 
 namespace MCPU.IDE
@@ -28,8 +30,9 @@ namespace MCPU.IDE
     public partial class App
         : Application
     {
-        internal static readonly (string, int) DEFAULT_SETTINGS = (LanguageExtensions.DEFAULT_LANG, 0x100000 /* 4MB */);
-
+        internal static readonly (string, int, int) DEFAULT_SETTINGS = (LanguageExtensions.DEFAULT_LANG,
+                                                                        0x00100000, // 4 MB
+                                                                        0x00020000); // 512 KB
         internal static Dictionary<string, string> def_compiler_table = typeof(MCPUCompiler).GetField("__defstrtable", BindingFlags.Static | BindingFlags.NonPublic)
                                                                                             .GetValue(null) as Dictionary<string, string>;
         internal static List<string> available_languages = new List<string>();
@@ -45,20 +48,10 @@ namespace MCPU.IDE
 
             AddResources();
             
-            Settings.Default.Language = Settings.Default?.Language ?? DEFAULT_SETTINGS.Item1;
-            Settings.Default.MemorySize = Settings.Default?.MemorySize ?? DEFAULT_SETTINGS.Item2;
-
             UpdateSaveSettings();
             ChangeLanguage(Settings.Default.Language);
 
             base.OnStartup(args);
-        }
-
-        protected override void OnExit(ExitEventArgs e)
-        {
-            IDE.Properties.Settings.Default.Language = "lang_code".GetStr();
-
-            base.OnExit(e);
         }
         
         internal static void AddResources()
@@ -84,6 +77,9 @@ namespace MCPU.IDE
 
         internal static void UpdateSaveSettings()
         {
+            Settings.Default.Language = Settings.Default?.Language ?? DEFAULT_SETTINGS.Item1;
+            Settings.Default.MemorySize = Max(512, Min(Processor.MAX_MEMSZ, Settings.Default?.MemorySize ?? DEFAULT_SETTINGS.Item2));
+            Settings.Default.CallStackSize = Max(512, Min(Processor.MAX_STACKSZ, Settings.Default?.MemorySize ?? DEFAULT_SETTINGS.Item3));
             Settings.Default.Save();
             Settings.Default.Reload();
         }
