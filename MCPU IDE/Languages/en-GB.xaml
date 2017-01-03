@@ -8,7 +8,10 @@
     <s:String x:Key="global_error_in">Error on {0} {1}</s:String>
     <s:String x:Key="global_abbrv_ln">Ln.</s:String>
     <s:String x:Key="global_abbrv_ch">Ch.</s:String>
+    <s:String x:Key="global_cancel">Cancel</s:String>
+    <s:String x:Key="global_ok">OK</s:String>
     <s:String x:Key="global_close">Close</s:String>
+    <s:String x:Key="global_reset">Reset</s:String>
     <s:String x:Key="global_copyright">Copyright</s:String>
     <ResourceDictionary x:Key="global_compiler_msg">
         <!-- NOTHING TO DO, AS EN-GB IS THE DEFAULT LANGUAGE -->
@@ -82,6 +85,7 @@
     <s:String x:Key="aw_fctb_desc">FastColoredTextBox-Project</s:String>
 
     <s:String x:Key="sw_title">MCPU IDE - Settings</s:String>
+    <s:String x:Key="sw_applang">Application language:</s:String>
 
     <s:String x:Key="msg_err">Error</s:String>
     <s:String x:Key="msg_suc">Success</s:String>

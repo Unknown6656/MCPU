@@ -16,14 +16,58 @@ using System.Text;
 using System.IO;
 using System;
 
+using Settings = MCPU.IDE.Properties.Settings;
+
 namespace MCPU.IDE
 {
     public partial class SettingsWindow
         : Window
     {
-        public SettingsWindow()
+        internal (string, int) settings;
+
+
+        public SettingsWindow(MainWindow mainWindow)
         {
             InitializeComponent();
+
+            Owner = mainWindow;
+            settings = (Settings.Default.Language, Settings.Default.MemorySize);
+        }
+        
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            lst_lang.SelectionMode = SelectionMode.Single;
+            lst_lang.Items.Clear();
+
+            foreach (string lang in App.available_languages)
+                lst_lang.Items.Add(new ListBoxItem {
+                    Content = lang,
+                    IsSelected = lang.Equals("lang_code".GetStr(), StringComparison.InvariantCultureIgnoreCase),
+                });
+        }
+        
+        private void lst_lang_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (lst_lang.SelectedIndex != -1)
+            {
+                settings.Item1 = (lst_lang.SelectedItem as ListBoxItem)?.Content as string ?? LanguageExtensions.DEFAULT_LANG;
+
+                (Application.Current as App).ChangeLanguage(settings.Item1);
+            }
+        }
+        
+        private void Button_cancel_Click(object sender, RoutedEventArgs e) => Close();
+
+        private void Button_reset_Click(object sender, RoutedEventArgs e) => settings = App.DEFAULT_SETTINGS;
+
+        private void Button_save_Click(object sender, RoutedEventArgs e)
+        {
+            (Settings.Default.Language,
+             Settings.Default.MemorySize) = settings;
+            
+            App.UpdateSaveSettings();
+
+            Close();
         }
     }
 }

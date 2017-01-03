@@ -18,6 +18,8 @@ using System;
 
 using MCPU.Compiler;
 
+using Settings = MCPU.IDE.Properties.Settings;
+
 namespace MCPU.IDE
 {
     /// <summary>
@@ -26,8 +28,11 @@ namespace MCPU.IDE
     public partial class App
         : Application
     {
+        internal static readonly (string, int) DEFAULT_SETTINGS = (LanguageExtensions.DEFAULT_LANG, 0x100000 /* 4MB */);
+
         internal static Dictionary<string, string> def_compiler_table = typeof(MCPUCompiler).GetField("__defstrtable", BindingFlags.Static | BindingFlags.NonPublic)
                                                                                             .GetValue(null) as Dictionary<string, string>;
+        internal static List<string> available_languages = new List<string>();
         internal ResourceDictionary previousdir = null;
         
 
@@ -38,9 +43,13 @@ namespace MCPU.IDE
 
             container.ComposeParts(LanguageImportModule.Instance);
 
-            ChangeLanguage(IDE.Properties.Settings.Default?.Language ?? LanguageExtensions.DEFAULT_LANG);
+            AddResources();
+            
+            Settings.Default.Language = Settings.Default?.Language ?? DEFAULT_SETTINGS.Item1;
+            Settings.Default.MemorySize = Settings.Default?.MemorySize ?? DEFAULT_SETTINGS.Item2;
 
-            AddImageResources();
+            UpdateSaveSettings();
+            ChangeLanguage(Settings.Default.Language);
 
             base.OnStartup(args);
         }
@@ -51,8 +60,8 @@ namespace MCPU.IDE
 
             base.OnExit(e);
         }
-
-        internal static void AddImageResources()
+        
+        internal static void AddResources()
         {
             Assembly asm = typeof(App).Assembly;
             string resbase = asm.GetName().Name + ".g.resources";
@@ -69,14 +78,24 @@ namespace MCPU.IDE
                             Height = img_size,
                             Source = new BitmapImage(new Uri($"Resources/{m.Groups["name"]}.{m.Groups["ext"]}", UriKind.RelativeOrAbsolute)),
                         });
+                    else if ((m = Regex.Match(res, @"\/(?<name>.+)\.[xb]aml$", RegexOptions.Compiled | RegexOptions.IgnoreCase)).Success)
+                        available_languages.Add(m.Groups["name"].ToString());
+        }
+
+        internal static void UpdateSaveSettings()
+        {
+            Settings.Default.Save();
+            Settings.Default.Reload();
         }
 
         /// <summary>
         /// Changes the application's language to the given language (if found)
         /// </summary>
         /// <param name="code">New language code</param>
-        public void ChangeLanguage(string code)
+        public void ChangeLanguage(string code = null)
         {
+            code = code ?? LanguageExtensions.DEFAULT_LANG;
+
             var resdir = (from d in LanguageImportModule.Instance.ResourceDictionaryList
                           where d.Metadata.ContainsKey("Culture") &&
                                 d.Metadata["Culture"].ToString().ToLower() == code.ToLower()
@@ -101,7 +120,12 @@ namespace MCPU.IDE
 
             foreach (Window hwnd in Current.Windows)
                 if (hwnd != null)
+                {
                     hwnd.Language = XmlLanguage.GetLanguage(CultureInfo.CurrentCulture.IetfLanguageTag);
+
+                    if (hwnd is ILanguageSensitiveWindow ilswnd)
+                        ilswnd.OnLanguageChanged(code);
+                }
 
             ResourceDictionary compiler_dic = Current.Resources["global_compiler_msg"] as ResourceDictionary;
             Dictionary<string, string> compiler_table = (from object key in compiler_dic?.Keys ?? new object[0]
@@ -159,5 +183,17 @@ namespace MCPU.IDE
         /// </summary>
         [ImportMany(typeof(ResourceDictionary))]
         public IEnumerable<Lazy<ResourceDictionary, IDictionary<string, object>>> ResourceDictionaryList { get; set; }
+    }
+
+    /// <summary>
+    /// Represents a interface, which can notify the targeted window (or any other class) of language changements
+    /// </summary>
+    public interface ILanguageSensitiveWindow
+    {
+        /// <summary>
+        /// Event handler, which will be called if the language changes to the given code
+        /// </summary>
+        /// <param name="code">New language code</param>
+        void OnLanguageChanged(string code);
     }
 }

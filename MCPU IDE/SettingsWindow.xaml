@@ -5,13 +5,25 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MCPU.IDE"
         mc:Ignorable="d"
-        Background="{DynamicResource bg_brush}"
-        Foreground="{DynamicResource FG}"
+        ResizeMode="NoResize"
+        Loaded="Window_Loaded"
         WindowStartupLocation="CenterOwner"
-        Title="{DynamicResource sw_title}" Height="300" Width="500">
+        Foreground="{DynamicResource FG}"
+        Background="{DynamicResource bg_brush}"
+        Title="{DynamicResource sw_title}" Height="281" Width="520">
     <Window.Resources>
         <SolidColorBrush x:Key="bg_brush" Color="{DynamicResource BG}"/>
+        <ControlTemplate x:Key="lst_tmplt" TargetType="ListBoxItem">
+            <ListBoxItem Padding="0" Margin="0">
+                <Label Content="{TemplateBinding Content}" Padding="0" Margin="0" Foreground="{DynamicResource FG}"/>
+            </ListBoxItem>
+        </ControlTemplate>
     </Window.Resources>
-    <Grid>
-    </Grid>
+    <Canvas Height="241" Width="490" VerticalAlignment="Top" HorizontalAlignment="Left">
+        <Label Content="{DynamicResource sw_applang}" Width="200" Foreground="{DynamicResource FG}" Canvas.Left="10" Canvas.Top="10" Height="26"/>
+        <ListBox x:Name="lst_lang" Height="165" Width="200" Canvas.Top="41" Foreground="{DynamicResource FG}" SelectionChanged="lst_lang_SelectionChanged" Padding="0" Margin="0" Background="#303030" BorderThickness="1" Canvas.Left="10"/>
+        <Button Content="{DynamicResource global_cancel}" Canvas.Left="380" Canvas.Top="211" Width="100" Height="20" Click="Button_cancel_Click"/>
+        <Button Content="{DynamicResource global_reset}" Canvas.Left="170" Canvas.Top="211" Width="100" Height="20" Click="Button_reset_Click"/>
+        <Button Content="{DynamicResource global_ok}" Canvas.Left="275" Canvas.Top="211" Width="100" Height="20" Click="Button_save_Click"/>
+    </Canvas>
 </Window>
