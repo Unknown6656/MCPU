@@ -989,6 +989,34 @@ namespace MCPU
         /// Indicates that the comparison had only one input (meaning that the first input is zero, and the second one is the 'real' input)
         /// </summary>
         Unary = 0b0000_0001_0000_0000,
+        /// <summary>
+        /// Indicates that the comparison is comparing two floating-point inputs instead of integer ones
+        /// </summary>
+        Float = 0b0000_0000_1000_0000,
+        /// <summary>
+        /// Indicates that the first comparison input is not a (floating-point) number
+        /// </summary>
+        NaN1 = 0b0000_0000_0100_0000,
+        /// <summary>
+        /// Indicates that the second comparison input is not a (floating-point) number
+        /// </summary>
+        NaN2 = 0b0000_0000_0010_0000,
+        /// <summary>
+        /// Indicates that the first comparison input is equal to infinity (positive or negative)
+        /// </summary>
+        Infinity1 = 0b0000_0000_0001_0000,
+        /// <summary>
+        /// Indicates that the second comparison input is equal to infinity (positive or negative)
+        /// </summary>
+        Infinity2 = 0b0000_0000_0000_1000,
+        /// <summary>
+        /// Indicates that the first comparison input is equal to negative infinity
+        /// </summary>
+        NegativeInfinity1 = Sign1 | Infinity1,
+        /// <summary>
+        /// Indicates that the second comparison input is equal to negative infinity
+        /// </summary>
+        NegativeInfinity2 = Sign2 | Infinity2,
 
 
         /// <summary>
