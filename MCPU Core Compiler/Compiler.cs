@@ -91,6 +91,7 @@ namespace MCPU.Compiler
             { "LINE_NPARSED", "The line '{0}' could not be parsed." },
             { "MAIN_TOKEN_MISSING", "The '.main'-token is missing." },
             { "INLINE_NYET_SUPP", "'.inline' not supported yet" },
+            { "FUNC_RESV_NAME", "The name '{0}' is reserved and can therefore not be used as function name." }
         };
         internal static Dictionary<string, string> __strtable;
 
@@ -231,7 +232,9 @@ namespace MCPU.Compiler
                         else
                         {
                             labels[name] = um.Item3;
-                            unmapped.Remove(um);
+
+                            if (unmapped.Contains(um))
+                                unmapped.Remove(um);
                         }
 
                         line = line.Remove(match.Index, match.Length);
@@ -271,16 +274,25 @@ namespace MCPU.Compiler
                         {
                             bool inline = match.Groups["inline"]?.ToString()?.ToLower()?.Contains("inline") ?? false;
                             string name = match.Groups["name"].ToString().ToLower();
+                            (int, string, int) um = unmapped.FirstOrDefault(_ => _.Item2 == name);
 
-                            if (labels.ContainsKey(name))
-                                return Error(GetString("LABEL_ALREADY_EXISTS", name));
-                            else if (FindFirst(name) != null)
+                            if (name == MAIN_FUNCTION_NAME)
+                                return Error(GetString("FUNC_RESV_NAME", name));
+                            if (FindFirst(name) != null)
                                 return Error(GetString("FUNC_ALREADY_EXISTS", name));
 
+                            if (um.Item2 != name)
+                                if (labels.ContainsKey(name))
+                                    return Error(GetString("LABEL_ALREADY_EXISTS", name));
+                            
                             curr_func = new MCPUFunction(name, OPCodes.NOP) { ID = ++id, IsInlined = inline, DefinedLine = linenr + 1 };
                             is_func = 1;
 
                             functions.Add(curr_func);
+
+                            if (um.Item2 == name)
+                                if (unmapped.Contains(um))
+                                    unmapped.Remove(um);
                         }
                     else if ((match = END_FUNC_REGEX.Match(line)).Success)
                         if (is_func != 0)

@@ -16,7 +16,7 @@ bld/
 [Oo]bj/
 [Ll]og/
 
-# .vs/
+.vs/
 
 [Tt]est[Rr]esult*/
 [Bb]uild[Ll]og.*

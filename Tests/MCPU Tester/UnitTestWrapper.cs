@@ -1,10 +1,10 @@
-﻿using System;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Reflection;
+using System.Linq;
+using System.Text;
+using System;
 
 namespace MCPU
 {
@@ -12,14 +12,14 @@ namespace MCPU
     {
         public static int Main(string[] argv)
         {
-            IEnumerable<Type> types = from t in Assembly.LoadFrom(@"./mcpu.unit-tests.dll").GetTypes()
-                                           let attr = t.GetCustomAttributes<TestClassAttribute>(true).FirstOrDefault()
-                                           where attr != null
-                                           select t;
-
-            foreach (Type t in types)
+            foreach (Type t in from t in typeof(Testing.Commons).Assembly.GetTypes()
+                               let attr = t.GetCustomAttributes<TestClassAttribute>(true).FirstOrDefault()
+                               where attr != null
+                               orderby t.Name ascending
+                               select t)
             {
                 dynamic container = Activator.CreateInstance(t);
+                MethodInfo init = t.GetMethod("Test_Init");
 
                 Console.WriteLine($"Testing class '{t.FullName}' ...");
 
@@ -30,6 +30,7 @@ namespace MCPU
 
                         try
                         {
+                            init.Invoke(container, new object[0]);
                             nfo.Invoke(container, new object[0]);
 
                             Console.WriteLine("\t\tOK");
