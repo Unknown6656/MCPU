@@ -36,6 +36,12 @@ namespace MCPU.IDE
         
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            mtb_memsz.Text = settings.Item2.ToString();
+            mtb_memsz.TextChanged += MaskedTextBox_TextChanged;
+            
+            mtb_stacksz.Text = settings.Item3.ToString();
+            mtb_stacksz.TextChanged += MaskedTextBox_TextChanged;
+
             lst_lang.SelectionMode = SelectionMode.Single;
             lst_lang.Items.Clear();
 
@@ -52,7 +58,34 @@ namespace MCPU.IDE
                                      select i).FirstOrDefault();
             lst_lang.Focus();
         }
-        
+
+        private void MaskedTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (sender is TextBox mtb)
+            {
+                string nv = new string((from c in mtb.Text
+                                        where char.IsDigit(c)
+                                        select c).ToArray());
+                // int len = mtb == mtb_memsz ? 10 : 7;
+                // mtb.Text = nv.Length > len ? nv.Remove(len) : nv;
+
+                if (nv.Length == 0)
+                    nv = "0";
+
+                mtb.Text = nv;
+
+                long val = long.Parse(nv);
+
+                if (val > int.MaxValue)
+                    val = int.MaxValue;
+
+                if (mtb == mtb_memsz)
+                    settings.Item2 = (int)val;
+                else
+                    settings.Item3 = (int)val;
+            }
+        }
+
         private void lst_lang_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (lst_lang.SelectedIndex != -1)

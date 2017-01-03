@@ -8,6 +8,7 @@
     <s:String x:Key="global_error_in">Fehler in {0} {1}</s:String>
     <s:String x:Key="global_abbrv_ln">Z.</s:String>
     <s:String x:Key="global_abbrv_ch">$</s:String>
+    <s:String x:Key="global_bytes">Bytes</s:String>
     <s:String x:Key="global_cancel">Abbrechen</s:String>
     <s:String x:Key="global_ok">OK</s:String>
     <s:String x:Key="global_close">Schließen</s:String>
@@ -105,6 +106,9 @@
 
     <s:String x:Key="sw_title">MCPU Entwicklungsumgebung - Einstellungen</s:String>
     <s:String x:Key="sw_applang">Anwendungssprache:</s:String>
+    <s:String x:Key="sw_procsett">Prozessoreinstellungen:</s:String>
+    <s:String x:Key="sw_memsz">Speichergröße:</s:String>
+    <s:String x:Key="sw_stacksz">Aufrufstapelgröße:</s:String>
 
     <s:String x:Key="msg_err">Fehler</s:String>
     <s:String x:Key="msg_suc">OK<!-- TODO --></s:String>
