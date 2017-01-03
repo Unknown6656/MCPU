@@ -36,6 +36,10 @@ namespace MCPU
         /// </summary>
         public bool SpecialIPHandling { get; }
         /// <summary>
+        /// Returns whether the OP code shall be used as a keyword inside an IDE
+        /// </summary>
+        public bool IsKeyword { get; }
+        /// <summary>
         /// Returns the argument count
         /// </summary>
         public int RequiredArguments { get; }
@@ -86,6 +90,7 @@ namespace MCPU
                 Number = attr?.Number ?? throw new InvalidProgramException($"The OP-code {Token} must define an number using the {typeof(OPCodeNumberAttribute).FullName}");
                 RequiresEleveation = (from v in t.GetCustomAttributes(true) where v is RequiresPrivilegeAttribute select true).FirstOrDefault();
                 SpecialIPHandling = (from v in t.GetCustomAttributes(true) where v is SpecialIPHandlingAttribute select true).FirstOrDefault();
+                IsKeyword = (from v in t.GetCustomAttributes(true) where v is KeywordAttribute select true).FirstOrDefault();
             }
         }
 
@@ -473,6 +478,15 @@ namespace MCPU
         public static implicit operator (OPCode, InstructionArgument[]) (Instruction ins) => (ins.OPCode, ins.Arguments);
 
         public static implicit operator (ushort, InstructionArgument[]) (Instruction ins) => (ins.OPCode.Number, ins.Arguments);
+    }
+
+    /// <summary>
+    /// Indicates the IDE's autocompletetion menu, that the targeted OP code shall be used and highlighted as a keyword
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true), Serializable]
+    public class KeywordAttribute
+        : Attribute
+    {
     }
 
     /// <summary>

@@ -44,7 +44,9 @@ namespace MCPU.IDE
             { style_comments, REGEX_COMMENT },
             { style_stoken, REGEX_STOKEN },
             { style_param, REGEX_PARAM },
-            { style_kword, $@"({REGEX_FUNC}|{REGEX_END_FUNC}|\b((sys)?call|halt|ret|reset|___main)\b)" },
+            { style_kword, $@"({REGEX_FUNC}|{REGEX_END_FUNC}|\b({string.Join("|", from opc in OPCodes.CodesByID.Values
+                                                                                  where opc.IsKeyword
+                                                                                  select opc.Token.ToLower())}|___main)\b)" },
             // { style_labels, @"(^(\s|\b)+\w+\:|(?:\bfunc\s+)\w+\s*$)" },
             { style_float, $@"\b({MCPUCompiler.FLOAT_CORE})\b" },
             { style_int, $@"\b({MCPUCompiler.INTEGER_CORE})\b" },
@@ -152,13 +154,36 @@ namespace MCPU.IDE
             std_autocompitems = (from kvp in OPCodes.CodesByToken
                                  where kvp.Value != OPCodes.KERNEL
                                  let nv = kvp.Key.Replace("@", "")
+                                 let kv = kvp.Value.IsKeyword
                                  select new AutocompleteItem
                                  {
                                      Text = nv,
                                      MenuText = nv,
-                                     ToolTipTitle = $"Instruction '{nv}'",
-                                     ToolTipText = $"The instrucion {kvp.Value}",
-                                     ImageIndex = GetImageIndex("opcode"),
+                                     ToolTipText = "autocomp_instr".GetStr(nv, kvp.Value),
+                                     ImageIndex = GetImageIndex(kv ? "keyword" : "opcode"),
+                                 }).Concat(new AutocompleteItem[]
+                                 {
+                                     new AutocompleteItem
+                                     {
+                                         Text = ".main",
+                                         MenuText = ".main",
+                                         ToolTipText = "autocomp_main".GetStr(),
+                                         ImageIndex = GetImageIndex("directive"),
+                                     },
+                                     new AutocompleteItem
+                                     {
+                                         Text = ".kernel",
+                                         MenuText = ".kernel",
+                                         ToolTipText = "autocomp_kernel".GetStr(),
+                                         ImageIndex = GetImageIndex("directive"),
+                                     },
+                                     new AutocompleteItem
+                                     {
+                                         Text = ".user",
+                                         MenuText = ".user",
+                                         ToolTipText = "autocomp_user".GetStr(),
+                                         ImageIndex = GetImageIndex("directive"),
+                                     },
                                  }).ToArray();
 
             UpdateAutocomplete();
@@ -229,7 +254,8 @@ namespace MCPU.IDE
                                                      ToolTipText = "autocomp_label".GetStr(l.Name, l, l.DefinedLine),
                                                      ImageIndex = GetImageIndex("label"),
                                                  })
-                                         .Concat(std_autocompitems));
+                                         .Concat(std_autocompitems)
+                                         .OrderBy(_ => _.Text));
             autocomp.Items.Invalidate();
         }   
 

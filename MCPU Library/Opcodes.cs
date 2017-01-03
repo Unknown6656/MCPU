@@ -18,7 +18,7 @@ namespace MCPU.Instructions
         }
     }
 
-    [OPCodeNumber(0x0001), SpecialIPHandling]
+    [OPCodeNumber(0x0001), SpecialIPHandling, Keyword]
     public sealed class halt
         : OPCode
     {
@@ -71,7 +71,7 @@ namespace MCPU.Instructions
         }
     }
 
-    [OPCodeNumber(0x0005), RequiresPrivilege]
+    [OPCodeNumber(0x0005), RequiresPrivilege, Keyword]
     public sealed class syscall
         : OPCode
     {
@@ -85,7 +85,7 @@ namespace MCPU.Instructions
         }
     }
 
-    [OPCodeNumber(0x0006), SpecialIPHandling]
+    [OPCodeNumber(0x0006), SpecialIPHandling, Keyword]
     public sealed unsafe class call
         : OPCode
     {
@@ -111,7 +111,7 @@ namespace MCPU.Instructions
         }
     }
 
-    [OPCodeNumber(0x0007), SpecialIPHandling]
+    [OPCodeNumber(0x0007), SpecialIPHandling, Keyword]
     public sealed class ret
         : OPCode
     {
@@ -801,7 +801,7 @@ namespace MCPU.Instructions
         }
     }
 
-    [OPCodeNumber(0x003f), RequiresPrivilege]
+    [OPCodeNumber(0x003f), RequiresPrivilege, Keyword]
     public sealed class reset
         : OPCode
     {

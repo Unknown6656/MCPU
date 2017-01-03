@@ -35,6 +35,10 @@
 
     <s:String x:Key="autocomp_func">Funktion {0}&#10;Die Funktion {1}, welche in Zeile {2} definiert wurde</s:String>
     <s:String x:Key="autocomp_label">Sprungmarke '{0}'&#10;Die Sprungmarke {1}, welche in Zeile {2} definiert wurde</s:String>
+    <s:String x:Key="autocomp_kernel">.kernel-Directive&#10;Gibt dem Prozessor Kernel-Privilegien</s:String>
+    <s:String x:Key="autocomp_user">.user-Directive&#10;Gibt dem Prozessor User-Privilegien</s:String>
+    <s:String x:Key="autocomp_main">Haupteinstiegspunkt&#10;Represäntiert den Haupteinstiegspunkt des Programms</s:String>
+    <s:String x:Key="autocomp_instr">Instruktion '{0}'&#10;Die Assembler-Instruktion {1}</s:String>
 
     <s:String x:Key="mw_title">MCPU Entwicklungsumgebung</s:String>
     <s:String x:Key="mw_file">_DATEI</s:String>
