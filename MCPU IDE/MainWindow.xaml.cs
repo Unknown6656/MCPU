@@ -31,6 +31,7 @@ namespace MCPU.IDE
         , ILanguageSensitiveWindow
     {
         internal FastColoredTextBox fctb => fctb_host.fctb;
+        internal ProcessorWindow watcher;
         internal readonly Setter st_stat;
         internal Processor proc;
         internal IntPtr handle;
@@ -61,7 +62,9 @@ namespace MCPU.IDE
         {
             InitializeComponent();
 
-            InitProcessor(Properties.Settings.Default.MemorySize);
+            watcher = new ProcessorWindow(this);
+
+            InitProcessor();
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -243,19 +246,28 @@ namespace MCPU.IDE
             return res;
         }
 
-        private void DisposeProcessor()
+        internal void DisposeProcessor()
         {
-            proc?.Dispose();
-
+            if (proc != null)
+            {
+                proc.Dispose();
+                proc.OnError -= watcher.Proc_OnError;
+                proc.ProcessorReset -= watcher.Proc_ProcessorReset;
+                proc.InstructionExecuted -= watcher.Proc_InstructionExecuted;
+            }
+            
             GC.Collect();
             GC.WaitForPendingFinalizers();
         }
 
-        private void InitProcessor(int memsz)
+        internal void InitProcessor()
         {
             DisposeProcessor();
 
-            proc = new Processor(memsz);
+            proc = new Processor(Properties.Settings.Default.MemorySize, Properties.Settings.Default.CallStackSize, -1);
+            proc.OnError += watcher.Proc_OnError;
+            proc.ProcessorReset += watcher.Proc_ProcessorReset;
+            proc.InstructionExecuted += watcher.Proc_InstructionExecuted;
         }
 
         private void Compile(string code, bool silent = false)
