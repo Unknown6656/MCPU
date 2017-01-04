@@ -13,6 +13,7 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System;
+using System.Collections;
 
 namespace MCPU
 {
@@ -837,7 +838,9 @@ namespace MCPU
     /// Represents the I/O-port-range of a MCPU-processor
     /// </summary>
     public unsafe class IOPorts
+        : IEnumerable<IOPort>
     {
+        private List<IOPort> plist;
         internal IOPort* ports;
         
 
@@ -889,8 +892,24 @@ namespace MCPU
             this[port] = p;
         }
 
-        internal bool IsInRange(int port) => (port >= 0) && (port < Processor.IO_COUNT);
+        /// <summary>
+        /// Returns an enumerator that iterates through the port collection
+        /// </summary>
+        /// <returns>Generic enumerator</returns>
+        public IEnumerator<IOPort> GetEnumerator()
+        {
+            for (int i = 0; i < Processor.IO_COUNT; i++)
+                yield return this[i];
+        }
 
+        /// <summary>
+        /// Returns an enumerator that iterates through the port collection
+        /// </summary>
+        /// <returns>Non-generic enumerator</returns>
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        
+        internal bool IsInRange(int port) => (port >= 0) && (port < Processor.IO_COUNT);
+        
         internal IOPorts(void* ptr) => ports = (IOPort*)ptr;
     }
 
@@ -902,7 +921,12 @@ namespace MCPU
     {
         internal byte raw;
 
-        
+
+        /// <summary>
+        /// Returns the raw value, which represents the current I/O-port
+        /// </summary>
+        public byte Raw => raw;
+
         /// <summary>
         /// Sets or gets the I/O-port's value
         /// </summary>

@@ -51,6 +51,7 @@
         <CommandBinding Command="local:Commands.Reset" Executed="mip_reset"/>
         <CommandBinding Command="local:Commands.About" Executed="mih_about"/>
         <CommandBinding Command="local:Commands.GitHub" Executed="mih_github"/>
+        <CommandBinding Command="local:Commands.ProcessorInfo" Executed="miw_procnfo"/>
         <CommandBinding Command="local:Commands.InsertDelete" Executed="global_insert"/>
     </Window.CommandBindings>
     <DockPanel>
@@ -103,7 +104,7 @@
                 <MenuItem Header="{DynamicResource mw_processor_stop}" Command="local:Commands.Stop"/>
                 <MenuItem Header="{DynamicResource mw_processor_reset}" Command="local:Commands.Reset"/>
                 <Separator/>
-                <MenuItem Header="{DynamicResource mw_processor_memmap}"/>
+                <MenuItem Header="{DynamicResource mw_processor_memmap}" Command="local:Commands.ProcessorInfo"/>
                 <MenuItem Header="{DynamicResource mw_processor_dump}"/>
                 <MenuItem Header="{DynamicResource mw_processor_loaddump}"/>
             </MenuItem>

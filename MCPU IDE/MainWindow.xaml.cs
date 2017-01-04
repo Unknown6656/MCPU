@@ -435,6 +435,8 @@ namespace MCPU.IDE
 
         private void mih_about(object sender, ExecutedRoutedEventArgs e) => new AboutWindow(this).ShowDialog();
 
+        private void miw_procnfo(object sender, ExecutedRoutedEventArgs e) => watcher.Show();
+
         #endregion
     }
 
@@ -476,6 +478,7 @@ namespace MCPU.IDE
         public static readonly RoutedUICommand DeleteBookmark = create(nameof(DeleteBookmark), Key.B, ModifierKeys.Shift | ModifierKeys.Control);
         public static readonly RoutedUICommand FoldAll = create(nameof(FoldAll), Key.F, ModifierKeys.Alt);
         public static readonly RoutedUICommand UnfoldAll = create(nameof(UnfoldAll), Key.F, ModifierKeys.Alt | ModifierKeys.Shift);
+        public static readonly RoutedUICommand ProcessorInfo = create(nameof(ProcessorInfo), Key.F8, ModifierKeys.None);
     }
 }
 

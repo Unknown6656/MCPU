@@ -230,5 +230,13 @@
   <ItemGroup>
     <Resource Include="Resources\en-gb.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\fr-fr.png" />
+    <Resource Include="Resources\it-it.png" />
+    <Resource Include="Resources\ru-ru.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\zh-cn.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

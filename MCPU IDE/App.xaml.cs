@@ -72,14 +72,14 @@ namespace MCPU.IDE
                             Height = img_size,
                             Source = new BitmapImage(new Uri($"Resources/{m.Groups["name"]}.{m.Groups["ext"]}", UriKind.RelativeOrAbsolute)),
                         });
-                    else if ((m = Regex.Match(res, @"\/(?<name>.+)\.[xb]aml$", RegexOptions.Compiled | RegexOptions.IgnoreCase)).Success)
+                    else if ((m = Regex.Match(res, @"\/(?<code>.+)\.[xb]aml$", RegexOptions.Compiled | RegexOptions.IgnoreCase)).Success)
                         using (Stream ums = GetResourceStream(new Uri(res, UriKind.RelativeOrAbsolute)).Stream)
                         {
                             XmlDocument doc = new XmlDocument();
 
                             doc.Load(ums);
                             
-                            available_languages.Add((m.Groups["name"].ToString(), (from XmlNode nd in doc.FirstChild.ChildNodes
+                            available_languages.Add((m.Groups["code"].ToString(), (from XmlNode nd in doc.FirstChild.ChildNodes
                                                                                    let attr = nd.Attributes
                                                                                    where (from XmlAttribute a in attr
                                                                                           where a.Name == "x:Key"
@@ -87,6 +87,10 @@ namespace MCPU.IDE
                                                                                           select a).FirstOrDefault() != null
                                                                                    select nd).FirstOrDefault()?.InnerText));
                         }
+
+            available_languages = (from l in available_languages
+                                   orderby l.Item1 ascending
+                                   select l).ToList();
         }
 
         internal static void UpdateSaveSettings()
