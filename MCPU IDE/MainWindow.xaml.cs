@@ -295,7 +295,7 @@ namespace MCPU.IDE
                 {
                     proc.Instructions = cmpres.Instructions;
                     
-                    watcher.Proc_InstructionExecuted(proc, OPCodes.NOP);
+                    watcher.Proc_InstructionExecuted(proc, null);
                 }
             }
             else if (!silent)
@@ -434,7 +434,7 @@ namespace MCPU.IDE
         {
             new Task(delegate
             {
-                proc.Process();
+                proc.ProcessWithoutReset();
 
                 // SOME DARK SYNCHRONIZATION MAGIC GOES HERE
 

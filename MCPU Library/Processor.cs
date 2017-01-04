@@ -458,16 +458,15 @@ namespace MCPU
         }
 
         /// <summary>
+        /// Executes the saved instructions
+        /// </summary>
+        public void Process() => Process(Instructions);
+
+        /// <summary>
         /// Executes the given bytes
         /// </summary>
         /// <param name="ins">Bytes to be executed</param>
         public void Process(byte[] bytes) => Process(Instruction.DeserializeMultiple(bytes));
-
-        /// <summary>
-        /// Executes the given bytes without previously resetting the processor
-        /// </summary>
-        /// <param name="ins">Bytes to be executed</param>
-        public void ProcessWithoutReset(byte[] bytes) => ProcessWithoutReset(Instruction.DeserializeMultiple(bytes));
 
         /// <summary>
         /// Executes the given instructions
@@ -478,6 +477,17 @@ namespace MCPU
             Reset();
             ProcessWithoutReset(ins);
         }
+
+        /// <summary>
+        /// Executes the saved instructions without previously resetting the processor
+        /// </summary>
+        public void ProcessWithoutReset() => ProcessWithoutReset(Instructions);
+
+        /// <summary>
+        /// Executes the given bytes without previously resetting the processor
+        /// </summary>
+        /// <param name="ins">Bytes to be executed</param>
+        public void ProcessWithoutReset(byte[] bytes) => ProcessWithoutReset(Instruction.DeserializeMultiple(bytes));
 
         /// <summary>
         /// Executes the given instructions without previously resetting the processor

@@ -35,7 +35,7 @@ namespace MCPU.IDE
         {
 
 
-            Proc_InstructionExecuted(mwin.proc, OPCodes.NOP);
+            Proc_InstructionExecuted(mwin.proc, null);
         }
 
         internal void Proc_InstructionExecuted(Processor p, Instruction args)
@@ -83,7 +83,7 @@ namespace MCPU.IDE
 
         internal void Proc_ProcessorReset(Processor p)
         {
-            Proc_InstructionExecuted(p, OPCodes.NOP);
+            Proc_InstructionExecuted(p, null);
         }
 
         internal void Proc_OnError(Processor p, Exception args)
