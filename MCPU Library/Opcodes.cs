@@ -787,7 +787,7 @@ namespace MCPU.Instructions
         }
     }
     
-    [OPCodeNumber(0x003e)]
+    [OPCodeNumber(0x003e), Keyword]
     public sealed class wait
         : OPCode
     {

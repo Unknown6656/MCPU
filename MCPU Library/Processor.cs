@@ -331,6 +331,25 @@ namespace MCPU
         /// </summary>
         public byte* UserSpace => raw + MEM_OFFS;
 
+        /// <summary>
+        /// Returns the processor's call stack interpreted as `MCPU::FunctionCall`-instances
+        /// </summary>
+        public FunctionCall[] CallStack
+        {
+            get
+            {
+                List<FunctionCall> calls = new List<FunctionCall>();
+
+                while (CanPeekCall())
+                    calls.Add(PopCall());
+
+                foreach (FunctionCall call in (calls as IEnumerable<FunctionCall>).Reverse())
+                    PushCall(call);
+            
+                return calls.ToArray();
+            }
+        }
+
         #endregion
         #region METHODS
 #if WINDOWS
@@ -500,17 +519,20 @@ namespace MCPU
         /// Pushes the given function call onto the callstack
         /// </summary>
         /// <param name="call">Function call</param>
-        public void PushCall(FunctionCall call)
+        public void PushCall(FunctionCall? call)
         {
-            if (StackSize + call.Size > MAX_STACKSZ)
-                throw new StackException("The callstack is not big enough to hold the given element (aka StackOverflowException).");
+            if (call is FunctionCall c)
+            {
+                if (StackSize + c.Size > MAX_STACKSZ)
+                    throw new StackException("The callstack is not big enough to hold the given element (aka StackOverflowException).");
 
-            foreach (int a in call.Arguments)
-                Push(a);
+                foreach (int a in c.Arguments)
+                    Push(a);
 
-            Push(call.Arguments.Length);
-            Push((int)call.SavedFlags);
-            Push(call.ReturnAddress);
+                Push(c.Arguments.Length);
+                Push((int)c.SavedFlags);
+                Push(c.ReturnAddress);
+            }
         }
 
         /// <summary>
@@ -532,7 +554,8 @@ namespace MCPU
         /// <returns>Inner-most function call</returns>
         public FunctionCall PopCall()
         {
-            FunctionCall call = new FunctionCall {
+            FunctionCall call = new FunctionCall
+            {
                 ReturnAddress = Pop(),
                 SavedFlags = (StatusFlags)Pop(),
                 Arguments = new int[Pop()]
@@ -542,6 +565,29 @@ namespace MCPU
                 call.Arguments[i] = Pop();
 
             return call;
+        }
+
+        /// <summary>
+        /// Returns, whether a function call can be peeked (or popped) from the callstack
+        /// </summary>
+        /// <returns>Check result</returns>
+        public bool CanPeekCall()
+        {
+            if (StackSize >= 3)
+            {
+                int ra = Pop();
+                int sf = Pop();
+                int sz = Pop();
+                bool res = StackSize >= sz;
+
+                Push(sz);
+                Push(sf);
+                Push(ra);
+
+                return res;
+            }
+            else
+                return false;
         }
 
         /// <summary>
@@ -621,6 +667,12 @@ namespace MCPU
         /// <param name="arg">Instruction argument</param>
         /// <returns>'Translated' floating-point constant</returns>
         public float TranslateFloatConstant(InstructionArgument arg) => *TranslateFloatAddress(arg);
+
+        /// <summary>
+        /// Returns, whether an integer can be peeked (or popped) from the callstack (UNSAFE!)
+        /// </summary>
+        /// <returns>Check result</returns>
+        public bool CanPeek() => StackSize > 0;
 
         /// <summary>
         /// Pops an integer from the MCPU callstack (UNSAFE!)

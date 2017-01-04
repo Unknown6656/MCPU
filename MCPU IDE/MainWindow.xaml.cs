@@ -106,7 +106,16 @@ namespace MCPU.IDE
             Compile(fctb.Text, true);
         }
 
-        private void Window_Closing(object sender, CancelEventArgs e) => e.Cancel = !Save();
+        private void Window_Closing(object sender, CancelEventArgs e)
+        {
+            e.Cancel = !Save();
+
+            watcher.Close();
+
+            DisposeProcessor();
+
+            Application.Current.Shutdown(0);
+        }
 
         private void global_insert(object sender, ExecutedRoutedEventArgs e)
         {
@@ -283,7 +292,11 @@ namespace MCPU.IDE
                 fctb_host.UpdateAutocomplete();
 
                 if (!silent)
+                {
                     proc.Instructions = cmpres.Instructions;
+                    
+                    watcher.Proc_InstructionExecuted(proc, OPCodes.NOP);
+                }
             }
             else if (!silent)
             {
@@ -419,7 +432,13 @@ namespace MCPU.IDE
 
         private void mip_start(object sender, ExecutedRoutedEventArgs e)
         {
-            proc.Process();
+            new Task(delegate
+            {
+                proc.Process();
+
+                // SOME DARK SYNCHRONIZATION MAGIC GOES HERE
+
+            }).Start();
 
             // SOME ASYNC SHIT HAS TO GO HERE OR EVERYTHING WILL RUN INSIDE THE UI-THREAD --> NOT GOOD !
         }

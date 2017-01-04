@@ -8,10 +8,11 @@
         mc:Ignorable="d"
         ResizeMode="CanMinimize"
         Loaded="Window_Loaded"
+        Closing="Window_Closing"
         WindowStartupLocation="CenterOwner"
         Foreground="{DynamicResource FG}"
         Background="{DynamicResource bg_brush}"
-        Title="{DynamicResource pw_title}" Height="600" Width="900">
+        Title="{DynamicResource pw_title}" Height="800" Width="1700">
     <Window.Resources>
         <Style x:Key="st_data" TargetType="Control">
             <Setter Property="Background" Value="#303030"/>
@@ -28,7 +29,7 @@
         <SolidColorBrush x:Key="bg_brush" Color="{DynamicResource BG}"/>
     </Window.Resources>
     <Canvas Margin="0,0,10,10">
-        <GroupBox Header="Lower Addresses" Height="115" Canvas.Left="10" Canvas.Top="10" Width="864" BorderBrush="{DynamicResource FG}">
+        <GroupBox Header="{DynamicResource pw_gb_addr}" Height="115" Canvas.Left="10" Canvas.Top="10" Width="964" BorderBrush="{DynamicResource FG}">
             <Canvas Height="95">
                 <Label Foreground="{DynamicResource FG}" Content="CPU ID:" Canvas.Left="10" Canvas.Top="10" Width="50"/>
                 <Label Foreground="{DynamicResource FG}" Content="IP:" Canvas.Left="10" Canvas.Top="36" Width="50"/>
@@ -46,12 +47,12 @@
                 <TextBox x:Name="tb_bp" Canvas.Left="205" TextWrapping="Wrap" Text="0x00000000" Canvas.Top="36" Width="80"/>
                 <TextBox x:Name="tb_instrc" Canvas.Left="205" TextWrapping="Wrap" Text="0x00000000" Canvas.Top="62" Width="80"/>
                 <TextBox x:Name="tb_tick" Canvas.Left="345" TextWrapping="Wrap" Text="0x00000000" Canvas.Top="10" Width="80"/>
-                <TextBox x:Name="tb_flags" Canvas.Left="345" TextWrapping="Wrap" Text="0000000000000000 : Empty" Canvas.Top="36" Width="509"/>
-                <TextBox x:Name="tb_info" Canvas.Left="345" TextWrapping="Wrap" Text="0000000000000000 : Empty" Canvas.Top="62" Width="509"/>
+                <TextBox x:Name="tb_flags" Canvas.Left="345" TextWrapping="Wrap" Text="0000000000000000 : Empty" Canvas.Top="36" Width="609"/>
+                <TextBox x:Name="tb_info" Canvas.Left="345" TextWrapping="Wrap" Text="0000000000000000 : Empty" Canvas.Top="62" Width="609"/>
             </Canvas>
         </GroupBox>
-        <GroupBox Header="I/O-Ports" Height="223" Canvas.Left="10" Canvas.Top="130" Width="864" BorderBrush="{DynamicResource FG}">
-            <ListView x:Name="lst_io" Height="180" Margin="10" Style="{StaticResource st_data}">
+        <GroupBox Header="{DynamicResource pw_gb_io}" Height="245" Canvas.Left="10" Canvas.Top="130" Width="964" BorderBrush="{DynamicResource FG}">
+            <ListView x:Name="lst_io" Height="205" Margin="10" Style="{StaticResource st_data}">
                 <ListView.ItemTemplate>
                     <DataTemplate>
                         <GroupBox Header="{Binding PortNumber}" BorderBrush="#555" BorderThickness="1">
@@ -75,10 +76,21 @@
                 </ListView.ItemsPanel>
             </ListView>
         </GroupBox>
-        <GroupBox Header="Userspace Memory" Height="223" Canvas.Left="51" Canvas.Top="364" Width="533" BorderBrush="{DynamicResource FG}">
+        <GroupBox Header="{DynamicResource pw_gb_user}" Height="643" Canvas.Left="979" Canvas.Top="10" Width="695" BorderBrush="{DynamicResource FG}">
             <Canvas>
 
             </Canvas>
+        </GroupBox>
+        <GroupBox Header="Call stack" Canvas.Left="10" Canvas.Top="380" Width="964" BorderBrush="{DynamicResource FG}">
+            <ListView x:Name="lst_call" Style="{StaticResource st_data}" Height="100" Margin="10">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Margin="1" FontFamily="Consolas">
+                            <Run Text="{Binding ReturnAddress}"/> (<Run Text="{Binding Parameters}"/>) : <Run Text="{Binding SavedFlags}"/>
+                        </TextBlock>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
         </GroupBox>
     </Canvas>
 </Window>
