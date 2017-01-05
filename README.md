@@ -26,10 +26,7 @@ This project is a microprocessor emulator, which comes with its own instruction 
     - [x] compiler
     - [x] syntax highlighting
     - [X] multi-language support **(currently in progress)**
-        - [x] English
-        - [x] German
-        - [ ] French
-        - [ ] Russian (?)
-    - [ ] auto-completition **(currently in progress)**
-    - [ ] debugger
+        - See issue #14
+    - [x] auto-completition **(Nearly finished)**
+    - [x] debugger **(currently in progress)**
     - [ ] refractoring
