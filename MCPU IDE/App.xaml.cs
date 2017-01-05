@@ -21,6 +21,7 @@ using MCPU.Compiler;
 using static System.Math;
 
 using Settings = MCPU.IDE.Properties.Settings;
+using System.Xml;
 
 namespace MCPU.IDE
 {
@@ -35,7 +36,7 @@ namespace MCPU.IDE
                                                                         0x00020000); // 512 KB
         internal static Dictionary<string, string> def_compiler_table = typeof(MCPUCompiler).GetField("__defstrtable", BindingFlags.Static | BindingFlags.NonPublic)
                                                                                             .GetValue(null) as Dictionary<string, string>;
-        internal static List<string> available_languages = new List<string>();
+        internal static List<(string, string)> available_languages = new List<(string, string)>();
         internal ResourceDictionary previousdir = null;
         
 
@@ -71,8 +72,25 @@ namespace MCPU.IDE
                             Height = img_size,
                             Source = new BitmapImage(new Uri($"Resources/{m.Groups["name"]}.{m.Groups["ext"]}", UriKind.RelativeOrAbsolute)),
                         });
-                    else if ((m = Regex.Match(res, @"\/(?<name>.+)\.[xb]aml$", RegexOptions.Compiled | RegexOptions.IgnoreCase)).Success)
-                        available_languages.Add(m.Groups["name"].ToString());
+                    else if ((m = Regex.Match(res, @"\/(?<code>.+)\.[xb]aml$", RegexOptions.Compiled | RegexOptions.IgnoreCase)).Success)
+                        using (Stream ums = GetResourceStream(new Uri(res, UriKind.RelativeOrAbsolute)).Stream)
+                        {
+                            XmlDocument doc = new XmlDocument();
+
+                            doc.Load(ums);
+                            
+                            available_languages.Add((m.Groups["code"].ToString(), (from XmlNode nd in doc.FirstChild.ChildNodes
+                                                                                   let attr = nd.Attributes
+                                                                                   where (from XmlAttribute a in attr
+                                                                                          where a.Name == "x:Key"
+                                                                                          where a.Value == "lang_name"
+                                                                                          select a).FirstOrDefault() != null
+                                                                                   select nd).FirstOrDefault()?.InnerText));
+                        }
+
+            available_languages = (from l in available_languages
+                                   orderby l.Item1 ascending
+                                   select l).ToList();
         }
 
         internal static void UpdateSaveSettings()

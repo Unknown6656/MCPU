@@ -624,7 +624,35 @@ namespace MCPU
         /// </summary>
         /// <returns>String representation</returns>
         public override string ToString() => $"({Type}: {Value})";
+        /// <summary>
+        /// Returns the short string representation of the current instruction argument
+        /// </summary>
+        /// <returns>Short string representation</returns>
+        public string ToShortString()
+        {
+            string tostr(InstructionArgument arg, bool wasaddr = false)
+            {
+                string ret = "";
 
+                if (arg.IsInstructionSpace)
+                    return $"{(arg.Type == ArgumentType.Function ? "func" : "label")}::{arg.Value:x8}";
+                else if (arg.IsKernel)
+                    ret = "k";
+
+                arg.Type = arg.KernelInvariantType;
+
+                if (arg.IsAddress)
+                    return ret + $"[{tostr((arg.Value, arg.Type & ~ArgumentType.Address), true)}]";
+                else if (arg.IsIndirect)
+                    return ret + $"[{tostr((arg.Value, arg.Type & ~ArgumentType.Indirect), true)}]";
+                else if (arg.IsParameter)
+                    ret += '$';
+
+                return ret + (wasaddr ? $"{arg.Value:x8}h" : arg.Value.ToString());
+            }
+
+            return tostr(this);
+        }
 
         public static implicit operator int(InstructionArgument arg) => arg.Value;
 

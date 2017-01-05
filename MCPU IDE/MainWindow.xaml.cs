@@ -31,6 +31,7 @@ namespace MCPU.IDE
         , ILanguageSensitiveWindow
     {
         internal FastColoredTextBox fctb => fctb_host.fctb;
+        internal ProcessorWindow watcher;
         internal readonly Setter st_stat;
         internal Processor proc;
         internal IntPtr handle;
@@ -61,7 +62,9 @@ namespace MCPU.IDE
         {
             InitializeComponent();
 
-            InitProcessor(Properties.Settings.Default.MemorySize);
+            watcher = new ProcessorWindow(this);
+
+            InitProcessor();
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -103,7 +106,16 @@ namespace MCPU.IDE
             Compile(fctb.Text, true);
         }
 
-        private void Window_Closing(object sender, CancelEventArgs e) => e.Cancel = !Save();
+        private void Window_Closing(object sender, CancelEventArgs e)
+        {
+            e.Cancel = !Save();
+
+            watcher.Close();
+
+            DisposeProcessor();
+
+            Application.Current.Shutdown(0);
+        }
 
         private void global_insert(object sender, ExecutedRoutedEventArgs e)
         {
@@ -243,19 +255,28 @@ namespace MCPU.IDE
             return res;
         }
 
-        private void DisposeProcessor()
+        internal void DisposeProcessor()
         {
-            proc?.Dispose();
-
+            if (proc != null)
+            {
+                proc.Dispose();
+                proc.OnError -= watcher.Proc_OnError;
+                proc.ProcessorReset -= watcher.Proc_ProcessorReset;
+                proc.InstructionExecuted -= watcher.Proc_InstructionExecuted;
+            }
+            
             GC.Collect();
             GC.WaitForPendingFinalizers();
         }
 
-        private void InitProcessor(int memsz)
+        internal void InitProcessor()
         {
             DisposeProcessor();
 
-            proc = new Processor(memsz);
+            proc = new Processor(Properties.Settings.Default.MemorySize, Properties.Settings.Default.CallStackSize, -1);
+            proc.OnError += watcher.Proc_OnError;
+            proc.ProcessorReset += watcher.Proc_ProcessorReset;
+            proc.InstructionExecuted += watcher.Proc_InstructionExecuted;
         }
 
         private void Compile(string code, bool silent = false)
@@ -271,7 +292,11 @@ namespace MCPU.IDE
                 fctb_host.UpdateAutocomplete();
 
                 if (!silent)
+                {
                     proc.Instructions = cmpres.Instructions;
+                    
+                    watcher.Proc_InstructionExecuted(proc, null);
+                }
             }
             else if (!silent)
             {
@@ -407,7 +432,13 @@ namespace MCPU.IDE
 
         private void mip_start(object sender, ExecutedRoutedEventArgs e)
         {
-            proc.Process();
+            new Task(delegate
+            {
+                proc.ProcessWithoutReset();
+
+                // SOME DARK SYNCHRONIZATION MAGIC GOES HERE
+
+            }).Start();
 
             // SOME ASYNC SHIT HAS TO GO HERE OR EVERYTHING WILL RUN INSIDE THE UI-THREAD --> NOT GOOD !
         }
@@ -422,6 +453,8 @@ namespace MCPU.IDE
         internal void mih_github(object sender, ExecutedRoutedEventArgs e) => Process.Start("github_base_url".GetStr()).Dispose();
 
         private void mih_about(object sender, ExecutedRoutedEventArgs e) => new AboutWindow(this).ShowDialog();
+
+        private void miw_procnfo(object sender, ExecutedRoutedEventArgs e) => watcher.Show();
 
         #endregion
     }
@@ -464,6 +497,7 @@ namespace MCPU.IDE
         public static readonly RoutedUICommand DeleteBookmark = create(nameof(DeleteBookmark), Key.B, ModifierKeys.Shift | ModifierKeys.Control);
         public static readonly RoutedUICommand FoldAll = create(nameof(FoldAll), Key.F, ModifierKeys.Alt);
         public static readonly RoutedUICommand UnfoldAll = create(nameof(UnfoldAll), Key.F, ModifierKeys.Alt | ModifierKeys.Shift);
+        public static readonly RoutedUICommand ProcessorInfo = create(nameof(ProcessorInfo), Key.F8, ModifierKeys.None);
     }
 }
 

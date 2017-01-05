@@ -109,6 +109,9 @@
     <Compile Include="DarkTooltip.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="ProcessorWindow.xaml.cs">
+      <DependentUpon>ProcessorWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="SettingsWindow.xaml.cs">
       <DependentUpon>SettingsWindow.xaml</DependentUpon>
     </Compile>
@@ -160,10 +163,14 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Languages\de-DE.xaml">
+    <Resource Include="Languages\de-DE.xaml">
       <SubType>Designer</SubType>
-    </Page>
+    </Resource>
     <Page Include="MainWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ProcessorWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -222,6 +229,18 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\en-gb.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\fr-fr.png" />
+    <Resource Include="Resources\it-it.png" />
+    <Resource Include="Resources\ru-ru.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\zh-cn.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\elevated.png" />
+    <Resource Include="Resources\switch.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

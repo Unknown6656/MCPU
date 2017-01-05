@@ -1,19 +1,8 @@
 ﻿using System.Windows.Media.Imaging;
-using System.Collections.Generic;
-using System.Windows.Documents;
 using System.Windows.Controls;
-using System.Threading.Tasks;
-using System.ComponentModel;
-using System.Windows.Shapes;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Data;
-using System.Diagnostics;
-using Microsoft.Win32;
 using System.Windows;
 using System.Linq;
-using System.Text;
-using System.IO;
 using System;
 
 using Settings = MCPU.IDE.Properties.Settings;
@@ -45,12 +34,12 @@ namespace MCPU.IDE
             lst_lang.SelectionMode = SelectionMode.Single;
             lst_lang.Items.Clear();
 
-            foreach (string lang in App.available_languages)
+            foreach ((string code, string lang) in App.available_languages)
                 lst_lang.Items.Add(new LanguageInfo
                 {
-                    Code = lang,
-                    VisibleName = "<<< TODO >>>",
-                    Image = new BitmapImage(new Uri($"Resources/{lang}.png", UriKind.RelativeOrAbsolute)),
+                    Code = code,
+                    VisibleName = lang,
+                    Image = new BitmapImage(new Uri($"Resources/{code}.png", UriKind.RelativeOrAbsolute)),
                 });
 
             lst_lang.SelectedItem = (from LanguageInfo i in lst_lang.Items
@@ -107,6 +96,9 @@ namespace MCPU.IDE
              Settings.Default.CallStackSize) = settings;
             
             App.UpdateSaveSettings();
+
+            if (Owner is MainWindow mwin)
+                mwin.InitProcessor();
 
             Close();
         }
