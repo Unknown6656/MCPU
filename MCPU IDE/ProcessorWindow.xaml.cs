@@ -140,13 +140,19 @@ namespace MCPU.IDE
 
         internal void Proc_ProcessorReset(Processor p)
         {
+            Dispatcher.Invoke(() => tb_outp.Inlines.Clear());
+
             Proc_InstructionExecuted(p, null);
         }
 
-        internal void Proc_OnError(Processor p, Exception args)
+        internal void Proc_OnError(Processor p, Exception ex) => Dispatcher.Invoke(delegate
         {
-
-        }
+            tb_outp.Inlines.Add(new Run(ex.Message)
+            {
+                Foreground = Brushes.Red,
+                FontWeight = FontWeights.Bold,
+            });
+        });
 
         public void OnLanguageChanged(string code) => Proc_InstructionExecuted(mwin.proc, null);
 

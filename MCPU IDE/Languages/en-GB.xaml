@@ -101,7 +101,8 @@
     <s:String x:Key="pw_csize">Size:</s:String>
     <s:String x:Key="pw_cflags">Saved Flags:</s:String>
     <s:String x:Key="pw_cparams">Parameters:</s:String>
-
+    <s:String x:Key="pw_gb_output">Processor Output:</s:String>
+    
     <s:String x:Key="msg_err">Error</s:String>
     <s:String x:Key="msg_suc">Success</s:String>
     <s:String x:Key="msg_war">Warning</s:String>
