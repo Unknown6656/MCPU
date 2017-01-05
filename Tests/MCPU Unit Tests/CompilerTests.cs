@@ -8,8 +8,7 @@ namespace MCPU.Testing
 {
     using static Microsoft.VisualStudio.TestTools.UnitTesting.Assert;
 
-
-    // [TestClass]
+    [TestClass]
     public sealed class CompilerTests
         : Commons
     {
@@ -176,6 +175,33 @@ label1:
     NOP
 label2:
     MOV [315] 42.0
+");
+            IsTrue(res.Labels.Length == 2);
+            IsTrue(res.Functions.Length == 1);
+        }
+
+        [TestMethod]
+        public void Test_21() => CompileExpectError(@"
+    .main
+    CMP 1
+    JNZ end
+    NOP
+end:   §### ERROR
+", MCPUCompiler.GetString("LABEL_RESV_NAME"));
+
+        [TestMethod]
+        public void Test_22() => CompileExpectError(@"
+func ___main   §### ERROR
+end func
+    
+    .main
+", MCPUCompiler.GetString("FUNC_RESV_NAME"));
+
+        [TestMethod]
+        public void Test_23()
+        {
+            MCPUCompilerResult res = Compile(@"
+
 ");
             IsTrue(res.Labels.Length == 2);
             IsTrue(res.Functions.Length == 1);

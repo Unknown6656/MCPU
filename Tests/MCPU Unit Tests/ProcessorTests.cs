@@ -13,7 +13,6 @@ namespace MCPU.Testing
 {
     using static Microsoft.VisualStudio.TestTools.UnitTesting.Assert;
 
-
     [TestClass]
     public class ProcessorTests
         : Commons
@@ -37,6 +36,8 @@ namespace MCPU.Testing
             using (StreamReader rd = new StreamReader(wr.BaseStream))
                 return rd.ReadToEnd();
         }
+
+        public void IsValue(int addr, dynamic val) => IsTrue(proc[addr] == (int)val);
 
         public ProcessorTests()
             : base()
@@ -66,11 +67,11 @@ namespace MCPU.Testing
     MOV [0b0101] -1
     MOV [0o10] 88
 ");
-            IsTrue(proc[0x10] == 42);
-            IsTrue(proc[1] == 315);
-            IsTrue(proc[2] == 5);
-            IsTrue(proc[5] == -1);
-            IsTrue(proc[8] == 88);
+            IsValue(0x10, 42);
+            IsValue(1, 315);
+            IsValue(2, 5);
+            IsValue(5, -1);
+            IsValue(8, 88);
         }
 
         [TestMethod]
@@ -81,9 +82,9 @@ namespace MCPU.Testing
     MOV [2] 5
     MOV [[2]] -1
 ");
-            IsTrue(proc[2] == 5);
-            IsTrue(proc[5] == -1);
-            IsTrue(proc[proc[2]] == -1);
+            IsValue(2, 5);
+            IsValue(5, -1);
+            IsValue(proc[2], -1);
         }
 
         [TestMethod]
@@ -119,8 +120,8 @@ namespace MCPU.Testing
     LEA [4] [3]
     MOV k[[14h]] -1
 ");
-            IsTrue(proc[2] == 42);
-            IsTrue(proc[3] == -1);
+            IsValue(2, 42);
+            IsValue(3, -1);
         }
 
         [TestMethod]
@@ -141,9 +142,9 @@ end func
     MOV [5] 42
     CALL kimv 3 17h
 ");
-            IsTrue(proc[3] == 42);
-            IsTrue(proc[5] == 42);
-            IsTrue(proc[7] == 5);
+            IsValue(3, 42);
+            IsValue(5, 42);
+            IsValue(7, 5);
         }
 
         [TestMethod]
@@ -157,7 +158,7 @@ end func
     HALT
     MOV [0] 315
 ");
-            IsTrue(proc[0] == 42);
+            IsValue(0, 42);
         }
 
         [TestMethod]
@@ -174,10 +175,27 @@ end func
     IN 5 [2]
     OUT 7 [10]
 ");
-            proc.Syscall(1);
+            // proc.Syscall(1);
 
             IsTrue(proc.IO[7] == (IODirection.Out, 3));
-            IsTrue(proc[10] == 12); // TODO : fix !!
+            IsValue(10, 12); // TODO : fix !!
+        }
+
+        [TestMethod]
+        public void Test_08()
+        {
+            Execute(@"
+    .main
+    CMP 42 k[2]
+    GETFLAGS [0]
+    MOV 42.0 [1]
+    FDIV [1] 0f
+    SYSCALL 2 [1]
+    FCMP [1] -7.5
+    GETFLAGS [1]
+");
+            IsValue(0, StatusFlags.Greater);
+            IsValue(1, StatusFlags.Float | StatusFlags.Greater | StatusFlags.Infinity1 | StatusFlags.Sign2);
         }
     }
 }
