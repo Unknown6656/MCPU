@@ -238,5 +238,9 @@
   <ItemGroup>
     <Resource Include="Resources\zh-cn.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\elevated.png" />
+    <Resource Include="Resources\switch.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

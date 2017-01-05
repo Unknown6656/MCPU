@@ -12,7 +12,7 @@
         WindowStartupLocation="CenterOwner"
         Foreground="{DynamicResource FG}"
         Background="{DynamicResource bg_brush}"
-        Title="{DynamicResource pw_title}" Height="800" Width="1700">
+        Title="{DynamicResource pw_title}" Height="950" Width="1700">
     <Window.Resources>
         <Style x:Key="st_data" TargetType="Control">
             <Setter Property="Background" Value="#303030"/>
@@ -27,6 +27,8 @@
             <Setter Property="IsReadOnly" Value="true"/>
         </Style>
         <SolidColorBrush x:Key="bg_brush" Color="{DynamicResource BG}"/>
+        <SolidColorBrush x:Key="fg_instr" Color="WhiteSmoke"/>
+        <SolidColorBrush x:Key="fg_cinstr" Color="#FF4DBEFF"/>
     </Window.Resources>
     <Canvas Margin="0,0,10,10">
         <GroupBox Header="{DynamicResource pw_gb_addr}" Height="115" Canvas.Left="10" Canvas.Top="10" Width="964" BorderBrush="{DynamicResource FG}">
@@ -40,15 +42,15 @@
                 <Label Foreground="{DynamicResource FG}" Content="TICKS:" Canvas.Left="290" Canvas.Top="10" Width="50"/>
                 <Label Foreground="{DynamicResource FG}" Content="INFO:" Canvas.Left="290" Canvas.Top="36" Width="50"/>
                 <Label Foreground="{DynamicResource FG}" Content="FLAGS:" Canvas.Left="290" Canvas.Top="62" Width="55"/>
-                <TextBox x:Name="tb_cpuid" Canvas.Left="65" TextWrapping="Wrap" Text="0x00000000" Canvas.Top="10" Width="80"/>
-                <TextBox x:Name="tb_ip" Canvas.Left="65" TextWrapping="Wrap" Text="0x00000000" Canvas.Top="36" Width="80"/>
-                <TextBox x:Name="tb_memsz" Canvas.Left="65" TextWrapping="Wrap" Text="0x00000000" Canvas.Top="62" Width="80"/>
-                <TextBox x:Name="tb_sp" Canvas.Left="205" TextWrapping="Wrap" Text="0x00000000" Canvas.Top="10" Width="80"/>
-                <TextBox x:Name="tb_bp" Canvas.Left="205" TextWrapping="Wrap" Text="0x00000000" Canvas.Top="36" Width="80"/>
-                <TextBox x:Name="tb_instrc" Canvas.Left="205" TextWrapping="Wrap" Text="0x00000000" Canvas.Top="62" Width="80"/>
-                <TextBox x:Name="tb_tick" Canvas.Left="345" TextWrapping="Wrap" Text="0x00000000" Canvas.Top="10" Width="80"/>
-                <TextBox x:Name="tb_flags" Canvas.Left="345" TextWrapping="Wrap" Text="0000000000000000 : Empty" Canvas.Top="36" Width="609"/>
-                <TextBox x:Name="tb_info" Canvas.Left="345" TextWrapping="Wrap" Text="0000000000000000 : Empty" Canvas.Top="62" Width="609"/>
+                <TextBox x:Name="tb_cpuid" IsReadOnly="True" Canvas.Left="65" TextWrapping="Wrap" Text="0x00000000" Canvas.Top="10" Width="80"/>
+                <TextBox x:Name="tb_ip" IsReadOnly="True" Canvas.Left="65" TextWrapping="Wrap" Text="0x00000000" Canvas.Top="36" Width="80"/>
+                <TextBox x:Name="tb_memsz" IsReadOnly="True" Canvas.Left="65" TextWrapping="Wrap" Text="0x00000000" Canvas.Top="62" Width="80"/>
+                <TextBox x:Name="tb_sp" IsReadOnly="True" Canvas.Left="205" TextWrapping="Wrap" Text="0x00000000" Canvas.Top="10" Width="80"/>
+                <TextBox x:Name="tb_bp" IsReadOnly="True" Canvas.Left="205" TextWrapping="Wrap" Text="0x00000000" Canvas.Top="36" Width="80"/>
+                <TextBox x:Name="tb_instrc" IsReadOnly="True" Canvas.Left="205" TextWrapping="Wrap" Text="0x00000000" Canvas.Top="62" Width="80"/>
+                <TextBox x:Name="tb_tick" IsReadOnly="True" Canvas.Left="345" TextWrapping="Wrap" Text="0x00000000" Canvas.Top="10" Width="80"/>
+                <TextBox x:Name="tb_flags" IsReadOnly="True" Canvas.Left="345" TextWrapping="Wrap" Text="0000000000000000 : Empty" Canvas.Top="36" Width="609"/>
+                <TextBox x:Name="tb_info" IsReadOnly="True" Canvas.Left="345" TextWrapping="Wrap" Text="0000000000000000 : Empty" Canvas.Top="62" Width="609"/>
             </Canvas>
         </GroupBox>
         <GroupBox Header="{DynamicResource pw_gb_io}" Height="245" Canvas.Left="10" Canvas.Top="130" Width="964" BorderBrush="{DynamicResource FG}">
@@ -66,6 +68,11 @@
                         </GroupBox>
                     </DataTemplate>
                 </ListView.ItemTemplate>
+                <ListView.ItemContainerStyle>
+                    <Style TargetType="ListViewItem">
+                        <Setter Property="Focusable" Value="false"/>
+                    </Style>
+                </ListView.ItemContainerStyle>
                 <ListView.ItemsPanel>
                     <ItemsPanelTemplate>
                         <WrapPanel Width="{Binding (FrameworkElement.ActualWidth), RelativeSource={RelativeSource AncestorType=ScrollContentPresenter}}"
@@ -76,21 +83,78 @@
                 </ListView.ItemsPanel>
             </ListView>
         </GroupBox>
-        <GroupBox Header="{DynamicResource pw_gb_user}" Height="643" Canvas.Left="979" Canvas.Top="10" Width="695" BorderBrush="{DynamicResource FG}">
-            <Canvas>
-
-            </Canvas>
+        <GroupBox Header="{DynamicResource pw_gb_user}" Height="590" Canvas.Left="979" Canvas.Top="10" Width="695" BorderBrush="{DynamicResource FG}">
+            <TextBox x:Name="tb_raw_user" Background="#303030" Height="548" Margin="10" Padding="2" IsReadOnly="True" ScrollViewer.HorizontalScrollBarVisibility="Visible" VerticalContentAlignment="Top" TextWrapping="Wrap"/>
         </GroupBox>
-        <GroupBox Header="Call stack" Canvas.Left="10" Canvas.Top="380" Width="964" BorderBrush="{DynamicResource FG}">
-            <ListView x:Name="lst_call" Style="{StaticResource st_data}" Height="100" Margin="10">
+        <GroupBox Header="{DynamicResource pw_gb_calls}" Canvas.Left="10" Canvas.Top="380" Width="606" BorderBrush="{DynamicResource FG}">
+            <ListView x:Name="lst_call" Style="{StaticResource st_data}" Height="180" Margin="10">
                 <ListView.ItemTemplate>
                     <DataTemplate>
-                        <TextBlock Margin="1" FontFamily="Consolas">
-                            <Run Text="{Binding ReturnAddress}"/> (<Run Text="{Binding Parameters}"/>) : <Run Text="{Binding SavedFlags}"/>
+                        <TextBlock Margin="1" FontFamily="Consolas" Foreground="{Binding FG}">
+                            <Bold>
+                                ___main+<Run Text="{Binding ReturnAddress}"/>
+                                <Run Text="{DynamicResource global_bytes}"/>
+                            </Bold>
+                            <Italic>
+                                (<Run Text="{Binding ReturnInstruction}"/>)
+                            </Italic>
+                            <LineBreak/>
+                            <Run Text="    "/>
+                            <Run Text="{DynamicResource pw_csize}"/>
+                            <Run Text="{Binding Size}"/>
+                            <Run Text="{DynamicResource global_bytes}"/>
+                            <LineBreak/>
+                            <Run Text="    "/>
+                            <Run Text="{DynamicResource pw_cflags}"/>
+                            <Run Text="{Binding SavedFlags}"/>
+                            <LineBreak/>
+                            <Run Text="    "/>
+                            <Run Text="{DynamicResource pw_cparams}"/>
+                            <Run Text="{Binding ParameterCount}"/>
+                            <Run Text="{Binding Parameters}"/>
                         </TextBlock>
                     </DataTemplate>
                 </ListView.ItemTemplate>
+                <ListView.ItemContainerStyle>
+                    <Style TargetType="ListViewItem">
+                        <Setter Property="Focusable" Value="false"/>
+                    </Style>
+                </ListView.ItemContainerStyle>
             </ListView>
+        </GroupBox>
+        <GroupBox Header="{DynamicResource pw_gb_callspc}" Canvas.Left="621" Canvas.Top="380" Width="353" BorderBrush="{DynamicResource FG}" Height="220">
+            <TextBox x:Name="tb_raw_calls" Background="#303030" Height="180" Margin="10" Padding="2" IsReadOnly="True" ScrollViewer.HorizontalScrollBarVisibility="Visible" VerticalContentAlignment="Top" TextWrapping="Wrap"/>
+        </GroupBox>
+        <GroupBox Header="{DynamicResource pw_gb_instr}" Canvas.Left="10" Canvas.Top="605" Width="606" BorderBrush="{DynamicResource FG}" Height="296">
+            <ListView x:Name="lst_instr" Style="{StaticResource st_data}" Height="255" Margin="10">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Margin="1,0" FontFamily="Consolas" VerticalAlignment="Center" Foreground="{Binding FG}">
+                                <Run Text="{Binding Line}"/> :
+                                <Bold>
+                                    <Run Text="{Binding Code}"/>
+                                </Bold>
+                            </TextBlock>
+                            <Image Margin="1,0" Source="{Binding Elevated}" Height="16" Width="16"/>
+                            <Image Margin="1,0" Source="{Binding IPHandling}" Height="16" Width="16"/>
+                            <Image Margin="1,0" Source="{Binding Keyword}" Height="16" Width="16"/>
+                            <TextBlock Margin="1,0" FontFamily="Consolas" VerticalAlignment="Center" Foreground="{Binding FG}">
+                                <Run Text="{Binding Token}"/>
+                                (<Run Text="{Binding Arguments}"/>)
+                            </TextBlock>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+                <ListView.ItemContainerStyle>
+                    <Style TargetType="ListViewItem">
+                        <Setter Property="Focusable" Value="false"/>
+                    </Style>
+                </ListView.ItemContainerStyle>
+            </ListView>
+        </GroupBox>
+        <GroupBox Header="{DynamicResource pw_gb_instrsp}" Canvas.Left="621" Canvas.Top="605" Width="353" BorderBrush="{DynamicResource FG}" Height="296">
+            <TextBox x:Name="tb_raw_instr" Background="#303030" Height="255" Margin="10" Padding="2" IsReadOnly="True" ScrollViewer.HorizontalScrollBarVisibility="Visible" VerticalContentAlignment="Top" TextWrapping="Wrap"/>
         </GroupBox>
     </Canvas>
 </Window>

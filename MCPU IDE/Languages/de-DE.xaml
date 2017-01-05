@@ -109,7 +109,17 @@
     <s:String x:Key="sw_memsz">Speichergröße:</s:String>
     <s:String x:Key="sw_stacksz">Aufrufstapelgröße:</s:String>
 
-    <s:String x:Key="pw_title">MCPU IDE - Processor Watcher</s:String>
+    <s:String x:Key="pw_title">MCPU Entwicklungsumgebung - Prozessorüberwachung</s:String>
+    <s:String x:Key="pw_gb_addr">Niedere<!-- TODO --> Adressen:  (.kernel)</s:String>
+    <s:String x:Key="pw_gb_io">I/O Ports:  (.io)</s:String>
+    <s:String x:Key="pw_gb_user">Benutzerspeicher:  (.data)</s:String>
+    <s:String x:Key="pw_gb_calls">Aufrufstapel:</s:String>
+    <s:String x:Key="pw_gb_callspc">Stapelsegment:  (.stack)</s:String>
+    <s:String x:Key="pw_gb_instr">Instruktionen:</s:String>
+    <s:String x:Key="pw_gb_instrsp">Instruktionssegment:  (.instr)</s:String>
+    <s:String x:Key="pw_csize">Größe:</s:String>
+    <s:String x:Key="pw_cflags">Gespeicherte Flags:</s:String>
+    <s:String x:Key="pw_cparams">Parameter:</s:String>
 
     <s:String x:Key="msg_err">Fehler</s:String>
     <s:String x:Key="msg_suc">OK<!-- TODO --></s:String>
