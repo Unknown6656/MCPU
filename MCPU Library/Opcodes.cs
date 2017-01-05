@@ -36,7 +36,7 @@ namespace MCPU.Instructions
     {
         public jmp()
             : base(1, (p, _) => {
-                AssertLabel(0, _);
+                AssertInstructionSpace(0, _);
 
                 p.MoveTo(_[0]);
             })
@@ -70,16 +70,16 @@ namespace MCPU.Instructions
         {
         }
     }
-
+    
     [OPCodeNumber(0x0005), RequiresPrivilege, Keyword]
     public sealed class syscall
         : OPCode
     {
         public syscall()
             : base(1, (p, _) => {
-                AssertConstant(0, _);
+                AssertConstant(0, _); // lift this restriction in the future ?
 
-                Processor.__syscalltable[p.TranslateConstant(_[0])](p, _.Skip(1).ToArray());
+                p.Syscall(p.TranslateConstant(_[0]), _.Skip(1).ToArray());
             })
         {
         }
@@ -91,7 +91,9 @@ namespace MCPU.Instructions
     {
         public call()
             : base(1, (p, _) => {
-                AssertFunction(0, _);
+                AssertInstructionSpace(0, _);
+                // cannot be 'AssertFunction', as this would crash with the look-ahead bug
+                // see the following issue: https://github.com/Unknown6656/MCPU/issues/30
 
                 FunctionCall call = new FunctionCall
                 {
@@ -584,7 +586,7 @@ namespace MCPU.Instructions
     {
         public jle()
             : base(1, (p, _) => {
-                AssertLabel(0, _);
+                AssertInstructionSpace(0, _);
                 
                 if (p.Flags.HasFlag(StatusFlags.Lower | StatusFlags.Equal))
                     p.MoveTo(_[0]);
@@ -601,7 +603,7 @@ namespace MCPU.Instructions
     {
         public jl()
             : base(1, (p, _) => {
-                AssertLabel(0, _);
+                AssertInstructionSpace(0, _);
 
                 if (p.Flags.HasFlag(StatusFlags.Lower))
                     p.MoveTo(_[0]);
@@ -618,7 +620,7 @@ namespace MCPU.Instructions
     {
         public jge()
             : base(1, (p, _) => {
-                AssertLabel(0, _);
+                AssertInstructionSpace(0, _);
 
                 if (p.Flags.HasFlag(StatusFlags.Greater | StatusFlags.Equal))
                     p.MoveTo(_[0]);
@@ -635,7 +637,7 @@ namespace MCPU.Instructions
     {
         public jg()
             : base(1, (p, _) => {
-                AssertLabel(0, _);
+                AssertInstructionSpace(0, _);
 
                 if (p.Flags.HasFlag(StatusFlags.Greater))
                     p.MoveTo(_[0]);
@@ -652,7 +654,7 @@ namespace MCPU.Instructions
     {
         public je()
             : base(1, (p, _) => {
-                AssertLabel(0, _);
+                AssertInstructionSpace(0, _);
 
                 if (p.Flags.HasFlag(StatusFlags.Equal))
                     p.MoveTo(_[0]);
@@ -669,7 +671,7 @@ namespace MCPU.Instructions
     {
         public jne()
             : base(1, (p, _) => {
-                AssertLabel(0, _);
+                AssertInstructionSpace(0, _);
 
                 if (!p.Flags.HasFlag(StatusFlags.Equal))
                     p.MoveTo(_[0]);
@@ -686,7 +688,7 @@ namespace MCPU.Instructions
     {
         public jz()
             : base(1, (p, _) => {
-                AssertLabel(0, _);
+                AssertInstructionSpace(0, _);
                 
                 if (p.Flags.HasFlag(StatusFlags.Zero2) & (p.Flags.HasFlag(StatusFlags.Unary) | p.Flags.HasFlag(StatusFlags.Zero1)))
                     p.MoveTo(_[0]);
@@ -703,7 +705,7 @@ namespace MCPU.Instructions
     {
         public jnz()
             : base(1, (p, _) => {
-                AssertLabel(0, _);
+                AssertInstructionSpace(0, _);
 
                 if (p.Flags.HasFlag(StatusFlags.Zero2) | (p.Flags.HasFlag(StatusFlags.Unary) & p.Flags.HasFlag(StatusFlags.Zero1)))
                     p.MoveNext();
@@ -720,7 +722,7 @@ namespace MCPU.Instructions
     {
         public jneg()
             : base(1, (p, _) => {
-                AssertLabel(0, _);
+                AssertInstructionSpace(0, _);
 
                 if (p.Flags.HasFlag(StatusFlags.Sign2) & (p.Flags.HasFlag(StatusFlags.Unary) | p.Flags.HasFlag(StatusFlags.Sign1)))
                     p.MoveTo(_[0]);
@@ -737,7 +739,7 @@ namespace MCPU.Instructions
     {
         public jpos()
             : base(1, (p, _) => {
-                AssertLabel(0, _);
+                AssertInstructionSpace(0, _);
 
                 if (p.Flags.HasFlag(StatusFlags.Sign2) | (p.Flags.HasFlag(StatusFlags.Unary) & p.Flags.HasFlag(StatusFlags.Sign1)))
                     p.MoveNext();
@@ -1327,7 +1329,7 @@ namespace MCPU.Instructions
     {
         public jnan()
             : base(1, (p, _) => {
-                AssertLabel(0, _);
+                AssertInstructionSpace(0, _);
 
                 if (p.Flags.HasFlag(StatusFlags.NaN2) | (!p.Flags.HasFlag(StatusFlags.Unary) & p.Flags.HasFlag(StatusFlags.NaN1)))
                     p.MoveTo(_[0]);
@@ -1344,7 +1346,7 @@ namespace MCPU.Instructions
     {
         public jnnan()
             : base(1, (p, _) => {
-                AssertLabel(0, _);
+                AssertInstructionSpace(0, _);
 
                 if (p.Flags.HasFlag(StatusFlags.NaN1) | (p.Flags.HasFlag(StatusFlags.Unary) & p.Flags.HasFlag(StatusFlags.NaN2)))
                     p.MoveNext();
@@ -1361,7 +1363,7 @@ namespace MCPU.Instructions
     {
         public jinf()
             : base(1, (p, _) => {
-                AssertLabel(0, _);
+                AssertInstructionSpace(0, _);
 
                 if (p.Flags.HasFlag(StatusFlags.Infinity2) | (!p.Flags.HasFlag(StatusFlags.Unary) & p.Flags.HasFlag(StatusFlags.Infinity1)))
                     p.MoveTo(_[0]);
@@ -1378,7 +1380,7 @@ namespace MCPU.Instructions
     {
         public jpinf()
             : base(1, (p, _) => {
-                AssertLabel(0, _);
+                AssertInstructionSpace(0, _);
                 
                 if ((p.Flags.HasFlag(StatusFlags.Infinity2) & !p.Flags.HasFlag(StatusFlags.Sign2)) |
                     (!p.Flags.HasFlag(StatusFlags.Unary) & p.Flags.HasFlag(StatusFlags.Infinity1) & !p.Flags.HasFlag(StatusFlags.Sign1)))
@@ -1396,7 +1398,7 @@ namespace MCPU.Instructions
     {
         public jninf()
             : base(1, (p, _) => {
-                AssertLabel(0, _);
+                AssertInstructionSpace(0, _);
 
                 if (p.Flags.HasFlag(StatusFlags.NegativeInfinity2) | (!p.Flags.HasFlag(StatusFlags.Unary) & p.Flags.HasFlag(StatusFlags.NegativeInfinity1)))
                     p.MoveTo(_[0]);

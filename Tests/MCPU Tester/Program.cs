@@ -28,31 +28,31 @@ namespace MCPU
             };
             
             var res = MCPUCompiler.Compile(@"
-func f1
-    call f2
-end func
-
-func f2
-    .kernel
-    jmp dump
-    nop
-    nop
-    nop
-    nop
+func rec
+    wait $2
+    incr [0]
+    mov [[0]] [0]
+    add [[0]] $0
+    cmp [0] $1
+    jge dump
+    call rec $0 $1 $2
 dump:
     syscall 1
+    halt
 end func
-
+    
     .main
-    call f1
+    .kernel
+    syscall 1
+    mov [0] 1
+    call rec 42 20h 10
 ");
             var instr = res.AsA.Instructions;
+            int line = 0;
 
             foreach (var i in instr)
-                WriteLine(i);
-
-            ConsoleExtensions.HexDump(Instruction.SerializeMultiple(instr));
-
+                WriteLine($"{line++:d3}: {i}");
+            
             proc.ProcessWithoutReset(instr);
 
             WriteLine($"SBP: {proc.StackBaseAddress:x8}");

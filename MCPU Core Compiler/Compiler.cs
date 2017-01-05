@@ -70,6 +70,9 @@ namespace MCPU.Compiler
         /// </summary>
         public static readonly int FC_φ = (FloatIntUnion)1.61803398874989;
 
+        internal static readonly string[] __reserved = (from opc in OPCodes.CodesByID
+                                                        where opc.Value.IsKeyword
+                                                        select opc.Value.Token.ToLower()).Concat(new string[] { "func", "end", "___main" }).ToArray();
         internal static readonly Dictionary<string, string> __defstrtable = new Dictionary<string, string>
         {
             { "JMP_INSIDE_FUNC", "A jump label may only be used inside a function or after the '.main'-token." },
@@ -91,7 +94,8 @@ namespace MCPU.Compiler
             { "LINE_NPARSED", "The line '{0}' could not be parsed." },
             { "MAIN_TOKEN_MISSING", "The '.main'-token is missing." },
             { "INLINE_NYET_SUPP", "'.inline' not supported yet" },
-            { "FUNC_RESV_NAME", "The name '{0}' is reserved and can therefore not be used as function name." }
+            { "FUNC_RESV_NAME", "The name '{0}' is reserved and can therefore not be used as function name." },
+            { "LABEL_RESV_NAME", "The name '{0}' is reserved and can therefore not be used as label name." },
         };
         internal static Dictionary<string, string> __strtable;
 
@@ -220,6 +224,7 @@ namespace MCPU.Compiler
                     {
                         string name = match.Groups["name"].ToString().ToLower();
                         (int, string, int) um = unmapped.FirstOrDefault(_ => _.Item2 == name);
+                        int tid = 0;
 
                         if (FindFirst(name) != null)
                             return Error(GetString("FUNC_ALREADY_EXISTS_SP", name));
@@ -228,10 +233,10 @@ namespace MCPU.Compiler
                             if (labels.ContainsKey(name))
                                 return Error(GetString("LABEL_ALREADY_EXISTS_SP", name, labels.First(_ => _.Key == name).Value + 1));
                             else
-                                labels[name] = ++id;
+                                labels[name] = tid = ++id;
                         else
                         {
-                            labels[name] = um.Item3;
+                            labels[name] = tid = um.Item3;
 
                             if (unmapped.Contains(um))
                                 unmapped.Remove(um);
@@ -240,7 +245,7 @@ namespace MCPU.Compiler
                         line = line.Remove(match.Index, match.Length);
                         
                         labelmeta.Add(new MCPULabelMetadata { Name = name, DefinedLine = linenr + 1, ParentFunction = curr_func });
-                        curr_func.Instructions.Add(new MCPUJumpLabel(id));
+                        curr_func.Instructions.Add(new MCPUJumpLabel(tid));
                     }
 
                 if ((line = line.Trim()).Length > 0)
@@ -275,6 +280,7 @@ namespace MCPU.Compiler
                             bool inline = match.Groups["inline"]?.ToString()?.ToLower()?.Contains("inline") ?? false;
                             string name = match.Groups["name"].ToString().ToLower();
                             (int, string, int) um = unmapped.FirstOrDefault(_ => _.Item2 == name);
+                            int tid;
 
                             if (name == MAIN_FUNCTION_NAME)
                                 return Error(GetString("FUNC_RESV_NAME", name));
@@ -284,15 +290,24 @@ namespace MCPU.Compiler
                             if (um.Item2 != name)
                                 if (labels.ContainsKey(name))
                                     return Error(GetString("LABEL_ALREADY_EXISTS", name));
-                            
-                            curr_func = new MCPUFunction(name, OPCodes.NOP) { ID = ++id, IsInlined = inline, DefinedLine = linenr + 1 };
+
+                            if (um.Item2 == name)
+                            {
+                                unmapped.Remove(um);
+                                tid = um.Item3;
+                            }
+                            else
+                                tid = ++id;
+
+                            curr_func = new MCPUFunction(name, OPCodes.NOP)
+                            {
+                                ID = tid,
+                                IsInlined = inline,
+                                DefinedLine = linenr + 1
+                            };
                             is_func = 1;
 
                             functions.Add(curr_func);
-
-                            if (um.Item2 == name)
-                                if (unmapped.Contains(um))
-                                    unmapped.Remove(um);
                         }
                     else if ((match = END_FUNC_REGEX.Match(line)).Success)
                         if (is_func != 0)
@@ -449,36 +464,43 @@ namespace MCPU.Compiler
 
                 instr.Add((OPCodes.JMP, new InstructionArgument[] { (0, ArgumentType.Label) }));
 
+                foreach (MCPULabelMetadata l in labels)
+                    if (__reserved.Contains(l.Name.ToLower()))
+                        throw new MCPUCompilerException(l.DefinedLine, GetString("LABEL_RESV_NAME", l.Name));
+
                 foreach (MCPUFunction f in func.Where(f => f != mainf).Concat(new MCPUFunction[] { mainf }))
-                {
-                    jumptable[f.ID] = linenr;
-                    metadata[fnr++] = f;
-
-                    if (f.IsInlined)
+                    if (__reserved.Contains(f.Name.ToLower()))
+                        throw new MCPUCompilerException(f.DefinedLine, GetString("FUNC_RESV_NAME", f.Name));
+                    else
                     {
-                        bool caninline = (f.Instructions.Count <= 30) && f.Instructions.All(_ => !_.OPCode.SpecialIPHandling);
+                        jumptable[f.ID] = linenr;
+                        metadata[fnr++] = f;
 
-                        if (caninline)
+                        if (f.IsInlined)
                         {
+                            bool caninline = (f.Instructions.Count <= 30) && f.Instructions.All(_ => !_.OPCode.SpecialIPHandling);
 
-                            // MAGIC GOES HERE
+                            if (caninline)
+                            {
+
+                                // MAGIC GOES HERE
 
 
-                            throw new NotImplementedException(GetString("INLINE_NYET_SUPP"));
-                            continue;
+                                throw new NotImplementedException(GetString("INLINE_NYET_SUPP"));
+                                continue;
+                            }
                         }
+
+                        foreach (Instruction ins in f.Instructions)
+                            if (ins.OPCode is MCPUJumpLabel)
+                                jumptable[(ins.OPCode as MCPUJumpLabel).Value] = linenr;
+                            else
+                            {
+                                instr.Add(ins);
+
+                                linenr++;
+                            }
                     }
-
-                    foreach (Instruction ins in f.Instructions)
-                        if (ins.OPCode is MCPUJumpLabel)
-                            jumptable[(ins.OPCode as MCPUJumpLabel).Value] = linenr;
-                        else
-                        {
-                            instr.Add(ins);
-
-                            linenr++;
-                        }
-                }
 
                 Instruction[] cmp_instr = instr.ToArray();
 
