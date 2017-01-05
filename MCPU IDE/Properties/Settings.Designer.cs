@@ -46,5 +46,17 @@ namespace MCPU.IDE.Properties {
                 this["MemorySize"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("131072")]
+        public int CallStackSize {
+            get {
+                return ((int)(this["CallStackSize"]));
+            }
+            set {
+                this["CallStackSize"] = value;
+            }
+        }
     }
 }

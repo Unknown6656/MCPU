@@ -18,7 +18,7 @@ namespace MCPU.Instructions
         }
     }
 
-    [OPCodeNumber(0x0001), SpecialIPHandling]
+    [OPCodeNumber(0x0001), SpecialIPHandling, Keyword]
     public sealed class halt
         : OPCode
     {
@@ -71,7 +71,7 @@ namespace MCPU.Instructions
         }
     }
 
-    [OPCodeNumber(0x0005), RequiresPrivilege]
+    [OPCodeNumber(0x0005), RequiresPrivilege, Keyword]
     public sealed class syscall
         : OPCode
     {
@@ -85,7 +85,7 @@ namespace MCPU.Instructions
         }
     }
 
-    [OPCodeNumber(0x0006), SpecialIPHandling]
+    [OPCodeNumber(0x0006), SpecialIPHandling, Keyword]
     public sealed unsafe class call
         : OPCode
     {
@@ -111,7 +111,7 @@ namespace MCPU.Instructions
         }
     }
 
-    [OPCodeNumber(0x0007), SpecialIPHandling]
+    [OPCodeNumber(0x0007), SpecialIPHandling, Keyword]
     public sealed class ret
         : OPCode
     {
@@ -787,7 +787,7 @@ namespace MCPU.Instructions
         }
     }
     
-    [OPCodeNumber(0x003e)]
+    [OPCodeNumber(0x003e), Keyword]
     public sealed class wait
         : OPCode
     {
@@ -801,7 +801,7 @@ namespace MCPU.Instructions
         }
     }
 
-    [OPCodeNumber(0x003f), RequiresPrivilege]
+    [OPCodeNumber(0x003f), RequiresPrivilege, Keyword]
     public sealed class reset
         : OPCode
     {
@@ -1007,7 +1007,12 @@ namespace MCPU.Instructions
         : FloatingPointArithmeticBinaryOPCode
     {
         public fdiv()
-            : base((f, g) => f / g)
+            : base((f, g) => {
+                if (g == 0)
+                    return f == 0 ? float.NaN : f * float.PositiveInfinity;
+                else
+                    return f / g;
+            })
         {
         }
     }
@@ -1017,7 +1022,12 @@ namespace MCPU.Instructions
         : FloatingPointArithmeticBinaryOPCode
     {
         public fmod()
-            : base((f, g) => f % g)
+            : base((f, g) => {
+                if (g == 0)
+                    return f == 0 ? float.NaN : f * float.PositiveInfinity;
+                else
+                    return f % g;
+            })
         {
         }
     }
@@ -1261,7 +1271,142 @@ namespace MCPU.Instructions
         {
         }
     }
-    
+
+    #endregion
+    #region 006f...0074 FLOATING POINT COMPARISON + JUMP
+
+    [OPCodeNumber(0x006f)]
+    public sealed class fcmp
+        : OPCode
+    {
+        public fcmp()
+            : base(1, (p, _) =>
+            {
+                StatusFlags f = StatusFlags.Float;
+
+                if (_.Length < 2)
+                {
+                    _ = new InstructionArgument[] { ((FloatIntUnion)0f, ArgumentType.Constant), _[0] };
+                    f |= StatusFlags.Unary;
+                }
+
+                AssertNotInstructionSpace(0, _);
+                AssertNotInstructionSpace(1, _);
+
+                float c1 = p.TranslateFloatConstant(_[0]);
+                float c2 = p.TranslateFloatConstant(_[1]);
+
+                if (Abs(c1) < float.Epsilon) f |= StatusFlags.Zero1;
+                if (Abs(c2) < float.Epsilon) f |= StatusFlags.Zero2;
+
+                if (c1 < 0) f |= StatusFlags.Sign1;
+                if (c2 < 0) f |= StatusFlags.Sign2;
+
+                f |= c1 < c2 ? StatusFlags.Lower
+                   : c1 > c2 ? StatusFlags.Greater : StatusFlags.Equal;
+
+                if (float.IsInfinity(c1))
+                    f |= StatusFlags.Infinity1;
+                else if (float.IsNaN(c1))
+                    f |= StatusFlags.NaN1;
+
+                if (float.IsInfinity(c2))
+                    f |= StatusFlags.Infinity2;
+                else if (float.IsNaN(c2))
+                    f |= StatusFlags.NaN2;
+
+                p.Flags = f;
+            })
+        {
+        }
+    }
+
+    [OPCodeNumber(0x0070), SpecialIPHandling]
+    public sealed class jnan
+        : OPCode
+    {
+        public jnan()
+            : base(1, (p, _) => {
+                AssertLabel(0, _);
+
+                if (p.Flags.HasFlag(StatusFlags.NaN2) | (!p.Flags.HasFlag(StatusFlags.Unary) & p.Flags.HasFlag(StatusFlags.NaN1)))
+                    p.MoveTo(_[0]);
+                else
+                    p.MoveNext();
+            })
+        {
+        }
+    }
+
+    [OPCodeNumber(0x0071), SpecialIPHandling]
+    public sealed class jnnan
+        : OPCode
+    {
+        public jnnan()
+            : base(1, (p, _) => {
+                AssertLabel(0, _);
+
+                if (p.Flags.HasFlag(StatusFlags.NaN1) | (p.Flags.HasFlag(StatusFlags.Unary) & p.Flags.HasFlag(StatusFlags.NaN2)))
+                    p.MoveNext();
+                else
+                    p.MoveTo(_[0]);
+            })
+        {
+        }
+    }
+
+    [OPCodeNumber(0x0072), SpecialIPHandling]
+    public sealed class jinf
+        : OPCode
+    {
+        public jinf()
+            : base(1, (p, _) => {
+                AssertLabel(0, _);
+
+                if (p.Flags.HasFlag(StatusFlags.Infinity2) | (!p.Flags.HasFlag(StatusFlags.Unary) & p.Flags.HasFlag(StatusFlags.Infinity1)))
+                    p.MoveTo(_[0]);
+                else
+                    p.MoveNext();
+            })
+        {
+        }
+    }
+
+    [OPCodeNumber(0x0073), SpecialIPHandling]
+    public sealed class jpinf
+        : OPCode
+    {
+        public jpinf()
+            : base(1, (p, _) => {
+                AssertLabel(0, _);
+                
+                if ((p.Flags.HasFlag(StatusFlags.Infinity2) & !p.Flags.HasFlag(StatusFlags.Sign2)) |
+                    (!p.Flags.HasFlag(StatusFlags.Unary) & p.Flags.HasFlag(StatusFlags.Infinity1) & !p.Flags.HasFlag(StatusFlags.Sign1)))
+                    p.MoveTo(_[0]);
+                else
+                    p.MoveNext();
+            })
+        {
+        }
+    }
+
+    [OPCodeNumber(0x0074), SpecialIPHandling]
+    public sealed class jninf
+        : OPCode
+    {
+        public jninf()
+            : base(1, (p, _) => {
+                AssertLabel(0, _);
+
+                if (p.Flags.HasFlag(StatusFlags.NegativeInfinity2) | (!p.Flags.HasFlag(StatusFlags.Unary) & p.Flags.HasFlag(StatusFlags.NegativeInfinity1)))
+                    p.MoveTo(_[0]);
+                else
+                    p.MoveNext();
+            })
+        {
+        }
+    }
+
     #endregion
 
 

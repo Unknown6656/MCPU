@@ -46,21 +46,25 @@ The FLAGS-register is defined as follows:
 ```
          0   1   2   3   4   5   6   7   8   9   a   b   c   d   e   f    BITS
        .---.---.---.---.---.---.---.---.-------------------------------.
-    00 ¦ . ¦ . ¦ . ¦ . ¦ . ¦ . ¦ . ¦ . ¦///////////////.///////////////¦ 0f
-       '-|-'-|-'-|-'-|-'-|-'-|-'-|-'-|-'---------------|---------------'
-         |   |   |   |   |   |   |   |                 |
- Zero 1 -'   |   |   |   |   |   |   |    (currently) Unused bits
- Zero 2 -----'   |   |   |   |   |   |
- Sign 1 ---------'   |   |   |   |   |
- Sign 2 -------------'   |   |   |   |
-  Equal -----------------'   |   |   |
-  Lower ---------------------'   |   |
-Greater -------------------------'   '---- Unary comparison flag
+    00 ¦ . ¦ . ¦ . ¦ . ¦ . ¦ . ¦ . ¦ . ¦ . ¦ . ¦ . ¦ . ¦ . ¦/////./////¦ 0f
+       '-|-'-|-'-|-'-|-'-|-'-|-'-|-'-|-'-|-'-|-'-|-'-|-'-|-'-----|-----'
+         |   |   |   |   |   |   |   |   |   |   |   |   |       '--- (currently) Unused bits
+ Zero 1 -'   |   |   |   |   |   |   |   |   |   |   |   |
+ Zero 2 -----'   |   |   |   |   |   |   |   |   |   |   |
+ Sign 1 ---------'   |   |   |   |   |   |   |   |   |   |
+ Sign 2 -------------'   |   |   |   |   |   |   |   |   '----------- Infinity 2
+  Equal -----------------'   |   |   |   |   |   |   '--------------- Infinity 1
+  Lower ---------------------'   |   |   |   |   '------------------- NaN 2
+Greater -------------------------'   |   |   '----------------------- NaN 1
+Unary comparison --------------------'   '--------------------------- Float
 ```
-The Flags `Zero 1`/`Zero 2` are `1`, if the first/second compared value were zero, respectively.
-The Flags `Sign 1`/`Sign 2` are `0` if the first/second compared value are positive or zero and `1` if they were negative.
-The Flag `Equal`, `Lower` and `Greater` are `1` if they fulfil their respective arithmetic description and `0` otherwise.
+The flags `Zero 1`/`Zero 2` are `1`, if the first/second compared value were zero, respectively.
+The flags `Sign 1`/`Sign 2` are `0` if the first/second compared value are positive or zero and `1` if they were negative.
+The flags `Equal`, `Lower` and `Greater` are `1` if they fulfil their respective arithmetic description and `0` otherwise.
 If the comparison was unary (even though a unary comparison `CMP a` is implemented as `CMP 0 a`), the 7<sup>th</sup> highest bit is set to `1` (or `0` otherwise).
+The flag `Float` indicates, that the compared values are floating-point ones instead of integer ones.
+The flags `NaN 1`/`NaN 2` are `1` if the first/second compared floating-point value were equal to `NaN`, respectively.
+The flags `Infinity 1`/`Infinity 2` are `1` if the first/second compared floating-point value were equal to positive and/or negative infinity, respectively. Combining the 11<sup>th</sup>/12<sup>th</sup> highest bit with the 2<sup>nd</sup>/3<sup>rd</sup> one indicates, whether the compared values were equal to either positive or negative infinity.
 
 ### InformationFlags-register (INFO.) and MCPUTicks-register (TICKS)
 

@@ -57,7 +57,7 @@ OP codes marked with the icon ![︽][elv] require kernel privilege to execute. O
 |![⥃][ip]`002e`|`JE`|`JE <label>`| Jumps to `label` if the both compared values are equal |
 |![⥃][ip]`002f`|`JNE`|`JNE <label>`| Jumps to `label` if the both compared values are not equal |
 |![⥃][ip]`0030`|`JZ`|`JZ <label>`| Jumps to `label` if the compared value is zero (or if both are in case of a dual-value comparison) |
-|![⥃][ip]`0031`|`JNZ`|`JNZ <label>`| Jumps to `label` if the compared value is not zero (or if both are in case of a dual-value comparison) |
+|![⥃][ip]`0031`|`JNZ`|`JNZ <label>`| Jumps to `label` if the compared value is not zero (or if both not are in case of a dual-value comparison) |
 |![⥃][ip]`0032`|`JNEG`|`JNEG <label>`| Jumps to `label` if the compared value is negative (or if both are in case of a dual-value comparison) |
 |![⥃][ip]`0033`|`JPOS`|`JPOS <label>`| Jumps to `label` if the compared value is positive (or if both are in case of a dual-value comparison) |
 |`0034`||| _&lt;UNASSIGNED&gt;_ |
@@ -89,36 +89,42 @@ OP codes marked with the icon ![︽][elv] require kernel privilege to execute. O
 |`004e`||| _&lt;UNASSIGNED&gt;_ |
 |`004f`||| _&lt;UNASSIGNED&gt;_ |
 |![𝔉][flt]`0050`|`FICAST`|`FICAST <dst> <src>`| Casts the float value at `src` to an integer and stores the result into `src` |
-|![𝔉][flt]`0050`|`IFCAST`|`IFCAST <dst> <src>`| Casts the integer value at `src` to a float and stores the result into `src` |
-|![𝔉][flt]`0051`|`FADD`|`FADD <a> <b>`| Adds `a` to `b` and stores the result into `a` |
-|![𝔉][flt]`0052`|`FSUB`|`FSUB <a> <b>`| Subtracts `a` from `b` and stores the result into `a` |
-|![𝔉][flt]`0053`|`FMUL`|`FMUL <a> <b>`| Multiplies `a` by `b` and stores the result into `a` |
-|![𝔉][flt]`0054`|`FDIV`|`FDIV <a> <b>`| Divides `a` by `b` and stores the result into `a` |
-|![𝔉][flt]`0055`|`FMOD`|`FMOD <a> <b>`| Calculates the remainder of `a` divided by `b` and stores the result into `a` |
-|![𝔉][flt]`0056`|`FNEG`|`FNEG <a>`| Calculates the additive inverse of `a` (= `-a`) and stores the result into `a` |
-|![𝔉][flt]`0057`|`FINV`|`FINV <a>`| Calculates the multiplicative inverse of `a` (= `1/a`) and stores the result into `a` |
-|![𝔉][flt]`0058`|`FSQRT`|`FSQRT <a>`| Calculates the square root of `a` and stores the result into `a` |
-|![𝔉][flt]`0059`|`FROOT`|`FROOT <a> <b>`| Calculates the `b`th root of `a` and stores the result into `a` |
-|![𝔉][flt]`005a`|`FLOG`|`FLOG <a> <b>`| Calculates the logarithm of `a` to the base `b` and stores the result into `a` |
-|![𝔉][flt]`005b`|`FLOGE`|`FLOGE <a>`| Calculates the natural logarithm of `a` and stores the result into `a` |
-|![𝔉][flt]`005c`|`FEXP`|`FEXP <a>`| Calculates the exponential of `a` (= `e^a`) and stores the result into `a` |
-|![𝔉][flt]`005d`|`FPOW`|`FPOW <a> <b>`| Calculates the value of `a` raised to the `b`th power and stores the result into `a` |
-|![𝔉][flt]`005e`|`FFLOOR`|`FFLOOR <a>`| Rounds `a` down to the nearest number and stores the result into `a`  |
-|![𝔉][flt]`005f`|`FCEIL`|`FCEIL <a>`| Rounds `a` up to the nearest number and stores the result into `a`  |
-|![𝔉][flt]`0060`|`FROUND`|`FROUND <a>`| Rounds `a` to the nearest number and stores the result into `a` |
-|![𝔉][flt]`0061`|`FMIN`|`FMIN <a> <b>`| Determines the smaller number of `a` and `b` and stores it into `a` |
-|![𝔉][flt]`0062`|`FMAX`|`FMAX <a> <b>`| Determines the greater number of `a` and `b` and stores it into `a` |
-|![𝔉][flt]`0063`|`FSIGN`|`FSIGN <a>`|  |
-|![𝔉][flt]`0064`|`FSIN`|`FSIN <a>`| Calculates the sine of `a` and stores the result into `a` |
-|![𝔉][flt]`0065`|`FCOS`|`FCOS <a>`| Calculates the cosine of `a` and stores the result into `a` |
-|![𝔉][flt]`0066`|`FTAN`|`FTAN <a>`| Calculates the tangent of `a` and stores the result into `a` |
-|![𝔉][flt]`0067`|`FSINH`|`FSINH <a>`| Calculates the hyperbolic sine of `a` and stores the result into `a` |
-|![𝔉][flt]`0068`|`FCOSH`|`FCOSH <a>`| Calculates the hyperbolic cosine of `a` and stores the result into `a` |
-|![𝔉][flt]`0069`|`FTANH`|`FTANH <a>`| Calculates the hyperbolic tangent of `a` and stores the result into `a` |
-|![𝔉][flt]`006a`|`FASIN`|`FASIN <a>`| Calculates the inverse sine of `a` and stores the result into `a` |
-|![𝔉][flt]`006b`|`FACOS`|`FACOS <a>`| Calculates the inverse cosine of `a` and stores the result into `a` |
-|![𝔉][flt]`006c`|`FATAN`|`FATAN <a>`| Calculates the inverse tangent of `a` and stores the result into `a` |
-|![𝔉][flt]`006d`|`FATAN2`|`FATAN2 <a> <b>`| Calculates the inverse tangent of `a/b` and stores the result into `a` |
+|![𝔉][flt]`0051`|`IFCAST`|`IFCAST <dst> <src>`| Casts the integer value at `src` to a float and stores the result into `src` |
+|![𝔉][flt]`0052`|`FADD`|`FADD <a> <b>`| Adds `a` to `b` and stores the result into `a` |
+|![𝔉][flt]`0053`|`FSUB`|`FSUB <a> <b>`| Subtracts `a` from `b` and stores the result into `a` |
+|![𝔉][flt]`0054`|`FMUL`|`FMUL <a> <b>`| Multiplies `a` by `b` and stores the result into `a` |
+|![𝔉][flt]`0055`|`FDIV`|`FDIV <a> <b>`| Divides `a` by `b` and stores the result into `a` |
+|![𝔉][flt]`0056`|`FMOD`|`FMOD <a> <b>`| Calculates the remainder of `a` divided by `b` and stores the result into `a` |
+|![𝔉][flt]`0057`|`FNEG`|`FNEG <a>`| Calculates the additive inverse of `a` (= `-a`) and stores the result into `a` |
+|![𝔉][flt]`0058`|`FINV`|`FINV <a>`| Calculates the multiplicative inverse of `a` (= `1/a`) and stores the result into `a` |
+|![𝔉][flt]`0059`|`FSQRT`|`FSQRT <a>`| Calculates the square root of `a` and stores the result into `a` |
+|![𝔉][flt]`005a`|`FROOT`|`FROOT <a> <b>`| Calculates the `b`th root of `a` and stores the result into `a` |
+|![𝔉][flt]`005b`|`FLOG`|`FLOG <a> <b>`| Calculates the logarithm of `a` to the base `b` and stores the result into `a` |
+|![𝔉][flt]`005c`|`FLOGE`|`FLOGE <a>`| Calculates the natural logarithm of `a` and stores the result into `a` |
+|![𝔉][flt]`005d`|`FEXP`|`FEXP <a>`| Calculates the exponential of `a` (= `e^a`) and stores the result into `a` |
+|![𝔉][flt]`005e`|`FPOW`|`FPOW <a> <b>`| Calculates the value of `a` raised to the `b`th power and stores the result into `a` |
+|![𝔉][flt]`005f`|`FFLOOR`|`FFLOOR <a>`| Rounds `a` down to the nearest number and stores the result into `a`  |
+|![𝔉][flt]`0060`|`FCEIL`|`FCEIL <a>`| Rounds `a` up to the nearest number and stores the result into `a`  |
+|![𝔉][flt]`0061`|`FROUND`|`FROUND <a>`| Rounds `a` to the nearest number and stores the result into `a` |
+|![𝔉][flt]`0062`|`FMIN`|`FMIN <a> <b>`| Determines the smaller number of `a` and `b` and stores it into `a` |
+|![𝔉][flt]`0063`|`FMAX`|`FMAX <a> <b>`| Determines the greater number of `a` and `b` and stores it into `a` |
+|![𝔉][flt]`0064`|`FSIGN`|`FSIGN <a>`|  |
+|![𝔉][flt]`0065`|`FSIN`|`FSIN <a>`| Calculates the sine of `a` and stores the result into `a` |
+|![𝔉][flt]`0066`|`FCOS`|`FCOS <a>`| Calculates the cosine of `a` and stores the result into `a` |
+|![𝔉][flt]`0067`|`FTAN`|`FTAN <a>`| Calculates the tangent of `a` and stores the result into `a` |
+|![𝔉][flt]`0068`|`FSINH`|`FSINH <a>`| Calculates the hyperbolic sine of `a` and stores the result into `a` |
+|![𝔉][flt]`0069`|`FCOSH`|`FCOSH <a>`| Calculates the hyperbolic cosine of `a` and stores the result into `a` |
+|![𝔉][flt]`006a`|`FTANH`|`FTANH <a>`| Calculates the hyperbolic tangent of `a` and stores the result into `a` |
+|![𝔉][flt]`006b`|`FASIN`|`FASIN <a>`| Calculates the inverse sine of `a` and stores the result into `a` |
+|![𝔉][flt]`006c`|`FACOS`|`FACOS <a>`| Calculates the inverse cosine of `a` and stores the result into `a` |
+|![𝔉][flt]`006d`|`FATAN`|`FATAN <a>`| Calculates the inverse tangent of `a` and stores the result into `a` |
+|![𝔉][flt]`006e`|`FATAN2`|`FATAN2 <a> <b>`| Calculates the inverse tangent of `a/b` and stores the result into `a` |
+|![𝔉][flt]`006f`|`FCMP`|`FCMP <a> [b]`| Compares the two given float values `a` and `b` (or `0.0f` and `a` if only one is given) and stores the comparison result into the FLAGS-register. The structure of the FLAGS-register can be found [here](./introduction.md) |
+|![⥃][ip]![𝔉][flt]`0070`|`JNAN`|`JNAN <label>`| Jumps to `label` if the compared float value is `NaN` (or if both are in case of a dual-value comparison) |
+|![⥃][ip]![𝔉][flt]`0071`|`JNNAN`|`JNNAN <label>`| Jumps to `label` if the compared float value is not `NaN` (or if both are not in case of a dual-value comparison) |
+|![⥃][ip]![𝔉][flt]`0072`|`JINF`|`JINF <label>`| Jumps to `label` if the compared float value is equal to positive or negative infinity (or if both are not in case of a dual-value comparison) |
+|![⥃][ip]![𝔉][flt]`0073`|`JPINF`|`JPINF <label>`| Jumps to `label` if the compared float value is equal to positive infinity (or if both are not in case of a dual-value comparison) |
+|![⥃][ip]![𝔉][flt]`0074`|`JNINF`|`JNINF <label>`| Jumps to `label` if the compared float value is equal to negative infinity (or if both are not in case of a dual-value comparison) |
 |`0xffff`|`KERNEL`|`KERNEL <1/0>`| Enters (1) or exits (0) the privileged kernel execution mode |
 
 

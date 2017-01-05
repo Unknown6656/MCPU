@@ -34,5 +34,7 @@ namespace MCPU.IDE
             hl_github.NavigateUri = new Uri("github_base_url".GetStr());
             hl_github_issues.NavigateUri = new Uri("github_base_url".GetStr() + "/issues");
         }
+
+        private void Button_Click(object sender, RoutedEventArgs e) => this.Close();
     }
 }

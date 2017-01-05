@@ -8,7 +8,12 @@
     <s:String x:Key="global_error_in">Fehler in {0} {1}</s:String>
     <s:String x:Key="global_abbrv_ln">Z.</s:String>
     <s:String x:Key="global_abbrv_ch">$</s:String>
+    <s:String x:Key="global_port">Port</s:String>
+    <s:String x:Key="global_bytes">Bytes</s:String>
+    <s:String x:Key="global_cancel">Abbrechen</s:String>
+    <s:String x:Key="global_ok">OK</s:String>
     <s:String x:Key="global_close">Schließen</s:String>
+    <s:String x:Key="global_reset">Zurücksetzen</s:String>
     <s:String x:Key="global_copyright">Copyright</s:String>
     <ResourceDictionary x:Key="global_compiler_msg">
         <s:String x:Key="JMP_INSIDE_FUNC">Eine Sprungmarke kann nur innerhalb einer Funktion oder nach der '.main'-Marke deklariert werden.</s:String>
@@ -36,6 +41,10 @@
 
     <s:String x:Key="autocomp_func">Funktion {0}&#10;Die Funktion {1}, welche in Zeile {2} definiert wurde</s:String>
     <s:String x:Key="autocomp_label">Sprungmarke '{0}'&#10;Die Sprungmarke {1}, welche in Zeile {2} definiert wurde</s:String>
+    <s:String x:Key="autocomp_kernel">.kernel-Directive&#10;Gibt dem Prozessor Kernel-Privilegien</s:String>
+    <s:String x:Key="autocomp_user">.user-Directive&#10;Gibt dem Prozessor User-Privilegien</s:String>
+    <s:String x:Key="autocomp_main">Haupteinstiegspunkt&#10;Represäntiert den Haupteinstiegspunkt des Programms</s:String>
+    <s:String x:Key="autocomp_instr">Instruktion '{0}'&#10;Die Assembler-Instruktion {1}</s:String>
 
     <s:String x:Key="mw_title">MCPU Entwicklungsumgebung</s:String>
     <s:String x:Key="mw_file">_DATEI</s:String>
@@ -82,7 +91,6 @@
     <s:String x:Key="mw_help_github">_Auf GitHub ansehen</s:String>
     <s:String x:Key="mw_INS">EINF</s:String>
     <s:String x:Key="mw_OVR">ÜBR</s:String>
-
     <s:String x:Key="aw_title">Über die MCPU Entwicklungsumgebung</s:String>
     <s:String x:Key="aw_version">Version:</s:String>
     <s:String x:Key="aw_version_str">V {0}</s:String>
@@ -95,8 +103,23 @@
     <s:String x:Key="aw_fctb_before">Das Haupt-texteingabefeld des Editors wurde mithilfe des</s:String>
     <s:String x:Key="aw_fctb_after">umgesetzt.</s:String>
     <s:String x:Key="aw_fctb_desc">FastColoredTextBox-Projektes</s:String>
-
     <s:String x:Key="sw_title">MCPU Entwicklungsumgebung - Einstellungen</s:String>
+    <s:String x:Key="sw_applang">Anwendungssprache:</s:String>
+    <s:String x:Key="sw_procsett">Prozessoreinstellungen:</s:String>
+    <s:String x:Key="sw_memsz">Speichergröße:</s:String>
+    <s:String x:Key="sw_stacksz">Aufrufstapelgröße:</s:String>
+
+    <s:String x:Key="pw_title">MCPU Entwicklungsumgebung - Prozessorüberwachung</s:String>
+    <s:String x:Key="pw_gb_addr">Niedere<!-- TODO --> Adressen:  (.kernel)</s:String>
+    <s:String x:Key="pw_gb_io">I/O Ports:  (.io)</s:String>
+    <s:String x:Key="pw_gb_user">Benutzerspeicher:  (.data)</s:String>
+    <s:String x:Key="pw_gb_calls">Aufrufstapel:</s:String>
+    <s:String x:Key="pw_gb_callspc">Stapelsegment:  (.stack)</s:String>
+    <s:String x:Key="pw_gb_instr">Instruktionen:</s:String>
+    <s:String x:Key="pw_gb_instrsp">Instruktionssegment:  (.instr)</s:String>
+    <s:String x:Key="pw_csize">Größe:</s:String>
+    <s:String x:Key="pw_cflags">Gespeicherte Flags:</s:String>
+    <s:String x:Key="pw_cparams">Parameter:</s:String>
 
     <s:String x:Key="msg_err">Fehler</s:String>
     <s:String x:Key="msg_suc">OK<!-- TODO --></s:String>

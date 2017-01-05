@@ -231,7 +231,6 @@ namespace MCPU.Compiler
                                 labels[name] = ++id;
                         else
                         {
-                            labelmeta.Add(new MCPULabelMetadata { Name = name, DefinedLine = linenr + 1, ParentFunction = curr_func });
                             labels[name] = um.Item3;
 
                             if (unmapped.Contains(um))
@@ -239,7 +238,8 @@ namespace MCPU.Compiler
                         }
 
                         line = line.Remove(match.Index, match.Length);
-
+                        
+                        labelmeta.Add(new MCPULabelMetadata { Name = name, DefinedLine = linenr + 1, ParentFunction = curr_func });
                         curr_func.Instructions.Add(new MCPUJumpLabel(id));
                     }
 
