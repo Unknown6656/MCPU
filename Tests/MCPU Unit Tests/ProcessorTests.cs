@@ -37,7 +37,7 @@ namespace MCPU.Testing
                 return rd.ReadToEnd();
         }
 
-        public void IsValue<T>(int addr, T val) where T : struct => IsTrue(proc[addr] == (int)(object)val);
+        public void IsValue(int addr, dynamic val) => IsTrue(proc[addr] == (int)val);
 
         public ProcessorTests()
             : base()
@@ -175,7 +175,7 @@ end func
     IN 5 [2]
     OUT 7 [10]
 ");
-            proc.Syscall(1);
+            // proc.Syscall(1);
 
             IsTrue(proc.IO[7] == (IODirection.Out, 3));
             IsValue(10, 12); // TODO : fix !!
@@ -184,18 +184,16 @@ end func
         [TestMethod]
         public void Test_08()
         {
-            var res = MCPUCompiler.Compile(@"
+            Execute(@"
     .main
     CMP 42 k[2]
     GETFLAGS [0]
     MOV 42.0 [1]
     FDIV [1] 0f
+    SYSCALL 2 [1]
     FCMP [1] -7.5
     GETFLAGS [1]
 ");
-
-            proc.Process(res.AsA.Instructions);
-
             IsValue(0, StatusFlags.Greater);
             IsValue(1, StatusFlags.Float | StatusFlags.Greater | StatusFlags.Infinity1 | StatusFlags.Sign2);
         }
