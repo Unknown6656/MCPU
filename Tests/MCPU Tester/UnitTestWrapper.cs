@@ -12,6 +12,8 @@ namespace MCPU
     {
         public static int Main(string[] argv)
         {
+            Console.ForegroundColor = ConsoleColor.White;
+
             foreach (Type t in from t in typeof(Testing.Commons).Assembly.GetTypes()
                                let attr = t.GetCustomAttributes<TestClassAttribute>(true).FirstOrDefault()
                                where attr != null
@@ -23,7 +25,7 @@ namespace MCPU
 
                 Console.WriteLine($"Testing class '{t.FullName}' ...");
 
-                foreach (MethodInfo nfo in t.GetMethods())
+                foreach (MethodInfo nfo in t.GetMethods().OrderBy(_ => _.Name))
                     if (nfo.GetCustomAttributes<TestMethodAttribute>().FirstOrDefault() != null)
                     {
                         Console.WriteLine($"\tTesting '{t.FullName}.{nfo.Name}' ...");
@@ -37,7 +39,16 @@ namespace MCPU
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine($"\t\t{ex.Message}");
+                            Console.ForegroundColor = ConsoleColor.Red;
+
+                            while (ex != null)
+                            {
+                                Console.WriteLine($"\t\t{ex.Message}\n{ex.StackTrace}");
+
+                                ex = ex.InnerException;
+                            }
+
+                            Console.ForegroundColor = ConsoleColor.White;
                         }
                     }
             }

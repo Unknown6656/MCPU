@@ -6,6 +6,8 @@ using System.Linq;
 using System.Text;
 using System;
 
+using MCPU.Compiler;
+
 namespace MCPU
 {
     using IA = InstructionArgument;
@@ -13,7 +15,6 @@ namespace MCPU
     using static System.Console;
     using static ArgumentType;
     using static OPCodes;
-    using MCPU.Compiler;
 
     public unsafe class Program
     {
