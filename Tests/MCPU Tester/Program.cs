@@ -19,44 +19,40 @@ namespace MCPU
     {
         public static void Main(string[] args)
         {
-            Processor proc = new Processor(128);
-
-            proc.IO.SetValue(7, 12);
-            proc.IO.SetValue(13, 5);
+            Processor proc = new Processor(64, 64, -559038737);
+            
             proc.OnError += (p, ex) => {
                 ForegroundColor = ConsoleColor.Red;
                 WriteLine($"WELL FUGG :D\n{ex.Message}\n{ex.StackTrace}");
                 ForegroundColor = ConsoleColor.White;
             };
-
-            for (int i = 0; i < 32; i++)
-                proc[i] = i | (i << 8) | (i << 16) | (i << 24);
-
-            int addr = 44;
-            foreach (byte b in Encoding.ASCII.GetBytes("hello! top kek lulz /foo/bar/"))
-                proc.UserSpace[addr++] = b;
-
+            
             var res = MCPUCompiler.Compile(@"
-func test
+func f1
+    call f2
+end func
+
+func f2
     .kernel
-    syscall $0
-    .user
+    jmp dump
+    nop
+    nop
+    nop
+    nop
+dump:
+    syscall 1
 end func
 
     .main
-    call test 0
-    copy [0] [64] 32
-    io 13 1
-    in 13 [0x6f]
-    cpuid [0x7f]
-    mov [7ch] 315
-    mov [7dh] 42
-    add [7ch] [7dh]
-    call test 1
+    call f1
 ");
             var instr = res.AsA.Instructions;
+
+            foreach (var i in instr)
+                WriteLine(i);
+
             ConsoleExtensions.HexDump(Instruction.SerializeMultiple(instr));
-            
+
             proc.ProcessWithoutReset(instr);
 
             WriteLine($"SBP: {proc.StackBaseAddress:x8}");

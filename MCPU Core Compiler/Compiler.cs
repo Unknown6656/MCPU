@@ -456,7 +456,7 @@ namespace MCPU.Compiler
 
                     if (f.IsInlined)
                     {
-                        bool caninline = (f.Instructions.Count <= 30) && f.Instructions.All(_ => _.OPCode != OPCodes.JMP);
+                        bool caninline = (f.Instructions.Count <= 30) && f.Instructions.All(_ => !_.OPCode.SpecialIPHandling);
 
                         if (caninline)
                         {

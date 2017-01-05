@@ -8,8 +8,7 @@ namespace MCPU.Testing
 {
     using static Microsoft.VisualStudio.TestTools.UnitTesting.Assert;
 
-
-    // [TestClass]
+    [TestClass]
     public sealed class CompilerTests
         : Commons
     {

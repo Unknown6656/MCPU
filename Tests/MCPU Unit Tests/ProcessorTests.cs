@@ -13,7 +13,6 @@ namespace MCPU.Testing
 {
     using static Microsoft.VisualStudio.TestTools.UnitTesting.Assert;
 
-
     [TestClass]
     public class ProcessorTests
         : Commons

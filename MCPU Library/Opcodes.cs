@@ -101,7 +101,7 @@ namespace MCPU.Instructions
                 };
         
                 for (int i = 0, l = _.Length - 1; i < l; i++)
-                    call.Arguments[i] = *p.TranslateAddress(_[i + 1]);
+                    call.Arguments[i] = _[i + 1].IsInstructionSpace ? (int)_[i + 1] : p.TranslateConstant(_[i + 1]);
 
                 p.PushCall(call);
                 p.MoveTo(_[0]);
