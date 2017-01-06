@@ -14,6 +14,8 @@ namespace MCPU
         {
             Console.ForegroundColor = ConsoleColor.White;
 
+            int passed = 0, failed = 0;
+
             foreach (Type t in from t in typeof(Testing.Commons).Assembly.GetTypes()
                                let attr = t.GetCustomAttributes<TestClassAttribute>(true).FirstOrDefault()
                                where attr != null
@@ -36,9 +38,13 @@ namespace MCPU
                             nfo.Invoke(container, new object[0]);
 
                             Console.WriteLine("\t\tOK");
+
+                            ++passed;
                         }
                         catch (Exception ex)
                         {
+                            ++failed;
+
                             Console.ForegroundColor = ConsoleColor.Red;
 
                             while (ex != null)
@@ -52,6 +58,24 @@ namespace MCPU
                         }
                     }
             }
+
+            const int wdh = 100;
+            double pr = passed / (double)(passed + failed);
+            int prw = 0;
+
+            Console.Write($@"
+{new string('=', (wdh - 14) / 2)} TEST RESULTS {new string('=', (wdh - 14) / 2)}
+ [");
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.Write(new string('#', prw = (int)((wdh - 4) * pr)));
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.Write(new string('#', wdh - 4 - prw));
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine($@"]
+    TOTAL: {passed + failed}
+    PASSED: {passed} (~{pr * 100:F3} %)
+    FAILED: {failed} (~{(1 - pr) * 100:F3} %)
+{new string('=', wdh)}");
 
             Console.ReadKey(true);
 

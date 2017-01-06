@@ -198,5 +198,21 @@ end func
             IsValue(0, StatusFlags.Unary | StatusFlags.Zero1 | StatusFlags.Lower);
             IsValue(1, StatusFlags.Float | StatusFlags.Greater | StatusFlags.Infinity1 | StatusFlags.Sign2);
         }
+
+        [TestMethod]
+        public void Test_09()
+        {
+            Execute(@"
+func f1
+    CLEARFLAGS
+    HALT
+end func
+
+    .main
+    CMP -1 42
+    CALL f1
+");
+            IsTrue(proc.Flags == StatusFlags.Empty);
+        }
     }
 }
