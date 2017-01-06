@@ -166,6 +166,9 @@
     <Resource Include="Languages\de-DE.xaml">
       <SubType>Designer</SubType>
     </Resource>
+    <Resource Include="Languages\ru-RU.xaml">
+      <SubType>Designer</SubType>
+    </Resource>
     <Page Include="MainWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

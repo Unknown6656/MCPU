@@ -25,7 +25,7 @@
     <s:String x:Key="autocomp_kernel">.kernel directive&#10;Grants the current processor kernel privileges</s:String>
     <s:String x:Key="autocomp_user">.user directive&#10;Grants the current processor user privileges</s:String>
     <s:String x:Key="autocomp_main">Main entry point&#10;The application's main entry point</s:String>
-    <s:String x:Key="autocomp_instr">Instruction '{0}'&#10;The assembly instrucion {1}</s:String>
+    <s:String x:Key="autocomp_instr">Instruction '{0}'&#10;The assembly instruction {1}</s:String>
     
     <s:String x:Key="mw_title">MCPU Integrated Development Environment</s:String>
     <s:String x:Key="mw_file">_FILE</s:String>
