@@ -808,7 +808,7 @@ namespace MCPU.Instructions
         : OPCode
     {
         public reset()
-            : base(1, (p, _) => p.Reset())
+            : base(0, (p, _) => p.Reset())
         {
         }
     }
@@ -854,7 +854,7 @@ namespace MCPU.Instructions
         public peek()
             : base(1, (p, _) => {
                 AssertAddress(0, _);
-
+                
                 int val = p.Peek();
 
                 *p.TranslateAddress(_[0]) = val;
