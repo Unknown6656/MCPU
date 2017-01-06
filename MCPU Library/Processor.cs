@@ -247,7 +247,7 @@ namespace MCPU
         }
         
         /// <summary>
-        /// Accesses the I/O-ports of the current MCPU-processor
+        /// Accesses the I/O-ports of the current MCPU-processor (from the processor's point of view)
         /// </summary>
         public IOPorts IO { get; }
 
@@ -745,6 +745,19 @@ namespace MCPU
         /// <param name="addr">User-space address</param>
         /// <returns>Kernel-space address</returns>
         public int UserToKernel(int addr) => VerifyUserspaceAddr(addr, addr + MEM_OFFS / 4);
+
+        /// <summary>
+        /// Sets the processor's given I/O-port to the given value externally, meaning that the processor is not aware of the changement
+        /// </summary>
+        /// <param name="port">I/O-port</param>
+        /// <param name="value">New I/O value</param>
+        public void SetIOExternally(int port, byte value)
+        {
+            byte* ptr = raw + IO_OFFS + port;
+
+            *ptr &= 0xf0;
+            *ptr |= (byte)(value & 0x0f);
+        }
 
         internal void VerifyUserspaceAddr(int addr) => VerifyUserspaceAddr<object>(addr, null);
 

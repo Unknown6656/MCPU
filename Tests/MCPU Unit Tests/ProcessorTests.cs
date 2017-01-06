@@ -21,7 +21,7 @@ namespace MCPU.Testing
         internal StreamWriter wr;
 
 
-        public void Execute(string instr) => proc.Process(MCPUCompiler.Compile(instr).AsA.Instructions);
+        public void Execute(string instr) => proc.ProcessWithoutReset(MCPUCompiler.Compile(instr).AsA.Instructions);
 
         public string ReadProcessorOutput(string instr)
         {
@@ -165,7 +165,7 @@ end func
         public void Test_07()
         {
             proc.StandardOutput = null;
-            proc.IO.SetValue(5, 12);
+            proc.SetIOExternally(5, 12);
 
             Execute(@"
     .main
@@ -175,10 +175,10 @@ end func
     IN 5 [2]
     OUT 7 [10]
 ");
-            // proc.Syscall(1);
+            proc.Syscall(1);
 
             IsTrue(proc.IO[7] == (IODirection.Out, 3));
-            IsValue(10, 12); // TODO : fix !!
+            IsValue(2, 12);
         }
 
         [TestMethod]
