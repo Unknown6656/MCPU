@@ -261,6 +261,7 @@ namespace MCPU.IDE
             {
                 proc.Dispose();
                 proc.OnError -= watcher.Proc_OnError;
+                proc.OnTextOutput -= watcher.Proc_OnTextOutput;
                 proc.ProcessorReset -= watcher.Proc_ProcessorReset;
                 proc.InstructionExecuted -= watcher.Proc_InstructionExecuted;
             }
@@ -275,6 +276,7 @@ namespace MCPU.IDE
 
             proc = new Processor(Properties.Settings.Default.MemorySize, Properties.Settings.Default.CallStackSize, -1);
             proc.OnError += watcher.Proc_OnError;
+            proc.OnTextOutput += watcher.Proc_OnTextOutput;
             proc.ProcessorReset += watcher.Proc_ProcessorReset;
             proc.InstructionExecuted += watcher.Proc_InstructionExecuted;
         }
