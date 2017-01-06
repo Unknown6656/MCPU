@@ -201,8 +201,8 @@ end func
         public void Test_23()
         {
             MCPUCompilerResult res = Compile(@"
-
-");
+    <!-- TODO -->
+"); // TODO
             IsTrue(res.Labels.Length == 2);
             IsTrue(res.Functions.Length == 1);
         }
