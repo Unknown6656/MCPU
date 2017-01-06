@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Diagnostics.Contracts;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Collections;
 using System.Diagnostics;
 using System.Reflection;
 using System.Threading;
@@ -13,7 +14,6 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System;
-using System.Collections;
 
 namespace MCPU
 {

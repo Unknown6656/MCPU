@@ -11,6 +11,7 @@ using MCPU.Compiler;
 
 namespace MCPU.Testing
 {
+    using System.Diagnostics;
     using static Microsoft.VisualStudio.TestTools.UnitTesting.Assert;
 
     [TestClass]
@@ -20,6 +21,8 @@ namespace MCPU.Testing
         internal Processor proc;
         internal StreamWriter wr;
 
+
+        public MCPUProcessingException ExpectError(string instr) => Throws<MCPUProcessingException>(() => Execute(instr));
 
         public void Execute(string instr) => proc.ProcessWithoutReset(MCPUCompiler.Compile(instr).AsA.Instructions);
 
@@ -36,8 +39,14 @@ namespace MCPU.Testing
             using (StreamReader rd = new StreamReader(wr.BaseStream))
                 return rd.ReadToEnd();
         }
-
+        
         public void IsValue(int addr, dynamic val) => IsTrue(proc[addr] == (int)val);
+
+        public void AreValues(params (int, dynamic)[] conditions)
+        {
+            foreach ((int, dynamic) cond in conditions)
+                IsValue(cond.Item1, cond.Item2);
+        }
 
         public ProcessorTests()
             : base()
@@ -56,7 +65,7 @@ namespace MCPU.Testing
             proc.OnError += (p, ex) => {
                 throw ex;
             };
-            proc.StandardOutput = wr;
+            proc.StandardOutput = null; //  wr;
         }
 
         [TestMethod]
@@ -213,6 +222,190 @@ end func
     CALL f1
 ");
             IsTrue(proc.Flags == StatusFlags.Empty);
+        }
+
+        [TestMethod]
+        public void Test_10()
+        {
+            Execute(@"
+    .main
+    .kernel
+    LEA [5] k[2]
+    MOV [3] 42
+    LEA [4] [3]
+    MOV k[[14h]] -1
+");
+            IsValue(5, 2);
+            IsValue(4, 0x13);
+            IsValue(3, -1);
+        }
+
+        [TestMethod]
+        public void Test_11() => ExpectError(@"
+    .main
+    MOV [2] 42
+    DIV [2] 0
+");
+
+        [TestMethod]
+        public void Test_12() => ExpectError(@"
+    .main
+    MOV [2] 0
+    MOD [2] 0
+");
+
+        [TestMethod]
+        public void Test_13() => ExpectError(@"
+    .main
+    MOV k[2] 42
+");
+        
+        [TestMethod]
+        public void Test_14()
+        {
+            // some arithmetic '''hardcore''' testing
+            Execute(@"
+    .main
+    MOV [0] 7fffffffh
+    ADD [0] 80000000h
+    
+    MOV [1] -7fffffffh
+    SUB [1] 80000000h
+    
+    MOV [2] 42000315h
+    MOV [3] [2]
+    SHL [3] 8
+    SHR [2] 24
+    XOR [2] [3]
+    
+    MOV [3] 2
+    POW [3] 3
+    FAC [3]
+
+    MOV [4] -1
+    BOOL [4] [4]
+    NOT [4]
+    NEG [4]
+");
+            AreValues(
+                (0, 0xffffffff),
+                (1, 0x00000001),
+                (2, 0x00031542),
+                (3, 0x000013b0),
+                (4, 0x00000002)
+            );
+        }
+
+        [TestMethod]
+        public void Test_15()
+        {
+            Execute(@"
+    .main
+    MOV [5] 42
+    MOV [3] 6
+    MOV [[3]] 315h
+    SWAP [[3]] [5]
+    SWAP [3] [5]
+");
+            AreValues(
+                (3, 0x315),
+                (5, 6),
+                (6, 42)
+            );
+        }
+
+        [TestMethod]
+        public void Test_16()
+        {
+            Execute(@"
+    .main
+    CPUID [3]
+");
+            IsValue(3, proc.CPUID);
+        }
+
+        [TestMethod]
+        public void Test_17()
+        {
+            int duration = 400;
+            Stopwatch sw = new Stopwatch();
+
+            sw.Start();
+
+            Execute($@"
+    .main
+    WAIT {duration}
+");
+            sw.Stop();
+
+            IsTrue(sw.ElapsedMilliseconds >= duration);
+        }
+
+        [TestMethod]
+        public void Test_18()
+        {
+            Execute($@"
+func f1
+    CMP -1 42
+    RESET
+end func
+
+    .main
+    .kernel
+    MOV k[10h] 88
+    OUT 17 5
+    CALL f1
+    DIV [0] 0
+");
+            IsTrue(proc.Instructions.Length == 0);
+            IsTrue(proc.CallStack.Length == 0);
+            IsTrue(proc.Flags == StatusFlags.Empty);
+            IsTrue(proc.InformationFlags == InformationFlags.Empty);
+            IsValue(0, 0);
+        }
+
+        [TestMethod]
+        public void Test_19()
+        {
+            Execute($@"
+    .main
+    .kernel
+    MOV [1] 3
+    MOV [2] 315
+    MOV [3] 42
+    PUSH [[1]]
+    PUSH [1]
+    PUSH [2]
+    SSWAP
+    POP [4]
+    DECR [4]
+    POP [3]
+    POP [[4]]
+");
+            AreValues(
+                (1, 3),
+                (2, 42),
+                (3, 315),
+                (4, 2)
+            );
+        }
+
+        [TestMethod]
+        public void Test_20()
+        {
+            Execute($@"
+    .main
+    .kernel
+    MOV k[2] deadc000h
+    PUSHF
+    PUSH 42
+    SSWAP
+    CLEARFLAGS
+    PEEK [3]
+    POPF
+");
+            IsTrue(proc.StackSize == 1);
+            IsTrue(proc[3] != 0);
         }
     }
 }
