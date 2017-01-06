@@ -95,6 +95,13 @@ namespace MCPU.IDE
 
         internal static void UpdateSaveSettings()
         {
+            if (Settings.Default.UpgradeRequired)
+            {
+                Settings.Default.Upgrade();
+                Settings.Default.UpgradeRequired = false;
+                Settings.Default.Save();
+            }
+
             Settings.Default.Language = Settings.Default?.Language ?? DEFAULT_SETTINGS.Item1;
             Settings.Default.MemorySize = Max(512, Min(Processor.MAX_MEMSZ, Settings.Default?.MemorySize ?? DEFAULT_SETTINGS.Item2));
             Settings.Default.CallStackSize = Max(512, Min(Processor.MAX_STACKSZ, Settings.Default?.MemorySize ?? DEFAULT_SETTINGS.Item3));
