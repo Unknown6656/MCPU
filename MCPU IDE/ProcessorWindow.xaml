@@ -84,7 +84,7 @@
             </ListView>
         </GroupBox>
         <GroupBox Header="{DynamicResource pw_gb_user}" Height="590" Canvas.Left="979" Canvas.Top="10" Width="695" BorderBrush="{DynamicResource FG}">
-            <TextBox x:Name="tb_raw_user" Background="#303030" Height="548" Margin="10" Padding="2" IsReadOnly="True" ScrollViewer.CanContentScroll="True" ScrollViewer.HorizontalScrollBarVisibility="Visible" VerticalContentAlignment="Top" TextWrapping="Wrap"/>
+            <TextBox x:Name="tb_raw_user" Background="#303030" Height="548" Margin="10" Padding="2" IsReadOnly="True" VerticalScrollBarVisibility="Visible" ScrollViewer.CanContentScroll="True" ScrollViewer.HorizontalScrollBarVisibility="Visible" VerticalContentAlignment="Top" TextWrapping="Wrap"/>
         </GroupBox>
         <GroupBox Header="{DynamicResource pw_gb_calls}" Canvas.Left="10" Canvas.Top="380" Width="606" BorderBrush="{DynamicResource FG}">
             <ListView x:Name="lst_call" Style="{StaticResource st_data}" Height="180" Margin="10">
@@ -123,7 +123,7 @@
             </ListView>
         </GroupBox>
         <GroupBox Header="{DynamicResource pw_gb_callspc}" Canvas.Left="621" Canvas.Top="380" Width="353" BorderBrush="{DynamicResource FG}" Height="220">
-            <TextBox x:Name="tb_raw_calls" Background="#303030" Height="180" Margin="10" Padding="2" IsReadOnly="True" ScrollViewer.CanContentScroll="True" ScrollViewer.HorizontalScrollBarVisibility="Visible" VerticalContentAlignment="Top" TextWrapping="Wrap"/>
+            <TextBox x:Name="tb_raw_calls" Background="#303030" Height="180" Margin="10" Padding="2" IsReadOnly="True" VerticalScrollBarVisibility="Visible" ScrollViewer.CanContentScroll="True" ScrollViewer.HorizontalScrollBarVisibility="Visible" VerticalContentAlignment="Top" TextWrapping="Wrap"/>
         </GroupBox>
         <GroupBox Header="{DynamicResource pw_gb_instr}" Canvas.Left="10" Canvas.Top="605" Width="606" BorderBrush="{DynamicResource FG}" Height="296">
             <ListView x:Name="lst_instr" Style="{StaticResource st_data}" Height="255" Margin="10">
@@ -154,7 +154,7 @@
             </ListView>
         </GroupBox>
         <GroupBox Header="{DynamicResource pw_gb_instrsp}" Canvas.Left="621" Canvas.Top="605" Width="353" BorderBrush="{DynamicResource FG}" Height="296">
-            <TextBox x:Name="tb_raw_instr" Background="#303030" Height="255" Margin="10" Padding="2" IsReadOnly="True" ScrollViewer.CanContentScroll="True" ScrollViewer.HorizontalScrollBarVisibility="Visible" VerticalContentAlignment="Top" TextWrapping="Wrap"/>
+            <TextBox x:Name="tb_raw_instr" Background="#303030" Height="255" Margin="10" Padding="2" IsReadOnly="True" VerticalScrollBarVisibility="Visible" ScrollViewer.CanContentScroll="True" ScrollViewer.HorizontalScrollBarVisibility="Visible" VerticalContentAlignment="Top" TextWrapping="Wrap"/>
         </GroupBox>
         <GroupBox Header="{DynamicResource pw_gb_output}" Canvas.Left="979" Canvas.Top="605" Width="695" BorderBrush="{DynamicResource FG}" Height="296">
             <TextBlock x:Name="tb_outp" Background="#303030" Height="255" Margin="10" Padding="2" ScrollViewer.CanContentScroll="True" ScrollViewer.HorizontalScrollBarVisibility="Visible" TextWrapping="Wrap"/>
