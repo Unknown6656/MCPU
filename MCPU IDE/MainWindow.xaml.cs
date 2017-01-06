@@ -329,7 +329,13 @@ namespace MCPU.IDE
 
         private void mie_select_all(object sender, ExecutedRoutedEventArgs e) => fctb.SelectAll();
 
-        private void mie_delete(object sender, ExecutedRoutedEventArgs e) => fctb.ClearSelected();
+        private void mie_delete(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (fctb.SelectionLength == 0)
+                fctb.ProcessKey(WinForms.Keys.Delete);
+            else
+                fctb.ClearSelected();
+        }
 
         private void mie_paste(object sender, ExecutedRoutedEventArgs e) => fctb.Paste();
 
