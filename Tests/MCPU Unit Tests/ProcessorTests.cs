@@ -407,5 +407,70 @@ end func
             IsTrue(proc.StackSize == 1);
             IsTrue(proc[3] != 0);
         }
+
+        [TestMethod]
+        public void Test_21()
+        {
+            Execute($@"
+    .main
+    MOV [2] 42.0
+    MOV [3] 315
+    FICAST [4] [2]
+    IFCAST [5] [3] 
+");
+            AreValues(
+                (2, (FloatIntUnion)42f),
+                (3, 315),
+                (4, 42),
+                (5, (FloatIntUnion)315f)
+            );
+        }
+
+        [TestMethod]
+        public void Test_22()
+        {
+            Execute($@"
+    .main
+    MOV [2] 42.0
+    MOV [3] 3.15e+2
+    {string.Join("\n    ", from i in Enumerable.Range(10, 14) select $"MOV [{i}] [2]")}
+
+    FADD [10] [3]
+    FSUB [11] [3]
+    FMUL [12] [3]
+    FDIV [13] [3]
+    FMOD [14] [3]
+    FNEG [15]
+    FINV [16]
+    FSQRT [17]
+    FROOT [18] [3]
+    FLOG [19] [3]
+    FLOGE [20]
+    FEXP [21]
+    FPOW [22] [3]
+    FMIN [23] [3]
+    FMAX [24] [3]
+");
+            float[] result = {
+                357,
+                -273,
+                13230,
+                0.1333333333333330f,
+                42,
+                -42,
+                0.0238095238095238f,
+                6.4807406984078600f,
+                1.0119362935394700f,
+                0.6497387956575900f,
+                3.7376696182833700f,
+                1739274941520500000,
+                float.PositiveInfinity,
+                42,
+                315
+            };
+
+            for (int i = 0; i < 14; i++)
+                IsValue(10 + i, (FloatIntUnion)result[i]);
+        }
     }
 }
