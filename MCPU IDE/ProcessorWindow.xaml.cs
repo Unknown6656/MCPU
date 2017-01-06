@@ -136,6 +136,8 @@ namespace MCPU.IDE
                         // Keyword = instr.OPCode.IsKeyword ? new BitmapImage(new Uri("Resources/")) : null,
                     });
                 
+                // some kind of semaphore goes here, which kills 'old' tasks and prevents UI blocking
+
                 DoUIStuff(delegate
                 {
                     lst_io.Items.Clear();

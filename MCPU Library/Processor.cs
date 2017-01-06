@@ -434,12 +434,7 @@ namespace MCPU
         /// <summary>
         /// Processes the next instruction
         /// </summary>
-#if DEBUG
-        public
-#else
-        internal
-#endif
-        void ProcessNext()
+        public void ProcessNext()
         {
             Instruction ins = Instructions[IP];
 

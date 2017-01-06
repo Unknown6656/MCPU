@@ -438,6 +438,8 @@ namespace MCPU.IDE
             // TODO ?
         }
 
+        private void mip_next(object sender, ExecutedRoutedEventArgs e) => new Task(proc.ProcessNext);
+
         private void mip_start(object sender, ExecutedRoutedEventArgs e)
         {
             new Task(delegate
@@ -492,6 +494,7 @@ namespace MCPU.IDE
         public static readonly RoutedUICommand Redo = create(nameof(Redo), Key.Y);
         public static readonly RoutedUICommand Compile = create(nameof(Compile), Key.F5, ModifierKeys.None);
         public static readonly RoutedUICommand Start = create(nameof(Start), Key.F6, ModifierKeys.None);
+        public static readonly RoutedUICommand Next = create(nameof(Next), Key.F5, ModifierKeys.Shift);
         public static readonly RoutedUICommand Stop = create(nameof(Stop), Key.F6, ModifierKeys.Shift);
         public static readonly RoutedUICommand Reset = create(nameof(Reset), Key.F6);
         public static readonly RoutedUICommand About = create(nameof(Reset), Key.F1, ModifierKeys.None);
