@@ -53,6 +53,9 @@ namespace MCPU.Testing
 
             proc?.Dispose();
             proc = new Processor(0x800, 0x100, unchecked((int)0xdeadbeafu));
+            proc.OnError += (p, ex) => {
+                throw ex;
+            };
             proc.StandardOutput = wr;
         }
 
@@ -175,8 +178,6 @@ end func
     IN 5 [2]
     OUT 7 [10]
 ");
-            proc.Syscall(1);
-
             IsTrue(proc.IO[7] == (IODirection.Out, 3));
             IsValue(2, 12);
         }
@@ -186,15 +187,15 @@ end func
         {
             Execute(@"
     .main
-    CMP 42 k[2]
+    .kernel
+    CMP 42
     GETFLAGS [0]
-    MOV 42.0 [1]
+    MOV [1] 42.0
     FDIV [1] 0f
-    SYSCALL 2 [1]
     FCMP [1] -7.5
     GETFLAGS [1]
 ");
-            IsValue(0, StatusFlags.Greater);
+            IsValue(0, StatusFlags.Unary | StatusFlags.Zero1 | StatusFlags.Lower);
             IsValue(1, StatusFlags.Float | StatusFlags.Greater | StatusFlags.Infinity1 | StatusFlags.Sign2);
         }
     }

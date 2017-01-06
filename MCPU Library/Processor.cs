@@ -105,7 +105,7 @@ namespace MCPU
         /// <summary>
         /// Raised if an exception occurs
         /// </summary>
-        public event ProcessorEventHandler<Exception> OnError;
+        public event ProcessorEventHandler<MCPUProcessingException> OnError;
         /// <summary>
         /// Raised if the kernel memory's byte at the returned byte offset has changed
         /// </summary>
@@ -430,31 +430,36 @@ namespace MCPU
         /// <summary>
         /// Processes the next instruction
         /// </summary>
-#if DEBUG
-        public
-#else
-        internal
-#endif
-        void ProcessNext()
+        public void ProcessNext()
         {
             Instruction ins = Instructions[IP];
 
-            if ((ins != null) && (ins.GetType() != typeof(Instructions.halt)))
+            try
             {
-                ++Ticks;
+                if ((ins != null) && (ins.GetType() != typeof(Instructions.halt)))
+                {
+                    ++Ticks;
 
-                ins.Process(this);
-                
-                InstructionExecuted?.Invoke(this, ins);
+                    ins.Process(this);
 
-                if (!ins.OPCode.SpecialIPHandling)
-                    if (IP < Instructions.Length)
-                        MoveNext();
-                    else
-                        Halt();
+                    InstructionExecuted?.Invoke(this, ins);
+
+                    if (!ins.OPCode.SpecialIPHandling)
+                        if (IP < Instructions.Length)
+                            MoveNext();
+                        else
+                            Halt();
+                }
+                else
+                    Halt(); // TODO : ?
             }
-            else
-                Halt(); // TODO : ?
+            catch (Exception ex)
+            {
+                if (ex is MCPUProcessingException mcpupex)
+                    throw mcpupex;
+                else
+                    throw new MCPUProcessingException(ex, ins);
+            }
         }
 
         /// <summary>
@@ -498,8 +503,8 @@ namespace MCPU
             Instructions = ins.Concat(new Instruction[] { OPCodes.HALT, OPCodes.HALT }).ToArray();
             IsRunning = true;
 
-            Exception res;
-            Task<Exception> t = new Task<Exception>(delegate {
+            MCPUProcessingException res;
+            Task<MCPUProcessingException> t = new Task<MCPUProcessingException>(delegate {
                 try
                 {
                     while (IsRunning)
@@ -507,7 +512,7 @@ namespace MCPU
 
                     return null;
                 }
-                catch (Exception ex)
+                catch (MCPUProcessingException ex)
                 {
                     return ex;
                 }
@@ -854,8 +859,8 @@ namespace MCPU
     /// <summary>
     /// Represents an exception, which occures if a 'regular' user tries to perform kernel actions
     /// </summary>
-    public class MissingPrivilegeException
-        : InvalidOperationException
+    public sealed class MissingPrivilegeException
+        : MCPUProcessingException
     {
         /// <summary>
         /// Represents an exception, which occures if a 'regular' user tries to perform kernel actions
@@ -896,8 +901,8 @@ namespace MCPU
     /// <summary>
     /// Represents an exception, which occures while processing the MCPU-(call)stack
     /// </summary>
-    public class StackException
-        : Exception
+    public sealed class StackException
+        : MCPUProcessingException
     {
         /// <summary>
         /// Creates a new StackException with the given message
@@ -907,6 +912,47 @@ namespace MCPU
             : base(message)
         {
         }
+    }
+
+    /// <summary>
+    /// Represents an exception, which occures while processing an faulty instruction
+    /// </summary>
+    [Serializable]
+    public class MCPUProcessingException
+        : InvalidOperationException
+    {
+        /// <summary>
+        /// The faulty instruction
+        /// </summary>
+        public Instruction Instruction { get; }
+
+
+        /// <summary>
+        /// Creates a new MCPUProcessingException with the given message
+        /// </summary>
+        /// <param name="message">Exception message</param>
+        public MCPUProcessingException(string message)
+            : base(message)
+        {
+        }
+
+        /// <summary>
+        /// Creates a new MCPUProcessingException with the given message and the given inner exception
+        /// </summary>
+        /// <param name="message">Exception message</param>
+        /// <param name="innerException">Inner exception</param>
+        public MCPUProcessingException(string message, Exception innerException)
+            : base(message, innerException)
+        {
+        }
+
+        /// <summary>
+        /// Creates a new MCPUProcessingException with the given inner exception and faulty instruction
+        /// </summary>
+        /// <param name="ex">Inner exception</param>
+        /// <param name="ins">Faulty instruction</param>
+        public MCPUProcessingException(Exception ex, Instruction ins)
+            : base($"Invalid MCPU operation: {ex.Message}", ex) => Instruction = ins;
     }
 
     /// <summary>
