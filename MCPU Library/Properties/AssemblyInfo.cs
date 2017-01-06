@@ -9,9 +9,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("MCPU Library")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("Unknown6656")]
 [assembly: AssemblyProduct("MCPU Library")]
-[assembly: AssemblyCopyright("Copyright © Unknown6656, 2016")]
+[assembly: AssemblyCopyright("Copyright © Unknown6656, 2016-2017")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

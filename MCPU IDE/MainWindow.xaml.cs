@@ -261,6 +261,7 @@ namespace MCPU.IDE
             {
                 proc.Dispose();
                 proc.OnError -= watcher.Proc_OnError;
+                proc.OnTextOutput -= watcher.Proc_OnTextOutput;
                 proc.ProcessorReset -= watcher.Proc_ProcessorReset;
                 proc.InstructionExecuted -= watcher.Proc_InstructionExecuted;
             }
@@ -275,6 +276,7 @@ namespace MCPU.IDE
 
             proc = new Processor(Properties.Settings.Default.MemorySize, Properties.Settings.Default.CallStackSize, -1);
             proc.OnError += watcher.Proc_OnError;
+            proc.OnTextOutput += watcher.Proc_OnTextOutput;
             proc.ProcessorReset += watcher.Proc_ProcessorReset;
             proc.InstructionExecuted += watcher.Proc_InstructionExecuted;
         }
@@ -327,7 +329,13 @@ namespace MCPU.IDE
 
         private void mie_select_all(object sender, ExecutedRoutedEventArgs e) => fctb.SelectAll();
 
-        private void mie_delete(object sender, ExecutedRoutedEventArgs e) => fctb.ClearSelected();
+        private void mie_delete(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (fctb.SelectionLength == 0)
+                fctb.ProcessKey(WinForms.Keys.Delete);
+            else
+                fctb.ClearSelected();
+        }
 
         private void mie_paste(object sender, ExecutedRoutedEventArgs e) => fctb.Paste();
 

@@ -150,9 +150,7 @@ loop:
     decr [1]
     cmp [1]
     call print 1
-    jz end
-    jmp loop
-end:
+    jnz loop
     halt</value>
   </data>
 </root>

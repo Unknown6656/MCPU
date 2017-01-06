@@ -40,10 +40,10 @@ namespace MCPU
 
         internal static readonly Dictionary<int, ProcessingDelegate> __syscalltable = new Dictionary<int, ProcessingDelegate> {
             { -1, delegate { /*  ABK INSTRUCTION  */ } },
-            { 0, (p, _) => p.stdout.WriteLine($"MCPU v. {Assembly.GetEntryAssembly().GetName().Version} created by Unknown6656") },
+            { 0, (p, _) => p.WriteLine($"MCPU v. {Assembly.GetEntryAssembly().GetName().Version} created by Unknown6656") },
             { 1, (p, _) => ConsoleExtensions.HexDump(p.ToBytes()) },
-            { 2, (p, _) => p.stdout.WriteLine(string.Join(", ", from arg in _ select $"0x{p.TranslateConstant(arg):x8}")) },
-            { 3, (p, _) => p.stdout.WriteLine(string.Join(", ", from arg in _ select p.TranslateFloatConstant(arg))) },
+            { 2, (p, _) => p.WriteLine(string.Join(", ", from arg in _ select $"0x{p.TranslateConstant(arg):x8}")) },
+            { 3, (p, _) => p.WriteLine(string.Join(", ", from arg in _ select p.TranslateFloatConstant(arg))) },
             { 4, (p, _) => {
                 OPCode.AssertAddress(0, _);
 
@@ -77,7 +77,11 @@ namespace MCPU
 
         #endregion
         #region EVENTS
-        
+
+        /// <summary>
+        /// Raised when the processor outputs some text
+        /// </summary>
+        public event ProcessorEventHandler<string> OnTextOutput;
         /// <summary>
         /// Raised after an instruction has been executed
         /// </summary>
@@ -763,6 +767,15 @@ namespace MCPU
             *ptr &= 0xf0;
             *ptr |= (byte)(value & 0x0f);
         }
+
+        internal void Write(string s)
+        {
+            StandardOutput?.Write(s);
+
+            OnTextOutput?.Invoke(this, s);
+        }
+
+        internal void WriteLine(string s) => Write(s + '\n');
 
         internal void VerifyUserspaceAddr(int addr) => VerifyUserspaceAddr<object>(addr, null);
 
