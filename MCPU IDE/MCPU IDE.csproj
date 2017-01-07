@@ -166,6 +166,9 @@
     <Resource Include="Languages\de-DE.xaml">
       <SubType>Designer</SubType>
     </Resource>
+    <Resource Include="Languages\ru-RU.xaml">
+      <SubType>Designer</SubType>
+    </Resource>
     <Page Include="MainWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -241,6 +244,19 @@
   <ItemGroup>
     <Resource Include="Resources\elevated.png" />
     <Resource Include="Resources\switch.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\menu_exit.png" />
+    <Resource Include="Resources\menu_next.png" />
+    <Resource Include="Resources\menu_pause.png" />
+    <Resource Include="Resources\menu_reset.png" />
+    <Resource Include="Resources\menu_settings.png" />
+    <Resource Include="Resources\menu_start.png" />
+    <Resource Include="Resources\menu_stop.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\menu_redo.png" />
+    <Resource Include="Resources\menu_undo.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

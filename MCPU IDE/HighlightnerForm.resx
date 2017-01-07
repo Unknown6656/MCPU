@@ -145,12 +145,11 @@ end func
 
     .main
     mov [1] 20
-    call print 1
 loop:
+    call print 1
     decr [1]
     cmp [1]
-    call print 1
-    jnz loop
+    jpos loop
     halt</value>
   </data>
 </root>

@@ -46,6 +46,7 @@
         <CommandBinding Command="local:Commands.ExportAsHTML" Executed="mif_export_html"/>
         <CommandBinding Command="local:Commands.Preferences" Executed="mif_settings"/>
         <CommandBinding Command="local:Commands.Compile" Executed="mic_compile"/>
+        <CommandBinding Command="local:Commands.Next" Executed="mip_next"/>
         <CommandBinding Command="local:Commands.Stop" Executed="mip_stop"/>
         <CommandBinding Command="local:Commands.Start" Executed="mip_start"/>
         <CommandBinding Command="local:Commands.Reset" Executed="mip_reset"/>
@@ -63,13 +64,13 @@
                 <MenuItem Header="{DynamicResource mw_file_saveall}" Command="local:Commands.SaveAs"/>
                 <MenuItem Header="{DynamicResource mw_file_export}" Command="local:Commands.ExportAsHTML"/>
                 <Separator/>
-                <MenuItem Header="{DynamicResource mw_file_settings}" Command="local:Commands.Preferences"/>
+                <MenuItem Header="{DynamicResource mw_file_settings}" Command="local:Commands.Preferences" Icon="{DynamicResource menu_settings}"/>
                 <Separator/>
-                <MenuItem Header="{DynamicResource mw_file_exit}" Command="local:Commands.Exit"/>
+                <MenuItem Header="{DynamicResource mw_file_exit}" Command="local:Commands.Exit" Icon="{DynamicResource menu_exit}"/>
             </MenuItem>
             <MenuItem Header="{DynamicResource mw_edit}">
-                <MenuItem Header="{DynamicResource mw_edit_undo}" Command="local:Commands.Undo"/>
-                <MenuItem Header="{DynamicResource mw_edit_redo}" Command="local:Commands.Redo"/>
+                <MenuItem Header="{DynamicResource mw_edit_undo}" Command="local:Commands.Undo" Icon="{DynamicResource menu_undo}"/>
+                <MenuItem Header="{DynamicResource mw_edit_redo}" Command="local:Commands.Redo" Icon="{DynamicResource menu_redo}"/>
                 <Separator/>
                 <MenuItem Header="{DynamicResource mw_edit_copy}" Command="local:Commands.Copy" Icon="{DynamicResource menu_copy}"/>
                 <MenuItem Header="{DynamicResource mw_edit_cut}" Command="local:Commands.Cut" Icon="{DynamicResource menu_cut}"/>
@@ -100,9 +101,10 @@
                 <MenuItem Header="{DynamicResource mw_compiler_instr}"/>
             </MenuItem>
             <MenuItem Header="{DynamicResource mw_processor}">
-                <MenuItem Header="{DynamicResource mw_processor_start}" Command="local:Commands.Start"/>
-                <MenuItem Header="{DynamicResource mw_processor_stop}" Command="local:Commands.Stop"/>
-                <MenuItem Header="{DynamicResource mw_processor_reset}" Command="local:Commands.Reset"/>
+                <MenuItem Header="{DynamicResource mw_processor_start}" Command="local:Commands.Start" Icon="{DynamicResource menu_start}"/>
+                <MenuItem Header="{DynamicResource mw_processor_stop}" Command="local:Commands.Stop" Icon="{DynamicResource menu_stop}"/>
+                <MenuItem Header="{DynamicResource mw_processor_next}" Command="local:Commands.Next" Icon="{DynamicResource menu_next}"/>
+                <MenuItem Header="{DynamicResource mw_processor_reset}" Command="local:Commands.Reset" Icon="{DynamicResource menu_reset}"/>
                 <Separator/>
                 <MenuItem Header="{DynamicResource mw_processor_memmap}" Command="local:Commands.ProcessorInfo"/>
                 <MenuItem Header="{DynamicResource mw_processor_dump}"/>

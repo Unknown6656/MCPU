@@ -50,7 +50,7 @@
         '\"',
         '\'',
         '\''};
-            this.fctb.AutoScrollMinSize = new System.Drawing.Size(468, 272);
+            this.fctb.AutoScrollMinSize = new System.Drawing.Size(468, 255);
             this.fctb.BackBrush = null;
             this.fctb.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
             this.fctb.CaretColor = System.Drawing.Color.Wheat;
