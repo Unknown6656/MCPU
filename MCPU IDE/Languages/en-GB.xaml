@@ -4,7 +4,6 @@
     <s:String x:Key="lang_iso">ENG</s:String>
     <s:String x:Key="lang_code">en-GB</s:String>
     <s:String x:Key="lang_name">English</s:String>
-    
     <s:String x:Key="global_error_in">Error on {0} {1}</s:String>
     <s:String x:Key="global_abbrv_ln">Ln.</s:String>
     <s:String x:Key="global_abbrv_ch">Ch.</s:String>
@@ -19,14 +18,12 @@
         <!-- NOTHING TO DO, AS EN-GB IS THE DEFAULT LANGUAGE -->
     </ResourceDictionary>
     <s:String x:Key="global_compiler_error">Compiler error</s:String>
-
     <s:String x:Key="autocomp_func">Function {0}&#10;The function {1} which has been defined on line {2}</s:String>
     <s:String x:Key="autocomp_label">Label '{0}'&#10;The label {1} which has been defined on line {2}</s:String>
     <s:String x:Key="autocomp_kernel">.kernel directive&#10;Grants the current processor kernel privileges</s:String>
     <s:String x:Key="autocomp_user">.user directive&#10;Grants the current processor user privileges</s:String>
     <s:String x:Key="autocomp_main">Main entry point&#10;The application's main entry point</s:String>
     <s:String x:Key="autocomp_instr">Instruction '{0}'&#10;The assembly instruction {1}</s:String>
-    
     <s:String x:Key="mw_title">MCPU Integrated Development Environment</s:String>
     <s:String x:Key="mw_file">_FILE</s:String>
     <s:String x:Key="mw_file_new">_New</s:String>
@@ -89,7 +86,6 @@
     <s:String x:Key="sw_procsett">Processor Settings:</s:String>
     <s:String x:Key="sw_memsz">Memory size:</s:String>
     <s:String x:Key="sw_stacksz">Callstack size:</s:String>
-
     <s:String x:Key="pw_title">MCPU IDE - Processor Watcher</s:String>
     <s:String x:Key="pw_gb_addr">Lower Addresses:  (.kernel)</s:String>
     <s:String x:Key="pw_gb_io">I/O Ports:  (.io)</s:String>
@@ -102,7 +98,6 @@
     <s:String x:Key="pw_cflags">Saved Flags:</s:String>
     <s:String x:Key="pw_cparams">Parameters:</s:String>
     <s:String x:Key="pw_gb_output">Processor Output:</s:String>
-    
     <s:String x:Key="msg_err">Error</s:String>
     <s:String x:Key="msg_suc">Success</s:String>
     <s:String x:Key="msg_war">Warning</s:String>
