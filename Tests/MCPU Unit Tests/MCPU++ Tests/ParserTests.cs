@@ -8,6 +8,7 @@ using System.Text;
 using System.IO;
 using System;
 
+using MCPU.MCPUPP.Parser;
 using MCPU.Compiler;
 
 namespace MCPU.Testing
@@ -31,6 +32,8 @@ namespace MCPU.Testing
         [TestMethod]
         public void Test_01()
         {
+            var s1 = ShuntingYardAlgorithm.parse("3 + 4 * 2 / ( 1 - 5 ) ^ 2 ^ 3");
+            var s2 = ShuntingYardAlgorithm.shunting_yard(s1);
         }
     }
 }

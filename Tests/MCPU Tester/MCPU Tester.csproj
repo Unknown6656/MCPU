@@ -76,6 +76,10 @@
       <Project>{2df6d431-a417-4d2d-abd9-e852671e947e}</Project>
       <Name>MCPU Library</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\MCPU++\MCPU++ Parser\MCPU++ Parser.fsproj">
+      <Project>{179e3955-51f8-4a5b-a4e5-8e00a5889554}</Project>
+      <Name>MCPU++ Parser</Name>
+    </ProjectReference>
     <ProjectReference Include="..\MCPU Unit Tests\MCPU Unit Tests.csproj">
       <Project>{15a7417f-b941-406b-a0b7-8fb3402dfffc}</Project>
       <Name>MCPU Unit Tests</Name>
