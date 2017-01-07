@@ -1,3 +1,4 @@
-﻿#load "ShuntingYardAlgorithm.fs"
+﻿#load "Helper.fs"
+#load "ShuntingYardAlgorithm.fs"
 
 open MCPU.MCPUPP.Parser

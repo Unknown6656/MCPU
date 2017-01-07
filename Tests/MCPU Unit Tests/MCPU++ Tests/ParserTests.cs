@@ -19,10 +19,6 @@ namespace MCPU.Testing
     public class ParserTests
         : Commons
     {
-        public ParserTests()
-            : base()
-        {
-        }
 
         [TestInitialize]
         public override void Test_Init()
@@ -32,8 +28,17 @@ namespace MCPU.Testing
         [TestMethod]
         public void Test_01()
         {
-            var s1 = ShuntingYardAlgorithm.parse("3 + 4 * 2 / ( 1 - 5 ) ^ 2 ^ 3");
-            var s2 = ShuntingYardAlgorithm.shunting_yard(s1);
+            SYAstate s1 = ShuntingYardAlgorithm.parse("( 42 - 7 ) * 2");
+            SYAstate s2 = ShuntingYardAlgorithm.ShuntingYard(s1);
+            string[] expected = "42 7 - 2 *".Split();
+
+            IsTrue(s2.Input.IsEmpty);
+            IsTrue(s2.Stack.IsEmpty);
+
+            int i = 0;
+
+            foreach (string s in s2.Output.Reverse())
+                IsTrue(s == expected[i++]);
         }
     }
 }

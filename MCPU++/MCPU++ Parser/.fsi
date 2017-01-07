@@ -32,7 +32,7 @@ namespace MCPU.MCPUPP.Parser
       x:string -> Choice<unit,unit,unit,unit>
     val prec : _arg1:string -> int
     val assoc : _arg1:string -> SYAassociativity
-    val shunting_yard : s:SYAstate -> SYAstate
+    val ShuntingYard : s:SYAstate -> SYAstate
     val parse : input:string -> SYAstate
   end
 

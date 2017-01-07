@@ -23,8 +23,8 @@
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\$(Configuration)\$(AssemblyName).XML</DocumentationFile>
-    <OtherFlags>--sig:"$(TargetDir)$(TargetName).fsi"</OtherFlags>
+    <DocumentationFile>bin\Debug\mcpu++.plib.xml</DocumentationFile>
+    <OtherFlags>--sig:"bin\Debug\mcpu++.plib.fsi"</OtherFlags>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
