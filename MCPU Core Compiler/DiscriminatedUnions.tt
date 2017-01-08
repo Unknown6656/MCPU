@@ -14,6 +14,7 @@ using System;
 
 namespace MCPU.Compiler
 {
+#if UNSAFE
 	/// <summary>
     /// An interface for discriminated type-unsafe unions
     /// </summary>
@@ -32,6 +33,7 @@ namespace MCPU.Compiler
 		/// </summary>
         object UnsafeItem { get; }
     }
+#endif
 <#
 char BigC(int i) => (char)('A' + i);
 char SmallC(int i) => (char)('a' + i);
@@ -43,7 +45,13 @@ for (int i = 2; i <= 26; i++)
 #>
 
 	/// <summary>
-    /// A generic discriminated union with <#=i#> different type cases
+    /// A generic
+#if UNSAFE
+    /// type-unsafe
+#else
+    /// type-safe
+#endif
+    /// discriminated union with <#=i#> different type cases
     /// </summary>
 	public abstract class Union<<#=type_str#>>
 #if UNSAFE

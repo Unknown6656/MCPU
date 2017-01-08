@@ -12,11 +12,6 @@ namespace MCPU.Testing
     public sealed class CompilerTests
         : Commons
     {
-        public CompilerTests()
-            : base()
-        {
-        }
-
         [TestMethod]
         public void Test_01() => CompileExpectError(@"
     mov [0] [0]   §### ERROR
@@ -201,10 +196,26 @@ end func
         public void Test_23()
         {
             MCPUCompilerResult res = Compile(@"
-    <!-- TODO -->
-"); // TODO
-            IsTrue(res.Labels.Length == 2);
-            IsTrue(res.Functions.Length == 1);
+func test
+    NOP
+    NOP
+    ADD [0] 0
+    NOP
+end func
+
+    .main
+loop:
+    JMP pool
+    CALL test
+    AND [4] [4]
+    OR [[2]] [[2]]
+    FMUL [7] 0f
+    AND [43] ffffffffh
+pool:
+    JMP loop
+");
+            Instruction[] optimized = MCPUCompiler.Optimize(res.Instructions);
+            
         }
     }
 }

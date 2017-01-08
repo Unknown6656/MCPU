@@ -94,7 +94,7 @@ namespace MCPU
             }
         }
 
-        public static bool operator ==(OPCode o1, OPCode o2) => (o1 != null) && (o1?.Number == o2?.Number);
+        public static bool operator ==(OPCode o1, OPCode o2) => !(o1 is null) && (o1?.Number == o2?.Number);
 
         public static bool operator !=(OPCode o1, OPCode o2) => !(o1 == o2);
 
@@ -276,6 +276,12 @@ namespace MCPU
         /// </summary>
         public InstructionArgument[] Arguments { get; }
 
+        /// <summary>
+        /// Returns the instruction arguement at the given index
+        /// </summary>
+        /// <param name="index">Instruction argument index</param>
+        /// <returns>Instruction argument</returns>
+        public InstructionArgument this[int index] => Arguments[index];
 
         /// <summary>
         /// Processes the current instruction on the given processor
@@ -473,6 +479,14 @@ namespace MCPU
         public static Instruction Create(OPCode opcode, params InstructionArgument[] args) => (opcode, args);
 
 
+        public static bool operator ==(Instruction ins, OPCode opc) => ins.OPCode == opc;
+
+        public static bool operator ==(OPCode opc, Instruction ins) => ins.OPCode == opc;
+
+        public static bool operator !=(Instruction ins, OPCode opc) => !(ins == opc);
+
+        public static bool operator !=(OPCode opc, Instruction ins) => !(opc == ins);
+
         public static implicit operator Instruction(OPCode opc) => new Instruction(opc);
 
         public static implicit operator Instruction((int, IEnumerable<InstructionArgument>) ins) => new Instruction(OPCodes.CodesByID[(ushort)ins.Item1], ins.Item2?.ToArray());
@@ -657,6 +671,11 @@ namespace MCPU
 
             return tostr(this);
         }
+
+
+        public static bool operator ==(InstructionArgument a1, InstructionArgument a2) => (a1.Value == a2.Value) && (a1.Type == a2.Type);
+
+        public static bool operator !=(InstructionArgument a1, InstructionArgument a2) => !(a1 == a2);
 
         public static implicit operator int(InstructionArgument arg) => arg.Value;
 

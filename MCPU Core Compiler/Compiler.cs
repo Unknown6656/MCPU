@@ -75,27 +75,27 @@ namespace MCPU.Compiler
                                                         select opc.Value.Token.ToLower()).Concat(new string[] { "func", "end", "___main" }).ToArray();
         internal static readonly Dictionary<string, string> __defstrtable = new Dictionary<string, string>
         {
-            { "JMP_INSIDE_FUNC", "A jump label may only be used inside a function or after the '.main'-token." },
-            { "FUNC_ALREADY_EXISTS_SP", "A function called '{0}' does already exist." },
-            { "LABEL_ALREADY_EXISTS_SP", "The label '{0}' does already exist on line {1}." },
-            { "TOKEN_NOT_PARSED", "The token '.{0}' could not be parsed." },
-            { "TOKEN_INSIDE_FUNC", "The token '.{0}' can only be used inside a function or after the '.main'-declaration." },
-            { "FUNC_NOT_NESTED", "Functions cannot be nested. Please close the current function with an 'END FUNC'-token." },
-            { "FUNC_AFTER_MAIN", "Functions cannot be declared after the '.main'-token." },
-            { "FUNC_ALREADY_EXISTS", "The function '{0}' does already exist." },
-            { "LABEL_ALREADY_EXISTS", "A label called '{0}' does already exist." },
-            { "MISSING_FUNC_DECL", "A function declaration must precede an 'END FUNC'-token." },
-            { "INSTR_OUTSIDE_MAIN", "An instruction may only be used inside a function or after the '.main'-token." },
-            { "INSTR_NFOUND", "The instruction '{0}' could not be found." },
-            { "DONT_USE_KERNEL", "The instruction 'KERNEL' should not be used directly. Use '.kernel' or '.user' instead." },
-            { "ARGTYPE_NDET", "The type of the argument '{0}' could not be determined." },
-            { "INVALID_ARG", "Invalid argument '{0}' given." },
-            { "LABEL_FUNC_NFOUND", "The label or function '{0}' could not be found." },
-            { "LINE_NPARSED", "The line '{0}' could not be parsed." },
-            { "MAIN_TOKEN_MISSING", "The '.main'-token is missing." },
-            { "INLINE_NYET_SUPP", "'.inline' not supported yet" },
-            { "FUNC_RESV_NAME", "The name '{0}' is reserved and can therefore not be used as function name." },
-            { "LABEL_RESV_NAME", "The name '{0}' is reserved and can therefore not be used as label name." },
+            ["JMP_INSIDE_FUNC"] = "A jump label may only be used inside a function or after the '.main'-token.",
+            ["FUNC_ALREADY_EXISTS_SP"] = "A function called '{0}' does already exist.",
+            ["LABEL_ALREADY_EXISTS_SP"] = "The label '{0}' does already exist on line {1}.",
+            ["TOKEN_NOT_PARSED"] = "The token '.{0}' could not be parsed.",
+            ["TOKEN_INSIDE_FUNC"] = "The token '.{0}' can only be used inside a function or after the '.main'-declaration.",
+            ["FUNC_NOT_NESTED"] = "Functions cannot be nested. Please close the current function with an 'END FUNC'-token.",
+            ["FUNC_AFTER_MAIN"] = "Functions cannot be declared after the '.main'-token.",
+            ["FUNC_ALREADY_EXISTS"] = "The function '{0}' does already exist.",
+            ["LABEL_ALREADY_EXISTS"] = "A label called '{0}' does already exist.",
+            ["MISSING_FUNC_DECL"] = "A function declaration must precede an 'END FUNC'-token.",
+            ["INSTR_OUTSIDE_MAIN"] = "An instruction may only be used inside a function or after the '.main'-token.",
+            ["INSTR_NFOUND"] = "The instruction '{0}' could not be found.",
+            ["DONT_USE_KERNEL"] = "The instruction 'KERNEL' should not be used directly. Use '.kernel' or '.user' instead.",
+            ["ARGTYPE_NDET"] = "The type of the argument '{0}' could not be determined.",
+            ["INVALID_ARG"] = "Invalid argument '{0}' given.",
+            ["LABEL_FUNC_NFOUND"] = "The label or function '{0}' could not be found.",
+            ["LINE_NPARSED"] = "The line '{0}' could not be parsed.",
+            ["MAIN_TOKEN_MISSING"] = "The '.main'-token is missing.",
+            ["INLINE_NYET_SUPP"] = "'.inline' not supported yet",
+            ["FUNC_RESV_NAME"] = "The name '{0}' is reserved and can therefore not be used as function name.",
+            ["LABEL_RESV_NAME"] = "The name '{0}' is reserved and can therefore not be used as label name.",
         };
         internal static Dictionary<string, string> __strtable;
 
@@ -106,7 +106,7 @@ namespace MCPU.Compiler
 
 
         static MCPUCompiler() => ResetLanguage();
-        
+
         /// <summary>
         /// Resets the compiler's output language to the default one
         /// </summary>
@@ -555,15 +555,29 @@ namespace MCPU.Compiler
         {
             bool CanBeRemoved(Instruction i)
             {
-                if (i.OPCode == OPCodes.NOP)
-                    return true;
+                bool In(params OPCode[] opc) => opc.Any(o => o == i);
 
-                // todo
+                if (i == OPCodes.NOP)
+                    return true;
+                else if (In(OPCodes.ADD, OPCodes.SUB, OPCodes.CLEAR, OPCodes.WAIT, OPCodes.OR, OPCodes.XOR))
+                    return i[1] == (0, ArgumentType.Constant);
+                else if (In(OPCodes.MUL, OPCodes.DIV, OPCodes.JMPREL))
+                    return i[1] == (1, ArgumentType.Constant);
+                else if (In(OPCodes.AND, OPCodes.NXOR))
+                    return i[1] == (unchecked((int)0xffffffffu), ArgumentType.Constant);
+                else if (In(OPCodes.MOV, OPCodes.SWAP, OPCodes.OR, OPCodes.AND))
+                    return i[0] == i[1];
+                else if (In(OPCodes.FADD, OPCodes.FSUB))
+                    return i[1] == ((FloatIntUnion)0f, ArgumentType.Constant);
+                else if (In(OPCodes.FMUL, OPCodes.FDIV, OPCodes.FPOW, OPCodes.FROOT))
+                    return i[1] == ((FloatIntUnion)1f, ArgumentType.Constant);
+                else if (i == OPCodes.COPY)
+                    return i[2] == (0, ArgumentType.Constant);
 
                 return false;
             }
 
-            Dictionary<int, int> offset_table = new Dictionary<int, int>();
+            Dictionary<int, (int, bool)> offset_table = Enumerable.Range(0, instr.Length).ToDictionary(_ => _, _ => (0, false));
             List<Instruction> outp = new List<Instruction>();
             int cnt = 0, line = 0;
 
@@ -574,15 +588,15 @@ namespace MCPU.Compiler
                 if (rem)
                     ++cnt;
 
-                offset_table[line++] = cnt;
-
-                if (!rem)
-                {
-                    // todo
-
-                    outp.Add(i);
-                }
+                offset_table[line++] = (cnt, rem);
             }
+
+            // two separate loops, or the look-ahead won't work
+            for (int i = 0, l = instr.Length; i < l; i++)
+                if (!offset_table[i].Item2)
+                    outp.Add((instr[i].OPCode, (from arg in instr[i].Arguments
+                                                let na = arg.IsInstructionSpace ? (InstructionArgument)(arg.Value - offset_table[arg.Value].Item1, arg.Type) : arg
+                                                select na).ToArray()));
 
             return outp.ToArray();
         }

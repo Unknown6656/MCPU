@@ -39,17 +39,18 @@ namespace MCPU
     {
         #region FIELDS + CONSTANTS
 
-        internal static readonly Dictionary<int, ProcessingDelegate> __syscalltable = new Dictionary<int, ProcessingDelegate> {
-            { -1, delegate { /*  ABK INSTRUCTION  */ } },
-            { 0, (p, _) => p.WriteLine($"MCPU v. {Assembly.GetEntryAssembly().GetName().Version} created by Unknown6656") },
-            { 1, (p, _) => ConsoleExtensions.HexDump(p.ToBytes()) },
-            { 2, (p, _) => p.WriteLine(string.Join(", ", from arg in _ select $"0x{p.TranslateConstant(arg):x8}")) },
-            { 3, (p, _) => p.WriteLine(string.Join(", ", from arg in _ select p.TranslateFloatConstant(arg))) },
-            { 4, (p, _) => {
+        internal static readonly Dictionary<int, ProcessingDelegate> __syscalltable = new Dictionary<int, ProcessingDelegate>
+        {
+            [-1] = delegate { /* TODO : ABK INSTRUCTION */ },
+            [0] = (p, _) => p.WriteLine($"MCPU v. {Assembly.GetEntryAssembly().GetName().Version} created by Unknown6656"),
+            [1] = (p, _) => ConsoleExtensions.HexDump(p.ToBytes()),
+            [2] = (p, _) => p.WriteLine(string.Join(", ", from arg in _ select $"0x{p.TranslateConstant(arg):x8}")),
+            [3] = (p, _) => p.WriteLine(string.Join(", ", from arg in _ select p.TranslateFloatConstant(arg))),
+            [4] = (p, _) => {
                 OPCode.AssertAddress(0, _);
 
                 *p.TranslateAddress(_[0]) = p.Ticks;
-            } },
+            },
         };
 #if !WINDOWS
         private const string IVPEX_MSG = "The memory watcher unit requires a Win32-Environment with the corresponding API.";
