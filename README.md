@@ -3,10 +3,11 @@ This project is a microprocessor emulator, which comes with its own instruction 
 It also comes with a higher-level programming language, named MCPU++, which can be executed on this microprocessor.
 The name **MCPU** stands for **M**inimalistic **C**entral **P**rocessing **U**nit, but can also be interpreted as **M**ine**c**raft **P**rocessing **U**nit, as the initial project was based on the idea to simulate a microprocessor inside the sandbox-game Minecraft.
 
-Category | Status
----|---
-Build | [![Build status](https://ci.appveyor.com/api/projects/status/k9t9jqap2iemau3c?retina=true)](https://ci.appveyor.com/project/Unknown6656/mcpu)
-Testing | _not yet available_
+Category | Branch | Status
+---|---|----
+Build | master | [![Build status](https://ci.appveyor.com/api/projects/status/k9t9jqap2iemau3c/branch/master?retina=true)](https://ci.appveyor.com/project/Unknown6656/mcpu)
+Build | dev | [![Build status](https://ci.appveyor.com/api/projects/status/k9t9jqap2iemau3c/branch/dev?retina=true)](https://ci.appveyor.com/project/Unknown6656/mcpu)
+Testing | _any_ | _not yet available_
 
 ### Reference Manual
 
