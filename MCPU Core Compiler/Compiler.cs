@@ -6,6 +6,8 @@ using System.Linq;
 using System.Text;
 using System;
 
+using static MCPU.OPCodes;
+
 namespace MCPU.Compiler
 {
     /// <summary>
@@ -24,11 +26,11 @@ namespace MCPU.Compiler
         /// <summary>
         /// Floating-point matching pattern
         /// </summary>
-        internal const string FLOAT_CORE = @"((\+|\-|)([0-9]+\.[0-9]*|[0-9]*\.[0-9]+)(e(\+|\-|)[0-9]+)?[fd]?|pi|e|phi|tau|π|τ)";
+        public const string FLOAT_CORE = @"((\+|\-|)([0-9]+\.[0-9]*|[0-9]*\.[0-9]+)(e(\+|\-|)[0-9]+)?[fd]?|pi|e|phi|tau|π|τ)";
         /// <summary>
         /// Integer matching pattern
         /// </summary>
-        internal const string INTEGER_CORE = @"(\-?(0x[0-9a-f]+|[0-9a-f]+h|[0-9]+|0o[01]+|0b[0-7]+)|true|false|null)";
+        public const string INTEGER_CORE = @"(\-?(0x[0-9a-f]+|[0-9a-f]+h|[0-9]+|0o[01]+|0b[0-7]+)|true|false|null)";
         /// <summary>
         /// Argument core matching pattern
         /// </summary>
@@ -48,7 +50,7 @@ namespace MCPU.Compiler
         /// <summary>
         /// Matches function declarations
         /// </summary>
-        public static readonly Regex FUNC_REGEX = new Regex($@"\b(inline\s+)?func\s+{NAME_REGEX_CORE}\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        public static readonly Regex FUNC_REGEX = new Regex($@"((?<inline>\.inline)\s+|\b)func\s+{NAME_REGEX_CORE}\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         /// <summary>
         /// Matches function endings
         /// </summary>
@@ -56,40 +58,97 @@ namespace MCPU.Compiler
         /// <summary>
         /// Represents the IEEE-754 representation of the mathematical constant π
         /// </summary>
-        internal static readonly int FC_π = (FloatIntUnion)Math.PI;
+        public static readonly int FC_π = (FloatIntUnion)Math.PI;
         /// <summary>
         /// Represents the IEEE-754 representation of the mathematical constant τ
         /// </summary>
-        internal static readonly int FC_τ = (FloatIntUnion)(Math.PI * 2);
+        public static readonly int FC_τ = (FloatIntUnion)(Math.PI * 2);
         /// <summary>
         /// Represents the IEEE-754 representation of the mathematical constant e
         /// </summary>
-        internal static readonly int FC_e = (FloatIntUnion)Math.E;
+        public static readonly int FC_e = (FloatIntUnion)Math.E;
         /// <summary>
         /// Represents the IEEE-754 representation of the mathematical constant φ
         /// </summary>
-        internal static readonly int FC_φ = (FloatIntUnion)1.61803398874989;
+        public static readonly int FC_φ = (FloatIntUnion)1.61803398874989;
 
-
-        internal static IEnumerable<string> PreprocessLines(IEnumerable<string> lines) =>
-            from line in lines
-            let ln = new Func<string>(() => line.Contains(COMMENT_START) ? line.Remove(line.IndexOf(COMMENT_START)) : line)().Trim()
-            where ln.Length > 0
-            select ln;
-
-        internal static unsafe (MCPUFunction[], int, string) Precompile(string code)
+        internal static readonly string[] __reserved = (from opc in OPCodes.CodesByID
+                                                        where opc.Value.IsKeyword
+                                                        select opc.Value.Token.ToLower()).Concat(new string[] { "func", "end", "___main" }).ToArray();
+        internal static readonly Dictionary<string, string> __defstrtable = new Dictionary<string, string>
         {
-            string[] lines = PreprocessLines((code ?? "").Split('\n', '\r')).ToArray();
+            ["JMP_INSIDE_FUNC"] = "A jump label may only be used inside a function or after the '.main'-token.",
+            ["FUNC_ALREADY_EXISTS_SP"] = "A function called '{0}' does already exist.",
+            ["LABEL_ALREADY_EXISTS_SP"] = "The label '{0}' does already exist on line {1}.",
+            ["TOKEN_NOT_PARSED"] = "The token '.{0}' could not be parsed.",
+            ["TOKEN_INSIDE_FUNC"] = "The token '.{0}' can only be used inside a function or after the '.main'-declaration.",
+            ["FUNC_NOT_NESTED"] = "Functions cannot be nested. Please close the current function with an 'END FUNC'-token.",
+            ["FUNC_AFTER_MAIN"] = "Functions cannot be declared after the '.main'-token.",
+            ["FUNC_ALREADY_EXISTS"] = "The function '{0}' does already exist.",
+            ["LABEL_ALREADY_EXISTS"] = "A label called '{0}' does already exist.",
+            ["MISSING_FUNC_DECL"] = "A function declaration must precede an 'END FUNC'-token.",
+            ["INSTR_OUTSIDE_MAIN"] = "An instruction may only be used inside a function or after the '.main'-token.",
+            ["INSTR_NFOUND"] = "The instruction '{0}' could not be found.",
+            ["DONT_USE_KERNEL"] = "The instruction 'KERNEL' should not be used directly. Use '.kernel' or '.user' instead.",
+            ["ARGTYPE_NDET"] = "The type of the argument '{0}' could not be determined.",
+            ["INVALID_ARG"] = "Invalid argument '{0}' given.",
+            ["LABEL_FUNC_NFOUND"] = "The label or function '{0}' could not be found.",
+            ["LINE_NPARSED"] = "The line '{0}' could not be parsed.",
+            ["MAIN_TOKEN_MISSING"] = "The '.main'-token is missing.",
+            ["INLINE_NYET_SUPP"] = "'.inline' not supported yet",
+            ["FUNC_RESV_NAME"] = "The name '{0}' is reserved and can therefore not be used as function name.",
+            ["LABEL_RESV_NAME"] = "The name '{0}' is reserved and can therefore not be used as label name.",
+        };
+        internal static Dictionary<string, string> __strtable;
+
+        /// <summary>
+        /// Sets or gets, whether compiler optimizations are enabled (NOP-optimization, empty statements, inlining etc.)
+        /// </summary>
+        public static bool OptimizationEnabled { set; get; } = false;
+
+
+        static MCPUCompiler() => ResetLanguage();
+
+        /// <summary>
+        /// Resets the compiler's output language to the default one
+        /// </summary>
+        public static void ResetLanguage() => SetLanguage(__defstrtable);
+
+        /// <summary>
+        /// Sets the compiler's output language to the given one
+        /// </summary>
+        /// <param name="stringtable">Language represented by the given StringTable</param>
+        public static void SetLanguage(Dictionary<string, string> stringtable)
+        {
+            if (stringtable != null)
+                __strtable = stringtable;
+        }
+
+        /// <summary>
+        /// Returns the language-specific string associated with the given key
+        /// </summary>
+        /// <param name="key">String key</param>
+        /// <returns>String value</returns>
+        public static string GetString(string key) => __strtable[key];
+
+        /// <summary>
+        /// Returns the formatted language-specific string associated with the given key
+        /// </summary>
+        /// <param name="key">String key</param>
+        /// <returns>Formatted string value</returns>
+        public static string GetString(string key, params object[] args) => string.Format(GetString(key), args);
+
+        internal static unsafe (MCPUFunction[], MCPULabelMetadata[], int, string) Precompile(params string[] lines)
+        {
             List<(int, string, int)> unmapped = new List<(int, string, int)>();
+            List<MCPULabelMetadata> labelmeta = new List<MCPULabelMetadata>();
             Dictionary<string, int> labels = new Dictionary<string, int>();
             List<MCPUFunction> functions = new List<MCPUFunction>();
+            int is_func = 0, linenr = 0, id = 0;
             MCPUFunction curr_func = null;
-            int is_func = 0;
-            int linenr = 0;
             Match match;
-            int id = 0;
 
-            (MCPUFunction[], int, string) Error(string message) => (null, linenr + 1, message);
+            (MCPUFunction[], MCPULabelMetadata[], int, string) Error(string message) => (null, null, linenr + 1, message);
             MCPUFunction FindFirst(string name) => (from f in functions where f.Name == name select f).FirstOrDefault();
             bool CheckGroup(string name, out string value) => (value = match.Groups[name].ToString().Trim()).Length > 0;
             unsafe int ParseFloatArg(string s)
@@ -113,7 +172,6 @@ namespace MCPU.Compiler
                                                .Replace("d", ""));
                         return *((int*)&f);
                 }
-
             }
             int ParseIntArg(string s)
             {
@@ -156,37 +214,49 @@ namespace MCPU.Compiler
             for (int l = lines.Length; linenr < l; ++linenr)
             {
                 string line = lines[linenr];
-                
+
+                if (line.Contains(COMMENT_START))
+                    line = line.Remove(line.IndexOf(COMMENT_START));
+
+                line = line.Trim();
+
+                if (line.Length == 0)
+                    continue; // we need this condition to be consistent with the original line numbers
+
                 if ((match = LABEL_REGEX.Match(line)).Success)
                     if (is_func == 0)
-                        Error("An jump label may only be used inside a function or after the '.main'-token.");
+                        Error(GetString("JMP_INSIDE_FUNC"));
                     else
                     {
                         string name = match.Groups["name"].ToString().ToLower();
                         (int, string, int) um = unmapped.FirstOrDefault(_ => _.Item2 == name);
+                        int tid = 0;
 
                         if (FindFirst(name) != null)
-                            return Error($"A function called '{name}' does already exist.");
+                            return Error(GetString("FUNC_ALREADY_EXISTS_SP", name));
 
                         if (um.Item2 != name)
                             if (labels.ContainsKey(name))
-                                return Error($"The label '{name}' does already exist.");
+                                return Error(GetString("LABEL_ALREADY_EXISTS_SP", name, labels.First(_ => _.Key == name).Value + 1));
                             else
-                                labels[name] = ++id;
+                                labels[name] = tid = ++id;
                         else
                         {
-                            labels[name] = um.Item3;
-                            unmapped.Remove(um);
+                            labels[name] = tid = um.Item3;
+
+                            if (unmapped.Contains(um))
+                                unmapped.Remove(um);
                         }
 
                         line = line.Remove(match.Index, match.Length);
 
-                        curr_func.Instructions.Add(new MCPUJumpLabel(id));
+                        labelmeta.Add(new MCPULabelMetadata { Name = name, DefinedLine = linenr + 1, ParentFunction = curr_func });
+                        curr_func.Instructions.Add(new MCPUJumpLabel(tid));
                     }
 
                 if ((line = line.Trim()).Length > 0)
                 {
-                    if (line.StartsWith("."))
+                    if (line.StartsWith(".") && !line.ToLower().StartsWith(".inline"))
                         switch (line = line.Remove(0, 1).Trim().ToLower())
                         {
                             case "main":
@@ -204,24 +274,43 @@ namespace MCPU.Compiler
 
                                 continue;
                             default:
-                                return Error(is_func != -1 ? $"The token '.{line}' could not be parsed."
-                                                           : $"The token '.{line}' can only be used inside a function or after the '.main'-declaration.");
+                                return Error(GetString(is_func != -1 ? "TOKEN_NOT_PARSED" : "TOKEN_INSIDE_FUNC", line));
                         }
                     else if ((match = FUNC_REGEX.Match(line)).Success)
                         if (is_func == 1)
-                            return Error("Functions cannot be nested. Please close the current function with an 'END FUNC'-token.");
+                            return Error(GetString("FUNC_NOT_NESTED"));
                         else if (is_func == -1)
-                            return Error("Functions cannot be declared after the '.main'-token.");
+                            return Error(GetString("FUNC_AFTER_MAIN"));
                         else
                         {
+                            bool inline = match.Groups["inline"]?.ToString()?.ToLower()?.Contains("inline") ?? false;
                             string name = match.Groups["name"].ToString().ToLower();
+                            (int, string, int) um = unmapped.FirstOrDefault(_ => _.Item2 == name);
+                            int tid;
 
-                            if (labels.ContainsKey(name))
-                                return Error($"A label called '{name}' does already exist.");
-                            else if (FindFirst(name) != null)
-                                return Error($"The function '{name}' does already exist.");
+                            if (name == MAIN_FUNCTION_NAME)
+                                return Error(GetString("FUNC_RESV_NAME", name));
+                            if (FindFirst(name) != null)
+                                return Error(GetString("FUNC_ALREADY_EXISTS", name));
 
-                            curr_func = new MCPUFunction(name, OPCodes.NOP) { ID = ++id };
+                            if (um.Item2 != name)
+                                if (labels.ContainsKey(name))
+                                    return Error(GetString("LABEL_ALREADY_EXISTS", name));
+
+                            if (um.Item2 == name)
+                            {
+                                unmapped.Remove(um);
+                                tid = um.Item3;
+                            }
+                            else
+                                tid = ++id;
+
+                            curr_func = new MCPUFunction(name, OPCodes.NOP)
+                            {
+                                ID = tid,
+                                IsInlined = inline,
+                                DefinedLine = linenr + 1
+                            };
                             is_func = 1;
 
                             functions.Add(curr_func);
@@ -234,92 +323,103 @@ namespace MCPU.Compiler
                             is_func = 0;
                         }
                         else
-                            return Error("A function declaration must precede an 'END FUNC'-token.");
+                            return Error(GetString("MISSING_FUNC_DECL"));
                     else if ((match = INSTRUCTION_REGEX.Match(line)).Success)
                         if (is_func == 0)
-                            Error("An instruction may only be used inside a function or after the '.main'-token.");
+                            return Error(GetString("INSTR_OUTSIDE_MAIN"));
                         else
                         {
                             List<InstructionArgument> args = new List<InstructionArgument>();
                             string token = match.Groups["name"].ToString().ToLower();
 
                             if (!OPCodes.CodesByToken.ContainsKey(token))
-                                return Error($"The instruction '{token}' could not be found.");
+                                return Error(GetString("INSTR_NFOUND", token));
                             else if (token == "kernel")
-                                return Error($"The instruction 'KERNEL' should not be used directly. Use '.kernel' or '.user' instead.");
+                                return Error(GetString("DONT_USE_KERNEL"));
 
                             foreach (string arg in (line = line.Remove(match.Index, match.Length).Trim()).Split(' ', ','))
                                 if ((arg ?? "").Trim().Length > 0)
                                     if ((match = ARGUMENT_CORE.Match(arg)).Success)
-                                    {
-                                        InstructionArgument iarg = new InstructionArgument();
-                                        string val;
-                                        
-                                        if (CheckGroup("ptr", out val))
+                                        try
                                         {
-                                            iarg.Value = ParseIntArg(val);
-                                            iarg.Type = ArgumentType.IndirectAddress;
+                                            InstructionArgument iarg = new InstructionArgument();
+                                            string val;
 
-                                            if (arg.StartsWith("k"))
-                                                iarg.Type |= ArgumentType.KernelMode;
-                                        }
-                                        else if (CheckGroup("addr", out val))
-                                        {
-                                            iarg.Value = ParseIntArg(val);
-                                            iarg.Type = ArgumentType.Address;
-
-                                            if (arg.StartsWith("k"))
-                                                iarg.Type |= ArgumentType.KernelMode;
-                                        }
-                                        else if (CheckGroup("float", out val))
-                                        {
-                                            iarg.Type = ArgumentType.Constant;
-                                            iarg.Value = ParseFloatArg(val.ToLower());
-                                        }
-                                        else if (CheckGroup("const", out val))
-                                        {
-                                            iarg.Value = ParseIntArg(val);
-                                            iarg.Type = ArgumentType.Constant;
-                                        }
-                                        else if (CheckGroup("name", out val))
-                                        {
-                                            var dic = functions.ToDictionary(_ => _.Name.ToLower(), _ => _.ID);
-
-                                            val = val.ToLower();
-
-                                            if (dic.ContainsKey(val))
+                                            if (CheckGroup("ptr", out val))
                                             {
-                                                iarg.Value = dic[val];
-                                                iarg.Type = ArgumentType.Function;
+                                                iarg.Value = ParseIntArg(val);
+                                                iarg.Type = ArgumentType.IndirectAddress;
+
+                                                if (arg.StartsWith("k"))
+                                                    iarg.Type |= ArgumentType.KernelMode;
                                             }
-                                            else
+                                            else if (CheckGroup("addr", out val))
                                             {
-                                                iarg.Type = ArgumentType.Label;
+                                                iarg.Value = ParseIntArg(val);
+                                                iarg.Type = ArgumentType.Address;
 
-                                                if (labels.ContainsKey(val))
-                                                    iarg.Value = labels[val];
+                                                if (arg.StartsWith("k"))
+                                                    iarg.Type |= ArgumentType.KernelMode;
+                                            }
+                                            else if (CheckGroup("float", out val))
+                                            {
+                                                if (val.Contains('[') || val.Contains(']'))
+                                                    return Error(GetString("INVALID_ARG", arg));
+
+                                                iarg.Type = ArgumentType.Constant;
+                                                iarg.Value = ParseFloatArg(val.ToLower());
+                                            }
+                                            else if (CheckGroup("const", out val))
+                                            {
+                                                iarg.Value = ParseIntArg(val);
+                                                iarg.Type = ArgumentType.Constant;
+                                            }
+                                            else if (CheckGroup("name", out val))
+                                            {
+                                                if (val.Contains('[') || val.Contains(']'))
+                                                    return Error(GetString("INVALID_ARG", arg));
+
+                                                var dic = functions.ToDictionary(_ => _.Name.ToLower(), _ => _.ID);
+
+                                                val = val.ToLower();
+
+                                                if (dic.ContainsKey(val))
+                                                {
+                                                    iarg.Value = dic[val];
+                                                    iarg.Type = ArgumentType.Function;
+                                                }
                                                 else
                                                 {
-                                                    iarg.Value = labels[val] = ++id;
-                                                    unmapped.Add((linenr, val, id));
+                                                    iarg.Type = ArgumentType.Label;
+
+                                                    if (labels.ContainsKey(val))
+                                                        iarg.Value = labels[val];
+                                                    else
+                                                    {
+                                                        iarg.Value = labels[val] = ++id;
+                                                        unmapped.Add((linenr, val, id));
+                                                    }
                                                 }
                                             }
+                                            else
+                                                return Error(GetString("ARGTYPE_NDET", arg));
+
+                                            if (arg.Contains('$'))
+                                                iarg.Type |= ArgumentType.Parameter;
+
+                                            args.Add(iarg);
                                         }
-                                        else
-                                            return Error($"The type of the argument '{arg}' could not be determined.");
-
-                                        if (arg.Contains('$'))
-                                            iarg.Type |= ArgumentType.Parameter;
-
-                                        args.Add(iarg);
-                                    }
+                                        catch
+                                        {
+                                            return Error(GetString("INVALID_ARG", arg));
+                                        }
                                     else
-                                        return Error($"Invalid argument '{arg}' given.");
+                                        return Error(GetString("INVALID_ARG", arg));
 
                             curr_func.Instructions.Add(new Instruction(OPCodes.CodesByToken[token], args.ToArray()));
                         }
                     else
-                        return Error($"The line '{line}' could not be parsed.");
+                        return Error(GetString("LINE_NPARSED", line));
                 }
             }
 
@@ -329,48 +429,84 @@ namespace MCPU.Compiler
             {
                 linenr = unmapped.First().Item1;
 
-                return Error($"The label or function '{unmapped.First().Item2}' could not be found.");
+                return Error(GetString("LABEL_FUNC_NFOUND", unmapped.First().Item2));
             }
             else
-                return (functions.ToArray(), -1, "");
+                return (functions.ToArray(), labelmeta.ToArray(), -1, "");
         }
 
         /// <summary>
-        /// Compiles the given MCPU assembly code to a list of instructions, which can be executed by a MCPU processor
+        /// Compiles the given MCPU assembly code to a list of instructions and metadata, which can be executed by a MCPU processor or analyzed by an IDE
         /// </summary>
         /// <param name="code">MCPU assembly code</param>
         /// <exception cref="MCPUCompilerException">Possible compiler errors</exception>
-        /// <returns>Compiled instructions</returns>
-        public static Instruction[] Compile(string code)
+        /// <returns>Compiled instructions and metadata</returns>
+        public static MCPUCompilerResult CompileWithMetadata(string code) => CompileWithMetadata((code ?? "").Split('\n'));
+
+        /// <summary>
+        /// Compiles the given MCPU assembly code to a list of instructions and metadata, which can be executed by a MCPU processor or analyzed by an IDE
+        /// </summary>
+        /// <param name="lines">MCPU assembly code lines</param>
+        /// <exception cref="MCPUCompilerException">Possible compiler errors</exception>
+        /// <returns>Compiled instructions and metadata</returns>
+        public static MCPUCompilerResult CompileWithMetadata(params string[] lines)
         {
             try
             {
-                (MCPUFunction[] func, int errln, string errmsg) = Precompile(code);
+                (MCPUFunction[] func, MCPULabelMetadata[] labels, int errln, string errmsg) = Precompile(lines);
 
                 if ((errln != -1) || !string.IsNullOrEmpty(errmsg))
                     throw new MCPUCompilerException(errln, errmsg);
 
-                MCPUFunction mainf = (from f in func where f.Name == MAIN_FUNCTION_NAME select f).First();
+                MCPUFunction mainf = (from f in func where f?.Name == MAIN_FUNCTION_NAME select f).FirstOrDefault();
+
+                if (mainf == null)
+                    throw new MCPUCompilerException(0, GetString("MAIN_TOKEN_MISSING"));
+
+                MCPUFunctionMetadata[] metadata = new MCPUFunctionMetadata[func.Length];
                 Dictionary<int, int> jumptable = new Dictionary<int, int>();
                 List<Instruction> instr = new List<Instruction>();
-                int linenr = 1;
+                int linenr = 1, fnr = 0;
 
                 instr.Add((OPCodes.JMP, new InstructionArgument[] { (0, ArgumentType.Label) }));
 
-                foreach (MCPUFunction f in func.Where(f => f != mainf).Concat(new MCPUFunction[] { mainf }))
-                {
-                    jumptable[f.ID] = linenr;
-                    
-                    foreach (Instruction ins in f.Instructions)
-                        if (ins.OPCode is MCPUJumpLabel)
-                            jumptable[(ins.OPCode as MCPUJumpLabel).Value] = linenr;
-                        else
-                        {
-                            instr.Add(ins);
+                foreach (MCPULabelMetadata l in labels)
+                    if (__reserved.Contains(l.Name.ToLower()))
+                        throw new MCPUCompilerException(l.DefinedLine, GetString("LABEL_RESV_NAME", l.Name));
 
-                            linenr++;
+                foreach (MCPUFunction f in func.Where(f => f != mainf).Concat(new MCPUFunction[] { mainf }))
+                    if (__reserved.Contains(f.Name.ToLower()))
+                        throw new MCPUCompilerException(f.DefinedLine, GetString("FUNC_RESV_NAME", f.Name));
+                    else
+                    {
+                        jumptable[f.ID] = linenr;
+                        metadata[fnr++] = f;
+
+                        if (f.IsInlined)
+                        {
+                            bool caninline = (f.Instructions.Count <= 30) && f.Instructions.All(_ => !_.OPCode.SpecialIPHandling);
+
+                            if (caninline && OptimizationEnabled)
+                            {
+
+                                // MAGIC GOES HERE
+
+
+                                throw new NotImplementedException(GetString("INLINE_NYET_SUPP"));
+                                continue;
+                            }
                         }
-                }
+
+                        foreach (Instruction ins in f.Instructions)
+                            if (ins.OPCode is MCPUJumpLabel)
+                                jumptable[(ins.OPCode as MCPUJumpLabel).Value] = linenr;
+                            else
+                            {
+                                instr.Add(ins);
+
+                                linenr++;
+                            }
+                    }
 
                 Instruction[] cmp_instr = instr.ToArray();
 
@@ -378,8 +514,8 @@ namespace MCPU.Compiler
                     for (int j = 0, k = cmp_instr[i].Arguments.Length; j < k; j++)
                         if (cmp_instr[i].Arguments[j].IsInstructionSpace)
                             cmp_instr[i].Arguments[j].Value = jumptable[cmp_instr[i].Arguments[j].Value];
-                
-                return cmp_instr;
+
+                return (OptimizationEnabled ? Optimize(cmp_instr) : cmp_instr, metadata, labels);
             }
             catch (Exception ex)
             when (!(ex is MCPUCompilerException))
@@ -392,9 +528,77 @@ namespace MCPU.Compiler
         /// Compiles the given MCPU assembly code to a list of instructions, which can be executed by a MCPU processor
         /// </summary>
         /// <param name="code">MCPU assembly code</param>
+        /// <returns>Compiler result</returns>
+        public static Union<MCPUCompilerResult, MCPUCompilerException> Compile(string code) => Compile((code ?? "").Split('\n'));
+
+        /// <summary>
+        /// Compiles the given MCPU assembly code to a list of instructions, which can be executed by a MCPU processor
+        /// </summary>
+        /// <param name="lines">MCPU assembly code lines</param>
+        /// <returns>Compiler result</returns>
+        public static Union<MCPUCompilerResult, MCPUCompilerException> Compile(params string[] lines)
+        {
+            try
+            {
+                return CompileWithMetadata(lines);
+            }
+            catch (MCPUCompilerException ex)
+            {
+                return ex;
+            }
+        }
+
+        /// <summary>
+        /// Optimizes the given instruction list 
+        /// </summary>
+        /// <param name="instr">Instructions</param>
+        /// <returns>Optimized instructions</returns>
+        public static Instruction[] Optimize(params Instruction[] instr)
+        {
+            bool CanBeRemoved(Instruction i)
+            {
+                bool In(params OPCode[] opc) => opc.Any(o => o == i);
+
+                return (i == NOP)
+                    || (In(ADD, SUB, CLEAR, WAIT, OR, XOR, FSUB, FADD)  && i[1] == (0, ArgumentType.Constant))
+                    || (In(MUL, DIV, JMPREL)                            && i[1] == (1, ArgumentType.Constant))
+                    || (In(AND, NXOR)                                   && i[1] == (unchecked((int)0xffffffffu), ArgumentType.Constant))
+                    || (In(MOV, SWAP, OR, AND)                          && i[0] == i[1])
+                    || (In(FMUL, FDIV, FPOW, FROOT)                     && i[1] == ((FloatIntUnion)1f, ArgumentType.Constant))
+                    || (In(COPY)                                        && i[2] == (0, ArgumentType.Constant));
+            }
+
+            Dictionary<int, (int, bool)> offset_table = Enumerable.Range(0, instr.Length).ToDictionary(_ => _, _ => (0, false));
+            List<Instruction> outp = new List<Instruction>();
+            int cnt = 0, line = 0;
+
+            foreach (Instruction i in instr)
+            {
+                bool rem = CanBeRemoved(i);
+
+                if (rem)
+                    ++cnt;
+
+                offset_table[line++] = (cnt, rem);
+            }
+
+            // two separate loops, or the look-ahead won't work
+            for (int i = 0, l = instr.Length; i < l; i++)
+                if (!offset_table[i].Item2)
+                    outp.Add((instr[i].OPCode, (from arg in instr[i].Arguments
+                                                let na = arg.IsInstructionSpace ? (InstructionArgument)(arg.Value - offset_table[arg.Value].Item1, arg.Type) : arg
+                                                select na).ToArray()));
+
+            return outp.ToArray();
+        }
+
+        /// <summary>
+        /// Compiles the given MCPU assembly code to a list of instructions, which can be executed by a MCPU processor
+        /// </summary>
+        /// <param name="code">MCPU assembly code</param>
         /// <exception cref="MCPUCompilerException">Possible compiler errors</exception>
         /// <returns>Compiled instructions in byte format</returns>
-        public static byte[] CompileToBinary(string code) => Instruction.SerializeMultiple(Compile(code));
+        public static byte[] CompileToBinary(string code) => Compile(code).Match(res => Instruction.SerializeMultiple(res.Instructions), ex => null as byte[] ?? throw ex);
 
         /// <summary>
         /// Decompiles the given instructions into readable MCPU assembly code
@@ -428,7 +632,7 @@ namespace MCPU.Compiler
                                                                   if (arg.IsInstructionSpace)
                                                                   {
                                                                       int nv = linetransl[arg] + arg;
-                                                                      
+
                                                                       labels.Add(nv);
 
                                                                       return (nv, arg.Type);
@@ -448,7 +652,7 @@ namespace MCPU.Compiler
                 {
                     int div = lbcnt / (int)Math.Pow(26, i);
                     int mod = div % (int)Math.Pow(26, i + 1);
-                    
+
                     str[i] = (char)('a' + mod);
                 }
 
@@ -516,7 +720,7 @@ namespace MCPU.Compiler
 
                 ++line;
             }
-            
+
             return sb.ToString();
         }
 
@@ -554,6 +758,67 @@ namespace MCPU.Compiler
     }
 
     /// <summary>
+    /// Represents public MCPU label metadata
+    /// </summary>
+    public struct MCPULabelMetadata
+    {
+        /// <summary>
+        /// The label's name
+        /// </summary>
+        public string Name { set; get; }
+        /// <summary>
+        /// The function, in which the label has been defined
+        /// </summary>
+        public MCPUFunctionMetadata ParentFunction { set; get; }
+        /// <summary>
+        /// The line, in which the label has been defined (The line number is one-based -- NOT zero-based)
+        /// </summary>
+        public int DefinedLine { set; get; }
+    }
+
+    /// <summary>
+    /// Represents public MCPU function metadata
+    /// </summary>
+    public struct MCPUFunctionMetadata
+    {
+        /// <summary>
+        /// The function's name
+        /// </summary>
+        public string Name { set; get; }
+        /// <summary>
+        /// Sets or gets whether the function is inlined
+        /// </summary>
+        public bool Inlined { set; get; }
+        /// <summary>
+        /// The line, in which the function has been defined (The line number is one-based -- NOT zero-based)
+        /// </summary>
+        public int DefinedLine { set; get; }
+    }
+
+    /// <summary>
+    /// Represents a successful MCPU compiler result
+    /// </summary>
+    public struct MCPUCompilerResult
+    {
+        /// <summary>
+        /// The generated instructions
+        /// </summary>
+        public Instruction[] Instructions { set; get; }
+        /// <summary>
+        /// Reflected label information
+        /// </summary>
+        public MCPULabelMetadata[] Labels { set; get; }
+        /// <summary>
+        /// Reflected function information
+        /// </summary>
+        public MCPUFunctionMetadata[] Functions { set; get; }
+
+
+        public static implicit operator (Instruction[], MCPUFunctionMetadata[], MCPULabelMetadata[])(MCPUCompilerResult res) => (res.Instructions, res.Functions, res.Labels);
+        public static implicit operator MCPUCompilerResult((Instruction[], MCPUFunctionMetadata[], MCPULabelMetadata[])_) => new MCPUCompilerResult { Instructions = _.Item1, Labels = _.Item3, Functions = _.Item2 };
+    }
+
+    /// <summary>
     /// Represents a MCPU function definition
     /// </summary>
     public class MCPUFunction
@@ -563,9 +828,17 @@ namespace MCPU.Compiler
         /// </summary>
         public int ID { set; get; }
         /// <summary>
+        /// The line, in which the function has been defined
+        /// </summary>
+        public int DefinedLine { set; get; }
+        /// <summary>
         /// The function's name
         /// </summary>
         public string Name { internal set; get; }
+        /// <summary>
+        /// Determines, whether the function is inlined during the compiling process
+        /// </summary>
+        public bool IsInlined { internal set; get; }
         /// <summary>
         /// The function's instructions
         /// </summary>
@@ -601,8 +874,16 @@ namespace MCPU.Compiler
             Name = name;
             Instructions = instr?.ToList() ?? new List<Instruction>();
         }
+
+
+        public static implicit operator MCPUFunctionMetadata(MCPUFunction func) => new MCPUFunctionMetadata
+        {
+            Name = func.Name,
+            Inlined = func.IsInlined,
+            DefinedLine = func.DefinedLine
+        };
     }
-    
+
     /// <summary>
     /// Represents a temporary instruction, which is only used during compile-time
     /// </summary>

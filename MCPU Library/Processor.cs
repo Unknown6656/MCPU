@@ -1,15 +1,18 @@
 ﻿// #define USE_INSTRUCTION_CACHE
+#define WINDOWS
 
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Diagnostics.Contracts;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Collections;
 using System.Diagnostics;
 using System.Reflection;
 using System.Threading;
 using System.Linq;
 using System.Text;
+using System.IO;
 using System;
 
 namespace MCPU
@@ -18,28 +21,14 @@ namespace MCPU
     /// A general MCPU processor event handler
     /// </summary>
     /// <param name="p">Processor instance</param>
-    public delegate void ProcessEventHandler(Processor p);
-
-    /// <summary>
-    /// A general MCPU processor event handler
-    /// </summary>
-    /// <param name="p">Processor instance</param>
-    public delegate void CopyOfProcessEventHandler(Processor p);
+    public delegate void ProcessorEventHandler(Processor p);
     /// <summary>
     /// A general generic MCPU processor event handler
     /// </summary>
     /// <typeparam name="T">Generic argument type T</typeparam>
     /// <param name="p">Processor instance</param>
     /// <param name="args">Argument of type T</param>
-    public delegate void ProcessEventHandler<T>(Processor p, T args);
-
-    /// <summary>
-    /// A general generic MCPU processor event handler
-    /// </summary>
-    /// <typeparam name="T">Generic argument type T</typeparam>
-    /// <param name="p">Processor instance</param>
-    /// <param name="args">Argument of type T</param>
-    public delegate void CopyOfProcessEventHandler<T>(Processor p, T args);
+    public delegate void ProcessorEventHandler<T>(Processor p, T args);
 
 
     /// <summary>
@@ -50,19 +39,22 @@ namespace MCPU
     {
         #region FIELDS + CONSTANTS
 
-        internal static readonly Dictionary<int, ProcessingDelegate> __syscalltable = new Dictionary<int, ProcessingDelegate> {
-            { -1, delegate { /*  ABK INSTRUCTION  */ } },
-            { 0, (p, _) => Console.WriteLine($"MCPU v. {Assembly.GetEntryAssembly().GetName().Version} created by Unknown6656") },
-            { 1, (p, _) => ConsoleExtensions.HexDump(p.ToBytes()) },
-            { 2, (p, _) => Console.WriteLine(string.Join(", ", from arg in _ select $"0x{p.TranslateConstant(arg):x8}")) },
-            { 3, (p, _) => Console.WriteLine(string.Join(", ", from arg in _ select p.TranslateFloatConstant(arg))) },
-            { 4, (p, _) => {
+        internal static readonly Dictionary<int, ProcessingDelegate> __syscalltable = new Dictionary<int, ProcessingDelegate>
+        {
+            [-1] = delegate { /* TODO : ABK INSTRUCTION */ },
+            [0] = (p, _) => p.WriteLine($"MCPU v. {Assembly.GetEntryAssembly().GetName().Version} created by Unknown6656"),
+            [1] = (p, _) => ConsoleExtensions.HexDump(p.ToBytes()),
+            [2] = (p, _) => p.WriteLine(string.Join(", ", from arg in _ select $"0x{p.TranslateConstant(arg):x8}")),
+            [3] = (p, _) => p.WriteLine(string.Join(", ", from arg in _ select p.TranslateFloatConstant(arg))),
+            [4] = (p, _) => {
                 OPCode.AssertAddress(0, _);
 
                 *p.TranslateAddress(_[0]) = p.Ticks;
-            } },
+            },
         };
-        
+#if !WINDOWS
+        private const string IVPEX_MSG = "The memory watcher unit requires a Win32-Environment with the corresponding API.";
+#endif
         public const int IP_OFFS = 0x04;
         public const int FLAG_OFFS = 0x08;
         public const int RESV_OFFS = 0x0a;
@@ -81,6 +73,7 @@ namespace MCPU
         public const int MAX_MEMSZ = 0x10000000; // 1GB of memory
         public const int MAX_STACKSZ = 0x400000; // 16MB of stack space
 #endif
+        internal TextWriter stdout = Console.Out;
         internal bool disposed = false;
         internal byte* raw;
 
@@ -88,36 +81,64 @@ namespace MCPU
         #region EVENTS
 
         /// <summary>
+        /// Raised when the processor gets disposed
+        /// </summary>
+        public event ProcessorEventHandler OnDisposed;
+        /// <summary>
+        /// Raised when the processor outputs some text
+        /// </summary>
+        public event ProcessorEventHandler<string> OnTextOutput;
+        /// <summary>
         /// Raised after an instruction has been executed
         /// </summary>
-        public event ProcessEventHandler<Instruction> InstructionExecuted;
+        public event ProcessorEventHandler<Instruction> InstructionExecuted;
         /// <summary>
         /// Rasied when a user-space memory access occures. The event is NOT raised, if the processor is running in elevated (kernel) mode
         /// </summary>
-        public event ProcessEventHandler<int> UserspaceWriteAccess;
+        public event ProcessorEventHandler<int> UserspaceWriteAccess;
         /// <summary>
         /// Raised when the status flags are changed
         /// </summary>
-        public event ProcessEventHandler<StatusFlags> StatusFlagsChanged;
+        public event ProcessorEventHandler<StatusFlags> StatusFlagsChanged;
         /// <summary>
         /// Raised when the information flags are changed
         /// </summary>
-        public event ProcessEventHandler<InformationFlags> InformationFlagsChanged;
+        public event ProcessorEventHandler<InformationFlags> InformationFlagsChanged;
         /// <summary>
         /// Raised when the processor is halted
         /// </summary>
-        public event ProcessEventHandler ProcessorHalted;
+        public event ProcessorEventHandler ProcessorHalted;
         /// <summary>
         /// Rasied when the processor is resetted to its original state
         /// </summary>
-        public event ProcessEventHandler ProcessorReset;
+        public event ProcessorEventHandler ProcessorReset;
         /// <summary>
         /// Raised if an exception occurs
         /// </summary>
-        public event ProcessEventHandler<Exception> OnError;
-
+        public event ProcessorEventHandler<MCPUProcessingException> OnError;
+        /// <summary>
+        /// Raised if the kernel memory's byte at the returned byte offset has changed
+        /// </summary>
+        public event ProcessorEventHandler<int> OnMemoryChanged
+#if WINDOWS
+            ;
+#else
+        {
+            add => throw new InvalidProgramException(IVPEX_MSG);
+            remove => throw new InvalidProgramException(IVPEX_MSG);
+        }
+#endif
         #endregion
         #region PROPERTIES
+
+        /// <summary>
+        /// Sets or gets the processor's debugging standard output stream
+        /// </summary>
+        public TextWriter StandardOutput
+        {
+            set => stdout = value ?? Console.Out;
+            get => stdout;
+        }
 
         /// <summary>
         /// Sets or gets whether the current processor is being executed using kernel privileges/kernel elevation
@@ -163,7 +184,7 @@ namespace MCPU
             get => KernelSpace[IP_OFFS / 4];
             internal set => KernelSpace[IP_OFFS / 4] = value;
         }
-        
+
         /// <summary>
         /// The userspace memory size (in 4-byte-blocks)
         /// </summary>
@@ -226,16 +247,17 @@ namespace MCPU
         /// <returns>Value</returns>
         public int this[int addr]
         {
-            get => VerifyUserspaceAddr(addr, () => ((int*)(raw + MEM_OFFS))[addr]);
-            set => VerifyUserspaceAddr(addr, () => {
-                ((int*)(raw + MEM_OFFS))[addr] = value;
+            get => VerifyUserspaceAddr(addr, () => ((int*)UserSpace)[addr]);
+            set => VerifyUserspaceAddr(addr, () =>
+            {
+                ((int*)UserSpace)[addr] = value;
 
                 UserspaceWriteAccess?.Invoke(this, addr);
             });
         }
-        
+
         /// <summary>
-        /// Accesses the I/O-ports of the current MCPU-processor
+        /// Accesses the I/O-ports of the current MCPU-processor (from the processor's point of view)
         /// </summary>
         public IOPorts IO { get; }
 
@@ -275,7 +297,6 @@ namespace MCPU
             }
         }
 #endif
-
         /// <summary>
         /// The stack size (in 4-byte blocks)
         /// </summary>
@@ -304,7 +325,7 @@ namespace MCPU
         /// The stack pointer, which points to the bottom-most 4-byte memory adress of the stack
         /// </summary>
         public int* StackPointer => StackBasePointer - StackSize;
-        
+
         /// <summary>
         /// Returns the byte-offset of the instruction region
         /// </summary>
@@ -320,8 +341,37 @@ namespace MCPU
         /// </summary>
         public byte* UserSpace => raw + MEM_OFFS;
 
+        /// <summary>
+        /// Returns the processor's call stack interpreted as `MCPU::FunctionCall`-instances
+        /// </summary>
+        public FunctionCall[] CallStack
+        {
+            get
+            {
+                List<FunctionCall> calls = new List<FunctionCall>();
+
+                while (CanPeekCall())
+                    calls.Add(PopCall());
+
+                foreach (FunctionCall call in (calls as IEnumerable<FunctionCall>).Reverse())
+                    PushCall(call);
+
+                return calls.ToArray();
+            }
+        }
+
         #endregion
         #region METHODS
+#if WINDOWS
+        [DllImport("kernel32.dll")]
+        internal static extern uint GetWriteWatch(uint dwFlags, int* lpBaseAddress, uint* dwRegionSize, out IntPtr lpAddresses, ref UIntPtr lpdwCount, out uint lpdwGranularity);
+#endif
+        /// <summary>
+        /// Executes the syscall function associated with the given syscall number
+        /// </summary>
+        /// <param name="num">Syscall number</param>
+        /// <param name="args">Syscall arguments</param>
+        public void Syscall(int num, params InstructionArgument[] args) => __syscalltable[num](this, args);
 
         /// <summary>
         /// Halts the processor
@@ -332,7 +382,7 @@ namespace MCPU
 
             ProcessorHalted?.Invoke(this);
 
-            // TODO
+            // TODO : async halt
         }
 
         /// <summary>
@@ -345,9 +395,7 @@ namespace MCPU
             {
                 Thread.Sleep(ms);
 
-
-                // TODO
-
+                // TODO : async sleep
             }
         }
 
@@ -365,7 +413,7 @@ namespace MCPU
             Flags = StatusFlags.Empty;
             InformationFlags = InformationFlags.Empty;
             Instructions = new Instruction[0];
-            
+
             for (int i = IO_OFFS, s = RawSize; i < s; i++)
                 raw[i] = 0;
 
@@ -392,44 +440,48 @@ namespace MCPU
         /// <summary>
         /// Processes the next instruction
         /// </summary>
-#if DEBUG
-        public
-#else
-        internal
-#endif
-        void ProcessNext()
+        public void ProcessNext()
         {
             Instruction ins = Instructions[IP];
 
-            if ((ins != null) && (ins.GetType() != typeof(Instructions.halt)))
+            try
             {
-                ++Ticks;
+                if ((ins != null) && (ins.GetType() != typeof(Instructions.halt)))
+                {
+                    ++Ticks;
 
-                ins.Process(this);
-                
-                InstructionExecuted?.Invoke(this, ins);
+                    ins.Process(this);
 
-                if (!ins.OPCode.SpecialIPHandling)
-                    if (IP < Instructions.Length)
-                        MoveNext();
-                    else
-                        Halt();
+                    InstructionExecuted?.Invoke(this, ins);
+
+                    if (!ins.OPCode.SpecialIPHandling)
+                        if (IP < Instructions.Length)
+                            MoveNext();
+                        else
+                            Halt();
+                }
+                else
+                    Halt(); // TODO : ?
             }
-            else
-                Halt(); // TODO : ?
+            catch (Exception ex)
+            {
+                if (ex is MCPUProcessingException mcpupex)
+                    throw mcpupex;
+                else
+                    throw new MCPUProcessingException(ex, ins);
+            }
         }
+
+        /// <summary>
+        /// Executes the saved instructions
+        /// </summary>
+        public void Process() => Process(Instructions);
 
         /// <summary>
         /// Executes the given bytes
         /// </summary>
         /// <param name="ins">Bytes to be executed</param>
         public void Process(byte[] bytes) => Process(Instruction.DeserializeMultiple(bytes));
-
-        /// <summary>
-        /// Executes the given bytes without previously resetting the processor
-        /// </summary>
-        /// <param name="ins">Bytes to be executed</param>
-        public void ProcessWithoutReset(byte[] bytes) => ProcessWithoutReset(Instruction.DeserializeMultiple(bytes));
 
         /// <summary>
         /// Executes the given instructions
@@ -442,6 +494,17 @@ namespace MCPU
         }
 
         /// <summary>
+        /// Executes the saved instructions without previously resetting the processor
+        /// </summary>
+        public void ProcessWithoutReset() => ProcessWithoutReset(Instructions);
+
+        /// <summary>
+        /// Executes the given bytes without previously resetting the processor
+        /// </summary>
+        /// <param name="ins">Bytes to be executed</param>
+        public void ProcessWithoutReset(byte[] bytes) => ProcessWithoutReset(Instruction.DeserializeMultiple(bytes));
+
+        /// <summary>
         /// Executes the given instructions without previously resetting the processor
         /// </summary>
         /// <param name="ins">Instructions to be executed</param>
@@ -450,8 +513,8 @@ namespace MCPU
             Instructions = ins.Concat(new Instruction[] { OPCodes.HALT, OPCodes.HALT }).ToArray();
             IsRunning = true;
 
-            Exception res;
-            Task<Exception> t = new Task<Exception>(delegate {
+            MCPUProcessingException res;
+            Task<MCPUProcessingException> t = new Task<MCPUProcessingException>(delegate {
                 try
                 {
                     while (IsRunning)
@@ -459,7 +522,7 @@ namespace MCPU
 
                     return null;
                 }
-                catch (Exception ex)
+                catch (MCPUProcessingException ex)
                 {
                     return ex;
                 }
@@ -481,17 +544,20 @@ namespace MCPU
         /// Pushes the given function call onto the callstack
         /// </summary>
         /// <param name="call">Function call</param>
-        public void PushCall(FunctionCall call)
+        public void PushCall(FunctionCall? call)
         {
-            if (StackSize + call.Size > MAX_STACKSZ)
-                throw new StackException("The callstack is not big enough to hold the given element (aka StackOverflowException).");
+            if (call is FunctionCall c)
+            {
+                if (StackSize + c.Size > MAX_STACKSZ)
+                    throw new StackException("The callstack is not big enough to hold the given element (aka StackOverflowException).");
 
-            foreach (int a in call.Arguments)
-                Push(a);
+                foreach (int a in c.Arguments)
+                    Push(a);
 
-            Push(call.Arguments.Length);
-            Push((int)call.SavedFlags);
-            Push(call.ReturnAddress);
+                Push(c.Arguments.Length);
+                Push((int)c.SavedFlags);
+                Push(c.ReturnAddress);
+            }
         }
 
         /// <summary>
@@ -513,7 +579,8 @@ namespace MCPU
         /// <returns>Inner-most function call</returns>
         public FunctionCall PopCall()
         {
-            FunctionCall call = new FunctionCall {
+            FunctionCall call = new FunctionCall
+            {
                 ReturnAddress = Pop(),
                 SavedFlags = (StatusFlags)Pop(),
                 Arguments = new int[Pop()]
@@ -523,6 +590,29 @@ namespace MCPU
                 call.Arguments[i] = Pop();
 
             return call;
+        }
+
+        /// <summary>
+        /// Returns, whether a function call can be peeked (or popped) from the callstack
+        /// </summary>
+        /// <returns>Check result</returns>
+        public bool CanPeekCall()
+        {
+            if (StackSize >= 3)
+            {
+                int ra = Pop();
+                int sf = Pop();
+                int sz = Pop();
+                bool res = StackSize >= sz;
+
+                Push(sz);
+                Push(sf);
+                Push(ra);
+
+                return res;
+            }
+            else
+                return false;
         }
 
         /// <summary>
@@ -552,7 +642,7 @@ namespace MCPU
             {
                 int val = arg.Value;
 
-                if (arg.Type.HasFlag(ArgumentType.Parameter))
+                if (arg.IsParameter)
                 {
                     FunctionCall call = PeekCall();
                     int argc = call.Arguments.Length;
@@ -563,11 +653,18 @@ namespace MCPU
                 if (arg.IsAddress)
                 {
                     if (!arg.IsKernel)
-                        val += MEM_OFFS;
+                        val = UserToKernel(val);
                     else if (!IsElevated)
                         throw new MissingPrivilegeException();
 
-                    return KernelSpace + (arg.Type.HasFlag(ArgumentType.Indirect) ? KernelSpace[val] : val);
+                    if (arg.IsIndirect)
+                    {
+                        val = KernelSpace[val];
+
+                        return KernelSpace + (arg.IsKernel ? val : UserToKernel(val));
+                    }
+                    else
+                        return KernelSpace + val;
                 }
                 else
                     return &val;
@@ -595,6 +692,12 @@ namespace MCPU
         /// <param name="arg">Instruction argument</param>
         /// <returns>'Translated' floating-point constant</returns>
         public float TranslateFloatConstant(InstructionArgument arg) => *TranslateFloatAddress(arg);
+
+        /// <summary>
+        /// Returns, whether an integer can be peeked (or popped) from the callstack (UNSAFE!)
+        /// </summary>
+        /// <returns>Check result</returns>
+        public bool CanPeek() => StackSize > 0;
 
         /// <summary>
         /// Pops an integer from the MCPU callstack (UNSAFE!)
@@ -636,7 +739,7 @@ namespace MCPU
             else
                 throw new InsufficientExecutionStackException("There is no element on the stack (aka StackUnderflowException).");
         }
-        
+
         /// <summary>
         /// Translates the given int*-pointer to a user-space address and returns the address as integer
         /// </summary>
@@ -651,16 +754,44 @@ namespace MCPU
         /// <returns>Address</returns>
         public int GetKernelAddress(int* addr) => (int)(addr - KernelSpace);
 
-        internal int UserToKernel(int addr) => VerifyUserspaceAddr(addr, addr + MEM_OFFS);
+        /// <summary>
+        /// Translates the given user-space address to the corresponding kernel-space address
+        /// </summary>
+        /// <param name="addr">User-space address</param>
+        /// <returns>Kernel-space address</returns>
+        public int UserToKernel(int addr) => VerifyUserspaceAddr(addr, addr + MEM_OFFS / 4);
+
+        /// <summary>
+        /// Sets the processor's given I/O-port to the given value externally, meaning that the processor is not aware of the changement
+        /// </summary>
+        /// <param name="port">I/O-port</param>
+        /// <param name="value">New I/O value</param>
+        public void SetIOExternally(int port, byte value)
+        {
+            byte* ptr = raw + IO_OFFS + port;
+
+            *ptr &= 0xf0;
+            *ptr |= (byte)(value & 0x0f);
+        }
+
+        internal void Write(string s)
+        {
+            StandardOutput?.Write(s);
+
+            OnTextOutput?.Invoke(this, s);
+        }
+
+        internal void WriteLine(string s) => Write(s + '\n');
 
         internal void VerifyUserspaceAddr(int addr) => VerifyUserspaceAddr<object>(addr, null);
 
-        internal void VerifyUserspaceAddr(int addr, Action action) => VerifyUserspaceAddr(addr, () => {
+        internal void VerifyUserspaceAddr(int addr, Action action) => VerifyUserspaceAddr(addr, () =>
+        {
             action();
 
             return null as object;
         });
-        
+
         internal T VerifyUserspaceAddr<T>(int addr, T value) => VerifyUserspaceAddr(addr, () => value);
 
         internal T VerifyUserspaceAddr<T>(int addr, Func<T> action) =>
@@ -678,7 +809,11 @@ namespace MCPU
         public void Dispose()
         {
             if (!disposed)
+            {
                 Marshal.FreeHGlobal((IntPtr)raw);
+
+                OnDisposed?.Invoke(this);
+            }
 
             disposed = true;
         }
@@ -706,11 +841,24 @@ namespace MCPU
         /// <param name="size">Userspace size</param>
         /// <param name="cpuid">CPU ID</param>
         public Processor(int size, int cpuid)
+            : this(size, MAX_STACKSZ, cpuid)
+        {
+        }
+
+        /// <summary>
+        /// Creates a new MCPU-processor instance with the given userspace-size (in 4-byte-blocks) and callstack size (in 4-byte-blocks) and assigns the given CPUID to the processor
+        /// </summary>
+        /// <param name="size">Userspace size</param>
+        /// <param name="stacksize">Callstack size</param>
+        /// <param name="cpuid">CPU ID</param>
+        public Processor(int size, int stacksize, int cpuid)
         {
             if (size > MAX_MEMSZ)
                 throw new OutOfMemoryException($"The (currently) maximum supported memory size are {MAX_MEMSZ * 4} bytes.");
+            if (stacksize > MAX_STACKSZ)
+                throw new OutOfMemoryException($"The (currently) maximum supported callstack size are {MAX_STACKSZ * 4} bytes.");
 
-            int raw_size = 4 * size + MEM_OFFS + MAX_STACKSZ * 4;
+            int raw_size = 4 * size + MEM_OFFS + stacksize * 4;
 
             raw = (byte*)Marshal.AllocHGlobal(raw_size);
 
@@ -734,8 +882,8 @@ namespace MCPU
     /// <summary>
     /// Represents an exception, which occures if a 'regular' user tries to perform kernel actions
     /// </summary>
-    public class MissingPrivilegeException
-        : InvalidOperationException
+    public sealed class MissingPrivilegeException
+        : MCPUProcessingException
     {
         /// <summary>
         /// Represents an exception, which occures if a 'regular' user tries to perform kernel actions
@@ -776,8 +924,8 @@ namespace MCPU
     /// <summary>
     /// Represents an exception, which occures while processing the MCPU-(call)stack
     /// </summary>
-    public class StackException
-        : Exception
+    public sealed class StackException
+        : MCPUProcessingException
     {
         /// <summary>
         /// Creates a new StackException with the given message
@@ -790,12 +938,55 @@ namespace MCPU
     }
 
     /// <summary>
+    /// Represents an exception, which occures while processing an faulty instruction
+    /// </summary>
+    [Serializable]
+    public class MCPUProcessingException
+        : InvalidOperationException
+    {
+        /// <summary>
+        /// The faulty instruction
+        /// </summary>
+        public Instruction Instruction { get; }
+
+
+        /// <summary>
+        /// Creates a new MCPUProcessingException with the given message
+        /// </summary>
+        /// <param name="message">Exception message</param>
+        public MCPUProcessingException(string message)
+            : base(message)
+        {
+        }
+
+        /// <summary>
+        /// Creates a new MCPUProcessingException with the given message and the given inner exception
+        /// </summary>
+        /// <param name="message">Exception message</param>
+        /// <param name="innerException">Inner exception</param>
+        public MCPUProcessingException(string message, Exception innerException)
+            : base(message, innerException)
+        {
+        }
+
+        /// <summary>
+        /// Creates a new MCPUProcessingException with the given inner exception and faulty instruction
+        /// </summary>
+        /// <param name="ex">Inner exception</param>
+        /// <param name="ins">Faulty instruction</param>
+        public MCPUProcessingException(Exception ex, Instruction ins)
+            : base($"Invalid MCPU operation: {ex.Message}", ex) => Instruction = ins;
+    }
+
+    /// <summary>
     /// Represents the I/O-port-range of a MCPU-processor
     /// </summary>
     public unsafe class IOPorts
+        : IEnumerable<IOPort>
     {
+        private List<IOPort> plist;
         internal IOPort* ports;
-        
+
 
         /// <summary>
         /// Accesses the I/O-port at the given index
@@ -804,7 +995,7 @@ namespace MCPU
         /// <returns>I/O-port</returns>
         public IOPort this[int port]
         {
-            get => IsInRange(port) ? *(ports + port + Processor.IO_OFFS)
+            get => IsInRange(port) ? *((IOPort*)((byte*)ports + Processor.IO_OFFS + port))
                                    : throw new IndexOutOfRangeException($"The I/O-port index must be a positive value between 0 and {Processor.IO_OFFS}.");
             set
             {
@@ -813,10 +1004,9 @@ namespace MCPU
                 if ((old.Direction == IODirection.In) && (value.Value != old.Value))
                     throw new InvalidOperationException($"The I/O-port no. {port} is set to read-only.");
                 else
-                    *(ports + port + Processor.IO_OFFS) = value;
+                    *((IOPort*)((byte*)ports + Processor.IO_OFFS + port)) = value;
             }
         }
-        
 
         /// <summary>
         /// Sets the value of the given I/O-port to the given direction
@@ -846,6 +1036,22 @@ namespace MCPU
             this[port] = p;
         }
 
+        /// <summary>
+        /// Returns an enumerator that iterates through the port collection
+        /// </summary>
+        /// <returns>Generic enumerator</returns>
+        public IEnumerator<IOPort> GetEnumerator()
+        {
+            for (int i = 0; i < Processor.IO_COUNT; i++)
+                yield return this[i];
+        }
+
+        /// <summary>
+        /// Returns an enumerator that iterates through the port collection
+        /// </summary>
+        /// <returns>Non-generic enumerator</returns>
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
         internal bool IsInRange(int port) => (port >= 0) && (port < Processor.IO_COUNT);
 
         internal IOPorts(void* ptr) => ports = (IOPort*)ptr;
@@ -854,12 +1060,17 @@ namespace MCPU
     /// <summary>
     /// Represents an I/O-port
     /// </summary>
-    [Serializable, NativeCppClass, StructLayout(LayoutKind.Sequential, Size = 1, Pack = 1)]
+    [Serializable, NativeCppClass, StructLayout(LayoutKind.Sequential, Size = 1, Pack = 0)]
     public struct IOPort
     {
         internal byte raw;
 
-        
+
+        /// <summary>
+        /// Returns the raw value, which represents the current I/O-port
+        /// </summary>
+        public byte Raw => raw;
+
         /// <summary>
         /// Sets or gets the I/O-port's value
         /// </summary>
@@ -878,6 +1089,12 @@ namespace MCPU
             get => (IODirection)(raw >> 7);
             set => raw = (byte)((raw & 0x0f) | ((int)value << 7));
         }
+
+        public override string ToString() => $"{raw:x2}: ({Value}, {Direction})";
+
+        public static bool operator ==(IOPort p1, IOPort p2) => p1.raw == p2.raw;
+
+        public static bool operator !=(IOPort p1, IOPort p2) => !(p1 == p2);
 
         public static implicit operator (IODirection, byte) (IOPort port) => (port.Direction, port.Value);
 
@@ -940,6 +1157,34 @@ namespace MCPU
         /// Indicates that the comparison had only one input (meaning that the first input is zero, and the second one is the 'real' input)
         /// </summary>
         Unary = 0b0000_0001_0000_0000,
+        /// <summary>
+        /// Indicates that the comparison is comparing two floating-point inputs instead of integer ones
+        /// </summary>
+        Float = 0b0000_0000_1000_0000,
+        /// <summary>
+        /// Indicates that the first comparison input is not a (floating-point) number
+        /// </summary>
+        NaN1 = 0b0000_0000_0100_0000,
+        /// <summary>
+        /// Indicates that the second comparison input is not a (floating-point) number
+        /// </summary>
+        NaN2 = 0b0000_0000_0010_0000,
+        /// <summary>
+        /// Indicates that the first comparison input is equal to infinity (positive or negative)
+        /// </summary>
+        Infinity1 = 0b0000_0000_0001_0000,
+        /// <summary>
+        /// Indicates that the second comparison input is equal to infinity (positive or negative)
+        /// </summary>
+        Infinity2 = 0b0000_0000_0000_1000,
+        /// <summary>
+        /// Indicates that the first comparison input is equal to negative infinity
+        /// </summary>
+        NegativeInfinity1 = Sign1 | Infinity1,
+        /// <summary>
+        /// Indicates that the second comparison input is equal to negative infinity
+        /// </summary>
+        NegativeInfinity2 = Sign2 | Infinity2,
 
 
         /// <summary>
@@ -947,7 +1192,7 @@ namespace MCPU
         /// </summary>
         Empty = 0b0000_0000_0000_0000,
     }
-    
+
     /// <summary>
     /// MCPU processor information flags
     /// </summary>

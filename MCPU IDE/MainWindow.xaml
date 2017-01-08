@@ -1,0 +1,131 @@
+﻿<Window x:Class="MCPU.IDE.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	    xmlns:wf="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms"
+        xmlns:fctb="clr-namespace:FastColoredTextBoxNS;assembly=FastColoredTextBox"
+        xmlns:local="clr-namespace:MCPU.IDE"
+        mc:Ignorable="d"
+        Height="500" Width="750"
+        Title="{DynamicResource mw_title}"
+        Closing="Window_Closing"
+        Loaded="Window_Loaded">
+    <Window.Resources>
+        <SolidColorBrush x:Key="stat_bg" Color="{DynamicResource BG}"/>
+        <Style x:Key="st_stat" TargetType="Label">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{StaticResource FG}"/>
+            <Setter Property="Padding" Value="5,0"/>
+        </Style>
+    </Window.Resources>
+    <Window.CommandBindings>
+        <CommandBinding Command="local:Commands.Undo" Executed="mie_undo"/>
+        <CommandBinding Command="local:Commands.Redo" Executed="mie_redo"/>
+        <CommandBinding Command="local:Commands.Cut" Executed="mie_cut"/>
+        <CommandBinding Command="local:Commands.Copy" Executed="mie_copy"/>
+        <CommandBinding Command="local:Commands.Paste" Executed="mie_paste"/>
+        <CommandBinding Command="local:Commands.Delete" Executed="mie_delete"/>
+        <CommandBinding Command="local:Commands.SelectAll" Executed="mie_select_all"/>
+        <CommandBinding Command="local:Commands.ZoomIn" Executed="mie_zoom_in_Click"/>
+        <CommandBinding Command="local:Commands.ZoomOut" Executed="mie_zoom_out_Click"/>
+        <CommandBinding Command="local:Commands.ZoomReset" Executed="mie_zoom_res_Click"/>
+        <CommandBinding Command="local:Commands.Search" Executed="mie_search"/>
+        <CommandBinding Command="local:Commands.Replace" Executed="mie_replace"/>
+        <CommandBinding Command="local:Commands.CreateBookmark" Executed="mie_bm_create"/>
+        <CommandBinding Command="local:Commands.DeleteBookmark" Executed="mie_bm_delete"/>
+        <CommandBinding Command="local:Commands.PreviousBookmark" Executed="mie_bm_prev"/>
+        <CommandBinding Command="local:Commands.NextBookmark" Executed="mie_bm_next"/>
+        <CommandBinding Command="local:Commands.FoldAll" Executed="mie_fold"/>
+        <CommandBinding Command="local:Commands.UnfoldAll" Executed="mie_unfold"/>
+        <CommandBinding Command="local:Commands.New" Executed="mif_new"/>
+        <CommandBinding Command="local:Commands.Exit" Executed="mif_exit"/>
+        <CommandBinding Command="local:Commands.Open" Executed="mif_open"/>
+        <CommandBinding Command="local:Commands.Save" Executed="mif_save"/>
+        <CommandBinding Command="local:Commands.SaveAs" Executed="mif_save_as"/>
+        <CommandBinding Command="local:Commands.ExportAsHTML" Executed="mif_export_html"/>
+        <CommandBinding Command="local:Commands.Preferences" Executed="mif_settings"/>
+        <CommandBinding Command="local:Commands.Compile" Executed="mic_compile"/>
+        <CommandBinding Command="local:Commands.Next" Executed="mip_next"/>
+        <CommandBinding Command="local:Commands.Stop" Executed="mip_stop"/>
+        <CommandBinding Command="local:Commands.Start" Executed="mip_start"/>
+        <CommandBinding Command="local:Commands.Reset" Executed="mip_reset"/>
+        <CommandBinding Command="local:Commands.About" Executed="mih_about"/>
+        <CommandBinding Command="local:Commands.GitHub" Executed="mih_github"/>
+        <CommandBinding Command="local:Commands.ProcessorInfo" Executed="miw_procnfo"/>
+        <CommandBinding Command="local:Commands.InsertDelete" Executed="global_insert"/>
+    </Window.CommandBindings>
+    <DockPanel>
+        <Menu DockPanel.Dock="Top" Height="21">
+            <MenuItem Header="{DynamicResource mw_file}">
+                <MenuItem Header="{DynamicResource mw_file_new}" Command="local:Commands.New" Icon="{DynamicResource menu_new}"/>
+                <MenuItem Header="{DynamicResource mw_file_open}" Command="local:Commands.Open" Icon="{DynamicResource menu_open}"/>
+                <MenuItem Header="{DynamicResource mw_file_save}" Command="local:Commands.Save" Icon="{DynamicResource menu_save}"/>
+                <MenuItem Header="{DynamicResource mw_file_saveall}" Command="local:Commands.SaveAs"/>
+                <MenuItem Header="{DynamicResource mw_file_export}" Command="local:Commands.ExportAsHTML"/>
+                <Separator/>
+                <MenuItem Header="{DynamicResource mw_file_settings}" Command="local:Commands.Preferences" Icon="{DynamicResource menu_settings}"/>
+                <Separator/>
+                <MenuItem Header="{DynamicResource mw_file_exit}" Command="local:Commands.Exit" Icon="{DynamicResource menu_exit}"/>
+            </MenuItem>
+            <MenuItem Header="{DynamicResource mw_edit}">
+                <MenuItem Header="{DynamicResource mw_edit_undo}" Command="local:Commands.Undo" Icon="{DynamicResource menu_undo}"/>
+                <MenuItem Header="{DynamicResource mw_edit_redo}" Command="local:Commands.Redo" Icon="{DynamicResource menu_redo}"/>
+                <Separator/>
+                <MenuItem Header="{DynamicResource mw_edit_copy}" Command="local:Commands.Copy" Icon="{DynamicResource menu_copy}"/>
+                <MenuItem Header="{DynamicResource mw_edit_cut}" Command="local:Commands.Cut" Icon="{DynamicResource menu_cut}"/>
+                <MenuItem Header="{DynamicResource mw_edit_paste}" Command="local:Commands.Paste" Icon="{DynamicResource menu_paste}"/>
+                <MenuItem Header="{DynamicResource mw_edit_delete}" Command="local:Commands.Delete" Icon="{DynamicResource menu_delete}"/>
+                <MenuItem Header="{DynamicResource mw_edit_select}" Command="local:Commands.SelectAll"/>
+                <Separator/>
+                <MenuItem Header="{DynamicResource mw_edit_insert}"/>
+                <Separator/>
+                <MenuItem Header="{DynamicResource mw_edit_search}" Command="local:Commands.Search"/>
+                <MenuItem Header="{DynamicResource mw_edit_replace}" Command="local:Commands.Replace"/>
+                <Separator/>
+                <MenuItem x:Name="mie_bmc" Header="{DynamicResource mw_edit_bm_create}" Command="local:Commands.CreateBookmark" Icon="{DynamicResource menu_bmc}"/>
+                <MenuItem x:Name="mie_bmd" Header="{DynamicResource mw_edit_bm_delete}" Command="local:Commands.DeleteBookmark" Icon="{DynamicResource menu_bmd}"/>
+                <MenuItem x:Name="mie_bmp" Header="{DynamicResource mw_edit_bm_prev}" Command="local:Commands.PreviousBookmark" Icon="{DynamicResource menu_bmp}"/>
+                <MenuItem x:Name="mie_bmn" Header="{DynamicResource mw_edit_bm_next}" Command="local:Commands.NextBookmark" Icon="{DynamicResource menu_bmn}"/>
+                <Separator/>
+                <MenuItem x:Name="mie_zoom_in" Header="{DynamicResource mw_edit_zin}" Command="local:Commands.ZoomIn"/>
+                <MenuItem x:Name="mie_zoom_out" Header="{DynamicResource mw_edit_zout}" Command="local:Commands.ZoomOut"/>
+                <MenuItem x:Name="mie_zoom_res" Header="{DynamicResource mw_edit_zres}" Command="local:Commands.ZoomReset"/>
+                <Separator/>
+                <MenuItem Header="{DynamicResource mw_edit_fold}" Command="local:Commands.FoldAll"/>
+                <MenuItem Header="{DynamicResource mw_edit_unfold}" Command="local:Commands.UnfoldAll"/>
+            </MenuItem>
+            <MenuItem Header="{DynamicResource mw_compiler}">
+                <MenuItem Header="{DynamicResource mw_compiler_compile}" Command="local:Commands.Compile"/>
+                <MenuItem Header="{DynamicResource mw_compiler_errors}"/>
+                <MenuItem Header="{DynamicResource mw_compiler_instr}"/>
+            </MenuItem>
+            <MenuItem Header="{DynamicResource mw_processor}">
+                <MenuItem Header="{DynamicResource mw_processor_start}" Command="local:Commands.Start" Icon="{DynamicResource menu_start}"/>
+                <MenuItem Header="{DynamicResource mw_processor_stop}" Command="local:Commands.Stop" Icon="{DynamicResource menu_stop}"/>
+                <MenuItem Header="{DynamicResource mw_processor_next}" Command="local:Commands.Next" Icon="{DynamicResource menu_next}"/>
+                <MenuItem Header="{DynamicResource mw_processor_reset}" Command="local:Commands.Reset" Icon="{DynamicResource menu_reset}"/>
+                <Separator/>
+                <MenuItem Header="{DynamicResource mw_processor_memmap}" Command="local:Commands.ProcessorInfo"/>
+                <MenuItem Header="{DynamicResource mw_processor_dump}"/>
+                <MenuItem Header="{DynamicResource mw_processor_loaddump}"/>
+            </MenuItem>
+            <MenuItem Header="{DynamicResource mw_help}">
+                <MenuItem Header="{DynamicResource mw_help_about}" Command="local:Commands.About"/>
+                <MenuItem Header="{DynamicResource mw_help_github}" Command="local:Commands.GitHub" Icon="{DynamicResource menu_github}"/>
+            </MenuItem>
+        </Menu>
+        <StatusBar x:Name="statbar" DockPanel.Dock="Bottom" Height="20" Padding="0" FontSize="10" Foreground="{StaticResource FG}" Background="{StaticResource stat_bg}">
+            <Label Content="{DynamicResource lang_iso}" Style="{StaticResource st_stat}"/>
+            <Label x:Name="lb_zoom" Content="100 %" Style="{StaticResource st_stat}"/>
+            <Label x:Name="lb_ins" Content="{DynamicResource mw_INS}" Style="{StaticResource st_stat}"/>
+            <Label x:Name="lb_pos" Content="Ln. ---- Ch. --- : Ln. ---- Ch. ---" Style="{StaticResource st_stat}"/>
+            <Label x:Name="lb_err" Content="Error in Ln. ----" Style="{StaticResource st_stat}"/>
+        </StatusBar>
+        <WindowsFormsHost>
+            <WindowsFormsHost.Child>
+                <local:HighlightnerForm x:Name="fctb_host"/>
+            </WindowsFormsHost.Child>
+        </WindowsFormsHost>
+    </DockPanel>
+</Window>
