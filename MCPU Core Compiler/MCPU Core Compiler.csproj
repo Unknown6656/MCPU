@@ -55,6 +55,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>DiscriminatedUnions.tt</DependentUpon>
     </Compile>
+    <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

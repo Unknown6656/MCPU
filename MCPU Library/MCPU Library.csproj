@@ -51,6 +51,7 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
     </Compile>
+    <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Instruction.cs" />
     <Compile Include="Opcodes.cs" />
     <Compile Include="Processor.cs" />
