@@ -20,7 +20,8 @@ The name **MCPU** stands for **M**inimalistic **C**entral **P**rocessing **U**ni
 - [x] Push releases (used [name generator](http://www.codenamegenerator.com/))
 - [x] Instruction serialization
 - [x] Instruction-space management
-- [x] Function inlining + `NOP`-optimization **(Nearly finished)**
+- [x] Instruction optimization (NOP, empty statements etc.)
+- [ ] Function inlining
 - [x] Kernel-space memory addressing
 - [ ] Asynchronous processor execution
 - [ ] Virtual Device support
