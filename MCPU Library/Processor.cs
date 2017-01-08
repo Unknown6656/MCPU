@@ -29,7 +29,7 @@ namespace MCPU
     /// <param name="p">Processor instance</param>
     /// <param name="args">Argument of type T</param>
     public delegate void ProcessorEventHandler<T>(Processor p, T args);
-    
+
     /// <summary>
     /// Represents the MCPU-processor
     /// </summary>
@@ -78,6 +78,10 @@ namespace MCPU
         #endregion
         #region EVENTS
 
+        /// <summary>
+        /// Raised when the processor gets disposed
+        /// </summary>
+        public event ProcessorEventHandler OnDisposed;
         /// <summary>
         /// Raised when the processor outputs some text
         /// </summary>
@@ -178,7 +182,7 @@ namespace MCPU
             get => KernelSpace[IP_OFFS / 4];
             internal set => KernelSpace[IP_OFFS / 4] = value;
         }
-        
+
         /// <summary>
         /// The userspace memory size (in 4-byte-blocks)
         /// </summary>
@@ -249,7 +253,7 @@ namespace MCPU
                 UserspaceWriteAccess?.Invoke(this, addr);
             });
         }
-        
+
         /// <summary>
         /// Accesses the I/O-ports of the current MCPU-processor (from the processor's point of view)
         /// </summary>
@@ -319,7 +323,7 @@ namespace MCPU
         /// The stack pointer, which points to the bottom-most 4-byte memory adress of the stack
         /// </summary>
         public int* StackPointer => StackBasePointer - StackSize;
-        
+
         /// <summary>
         /// Returns the byte-offset of the instruction region
         /// </summary>
@@ -349,7 +353,7 @@ namespace MCPU
 
                 foreach (FunctionCall call in (calls as IEnumerable<FunctionCall>).Reverse())
                     PushCall(call);
-            
+
                 return calls.ToArray();
             }
         }
@@ -388,7 +392,7 @@ namespace MCPU
             if (ms > 0)
             {
                 Thread.Sleep(ms);
-                
+
                 // TODO : async sleep
             }
         }
@@ -407,7 +411,7 @@ namespace MCPU
             Flags = StatusFlags.Empty;
             InformationFlags = InformationFlags.Empty;
             Instructions = new Instruction[0];
-            
+
             for (int i = IO_OFFS, s = RawSize; i < s; i++)
                 raw[i] = 0;
 
@@ -650,11 +654,11 @@ namespace MCPU
                         val = UserToKernel(val);
                     else if (!IsElevated)
                         throw new MissingPrivilegeException();
-                    
+
                     if (arg.IsIndirect)
                     {
                         val = KernelSpace[val];
-                        
+
                         return KernelSpace + (arg.IsKernel ? val : UserToKernel(val));
                     }
                     else
@@ -733,7 +737,7 @@ namespace MCPU
             else
                 throw new InsufficientExecutionStackException("There is no element on the stack (aka StackUnderflowException).");
         }
-        
+
         /// <summary>
         /// Translates the given int*-pointer to a user-space address and returns the address as integer
         /// </summary>
@@ -785,7 +789,7 @@ namespace MCPU
 
             return null as object;
         });
-        
+
         internal T VerifyUserspaceAddr<T>(int addr, T value) => VerifyUserspaceAddr(addr, () => value);
 
         internal T VerifyUserspaceAddr<T>(int addr, Func<T> action) =>
@@ -803,7 +807,11 @@ namespace MCPU
         public void Dispose()
         {
             if (!disposed)
+            {
                 Marshal.FreeHGlobal((IntPtr)raw);
+
+                OnDisposed?.Invoke(this);
+            }
 
             disposed = true;
         }
@@ -847,7 +855,7 @@ namespace MCPU
                 throw new OutOfMemoryException($"The (currently) maximum supported memory size are {MAX_MEMSZ * 4} bytes.");
             if (stacksize > MAX_STACKSZ)
                 throw new OutOfMemoryException($"The (currently) maximum supported callstack size are {MAX_STACKSZ * 4} bytes.");
-            
+
             int raw_size = 4 * size + MEM_OFFS + stacksize * 4;
 
             raw = (byte*)Marshal.AllocHGlobal(raw_size);
@@ -976,7 +984,7 @@ namespace MCPU
     {
         private List<IOPort> plist;
         internal IOPort* ports;
-        
+
 
         /// <summary>
         /// Accesses the I/O-port at the given index
@@ -997,7 +1005,7 @@ namespace MCPU
                     *((IOPort*)((byte*)ports + Processor.IO_OFFS + port)) = value;
             }
         }
-        
+
         /// <summary>
         /// Sets the value of the given I/O-port to the given direction
         /// </summary>
@@ -1041,9 +1049,9 @@ namespace MCPU
         /// </summary>
         /// <returns>Non-generic enumerator</returns>
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-        
+
         internal bool IsInRange(int port) => (port >= 0) && (port < Processor.IO_COUNT);
-        
+
         internal IOPorts(void* ptr) => ports = (IOPort*)ptr;
     }
 
@@ -1182,7 +1190,7 @@ namespace MCPU
         /// </summary>
         Empty = 0b0000_0000_0000_0000,
     }
-    
+
     /// <summary>
     /// MCPU processor information flags
     /// </summary>
