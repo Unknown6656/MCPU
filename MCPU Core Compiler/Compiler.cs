@@ -99,10 +99,14 @@ namespace MCPU.Compiler
         };
         internal static Dictionary<string, string> __strtable;
 
+        /// <summary>
+        /// Sets or gets, whether compiler optimizations are enabled (NOP-optimization, empty statements, inlining etc.)
+        /// </summary>
+        public static bool OptimizationEnabled { set; get; } = false;
 
 
         static MCPUCompiler() => ResetLanguage();
-
+        
         /// <summary>
         /// Resets the compiler's output language to the default one
         /// </summary>
@@ -131,7 +135,7 @@ namespace MCPU.Compiler
         /// <param name="key">String key</param>
         /// <returns>Formatted string value</returns>
         public static string GetString(string key, params object[] args) => string.Format(GetString(key), args);
-        
+
         internal static unsafe (MCPUFunction[], MCPULabelMetadata[], int, string) Precompile(params string[] lines)
         {
             List<(int, string, int)> unmapped = new List<(int, string, int)>();
@@ -243,7 +247,7 @@ namespace MCPU.Compiler
                         }
 
                         line = line.Remove(match.Index, match.Length);
-                        
+
                         labelmeta.Add(new MCPULabelMetadata { Name = name, DefinedLine = linenr + 1, ParentFunction = curr_func });
                         curr_func.Instructions.Add(new MCPUJumpLabel(tid));
                     }
@@ -338,7 +342,7 @@ namespace MCPU.Compiler
                                         {
                                             InstructionArgument iarg = new InstructionArgument();
                                             string val;
-                                        
+
                                             if (CheckGroup("ptr", out val))
                                             {
                                                 iarg.Value = ParseIntArg(val);
@@ -428,7 +432,7 @@ namespace MCPU.Compiler
             else
                 return (functions.ToArray(), labelmeta.ToArray(), -1, "");
         }
-        
+
         /// <summary>
         /// Compiles the given MCPU assembly code to a list of instructions and metadata, which can be executed by a MCPU processor or analyzed by an IDE
         /// </summary>
@@ -480,7 +484,7 @@ namespace MCPU.Compiler
                         {
                             bool caninline = (f.Instructions.Count <= 30) && f.Instructions.All(_ => !_.OPCode.SpecialIPHandling);
 
-                            if (caninline)
+                            if (caninline && OptimizationEnabled)
                             {
 
                                 // MAGIC GOES HERE
@@ -509,7 +513,7 @@ namespace MCPU.Compiler
                         if (cmp_instr[i].Arguments[j].IsInstructionSpace)
                             cmp_instr[i].Arguments[j].Value = jumptable[cmp_instr[i].Arguments[j].Value];
 
-                return (cmp_instr, metadata, labels);
+                return (OptimizationEnabled ? Optimize(cmp_instr) : cmp_instr, metadata, labels);
             }
             catch (Exception ex)
             when (!(ex is MCPUCompilerException))
@@ -540,6 +544,47 @@ namespace MCPU.Compiler
             {
                 return ex;
             }
+        }
+
+        /// <summary>
+        /// Optimizes the given instruction list 
+        /// </summary>
+        /// <param name="instr">Instructions</param>
+        /// <returns>Optimized instructions</returns>
+        public static Instruction[] Optimize(params Instruction[] instr)
+        {
+            bool CanBeRemoved(Instruction i)
+            {
+                if (i.OPCode == OPCodes.NOP)
+                    return true;
+
+                // todo
+
+                return false;
+            }
+
+            Dictionary<int, int> offset_table = new Dictionary<int, int>();
+            List<Instruction> outp = new List<Instruction>();
+            int cnt = 0, line = 0;
+
+            foreach (Instruction i in instr)
+            {
+                bool rem = CanBeRemoved(i);
+
+                if (rem)
+                    ++cnt;
+
+                offset_table[line++] = cnt;
+
+                if (!rem)
+                {
+                    // todo
+
+                    outp.Add(i);
+                }
+            }
+
+            return outp.ToArray();
         }
 
         /// <summary>
@@ -582,7 +627,7 @@ namespace MCPU.Compiler
                                                                   if (arg.IsInstructionSpace)
                                                                   {
                                                                       int nv = linetransl[arg] + arg;
-                                                                      
+
                                                                       labels.Add(nv);
 
                                                                       return (nv, arg.Type);
@@ -602,7 +647,7 @@ namespace MCPU.Compiler
                 {
                     int div = lbcnt / (int)Math.Pow(26, i);
                     int mod = div % (int)Math.Pow(26, i + 1);
-                    
+
                     str[i] = (char)('a' + mod);
                 }
 
@@ -670,7 +715,7 @@ namespace MCPU.Compiler
 
                 ++line;
             }
-            
+
             return sb.ToString();
         }
 
@@ -681,7 +726,7 @@ namespace MCPU.Compiler
         /// <returns>MCPU assembly code</returns>
         public static string Decompile(byte[] instructions) => Decompile(Instruction.DeserializeMultiple(instructions));
     }
-    
+
     /// <summary>
     /// Represents a MCPU compiler error
     /// </summary>
@@ -706,7 +751,7 @@ namespace MCPU.Compiler
         public MCPUCompilerException(int line, string msg)
             : base(msg) => LineNr = line;
     }
-    
+
     /// <summary>
     /// Represents public MCPU label metadata
     /// </summary>
@@ -833,7 +878,7 @@ namespace MCPU.Compiler
             DefinedLine = func.DefinedLine
         };
     }
-    
+
     /// <summary>
     /// Represents a temporary instruction, which is only used during compile-time
     /// </summary>

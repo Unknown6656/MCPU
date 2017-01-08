@@ -39,7 +39,7 @@ namespace MCPU.Testing
             using (StreamReader rd = new StreamReader(wr.BaseStream))
                 return rd.ReadToEnd();
         }
-        
+
         public void IsValue(int addr, dynamic val) => IsTrue(proc[addr] == (int)val);
 
         public void AreValues(params (int, dynamic)[] conditions)
@@ -259,7 +259,7 @@ end func
     .main
     MOV k[2] 42
 ");
-        
+
         [TestMethod]
         public void Test_14()
         {
@@ -471,6 +471,24 @@ end func
 
             for (int i = 0; i < 14; i++)
                 IsValue(10 + i, (FloatIntUnion)result[i]);
+        }
+
+        [TestMethod]
+        public void Test_23()
+        {
+            for (int i = 0; i < 0xff; i++)
+                proc[i] = i + 1;
+
+            int offs = 5;
+            int size = 42;
+
+            Execute($@"
+    .main
+    .kernel
+    CLEAN [{offs}] {size}
+");
+            for (int i = 0; i < 0xff; i++)
+                IsValue(i, (i - offs < size) && (i >= offs) ? 0 : i + 1);
         }
     }
 }

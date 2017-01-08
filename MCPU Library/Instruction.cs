@@ -94,6 +94,10 @@ namespace MCPU
             }
         }
 
+        public static bool operator ==(OPCode o1, OPCode o2) => (o1 != null) && (o1?.Number == o2?.Number);
+
+        public static bool operator !=(OPCode o1, OPCode o2) => !(o1 == o2);
+
         #region ASSERTIONS
 
         internal static ArgumentException __assertexcp(int argn, string reason) => new ArgumentException($"The given argument №{argn + 1} is invalid for the current call, {reason}");
@@ -258,7 +262,7 @@ namespace MCPU
     }
 
     /// <summary>
-    /// 
+    /// Represents a fully-parameterized instruction (meaning an OP code and instruction arguments)
     /// </summary>
     [Serializable]
     public unsafe class Instruction
