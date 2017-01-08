@@ -6,6 +6,8 @@ using System.Linq;
 using System.Text;
 using System;
 
+using static MCPU.OPCodes;
+
 namespace MCPU.Compiler
 {
     /// <summary>
@@ -557,24 +559,13 @@ namespace MCPU.Compiler
             {
                 bool In(params OPCode[] opc) => opc.Any(o => o == i);
 
-                if (i == OPCodes.NOP)
-                    return true;
-                else if (In(OPCodes.ADD, OPCodes.SUB, OPCodes.CLEAR, OPCodes.WAIT, OPCodes.OR, OPCodes.XOR))
-                    return i[1] == (0, ArgumentType.Constant);
-                else if (In(OPCodes.MUL, OPCodes.DIV, OPCodes.JMPREL))
-                    return i[1] == (1, ArgumentType.Constant);
-                else if (In(OPCodes.AND, OPCodes.NXOR))
-                    return i[1] == (unchecked((int)0xffffffffu), ArgumentType.Constant);
-                else if (In(OPCodes.MOV, OPCodes.SWAP, OPCodes.OR, OPCodes.AND))
-                    return i[0] == i[1];
-                else if (In(OPCodes.FADD, OPCodes.FSUB))
-                    return i[1] == ((FloatIntUnion)0f, ArgumentType.Constant);
-                else if (In(OPCodes.FMUL, OPCodes.FDIV, OPCodes.FPOW, OPCodes.FROOT))
-                    return i[1] == ((FloatIntUnion)1f, ArgumentType.Constant);
-                else if (i == OPCodes.COPY)
-                    return i[2] == (0, ArgumentType.Constant);
-
-                return false;
+                return (i == NOP)
+                    || (In(ADD, SUB, CLEAR, WAIT, OR, XOR, FSUB, FADD)  && i[1] == (0, ArgumentType.Constant))
+                    || (In(MUL, DIV, JMPREL)                            && i[1] == (1, ArgumentType.Constant))
+                    || (In(AND, NXOR)                                   && i[1] == (unchecked((int)0xffffffffu), ArgumentType.Constant))
+                    || (In(MOV, SWAP, OR, AND)                          && i[0] == i[1])
+                    || (In(FMUL, FDIV, FPOW, FROOT)                     && i[1] == ((FloatIntUnion)1f, ArgumentType.Constant))
+                    || (In(COPY)                                        && i[2] == (0, ArgumentType.Constant));
             }
 
             Dictionary<int, (int, bool)> offset_table = Enumerable.Range(0, instr.Length).ToDictionary(_ => _, _ => (0, false));

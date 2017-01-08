@@ -209,13 +209,15 @@ loop:
     CALL test
     AND [4] [4]
     OR [[2]] [[2]]
-    FMUL [7] 0f
+    FMUL [7] 1.0
+    FSUB [88] -0.0
     AND [43] ffffffffh
 pool:
     JMP loop
 ");
             Instruction[] optimized = MCPUCompiler.Optimize(res.Instructions);
             
+            // TODO : Assertions ?
         }
     }
 }
