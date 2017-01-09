@@ -1,6 +1,6 @@
 # MCPU++ Reference
 
-The MCPU++ programming language is a higher-level language, which will be translated into MCPU-instructions before execution.<br/>
+The MCPU++ programming language is a higher-level language, which will be translated into MCPU-instructions before execution. The MCPU++ syntax reference can be found [here](./mcpu++-syntax.md)<br/>
 The MCPU++ operates completely inside the user-space memory segment (see [the introduction](./introduction.md) for more information and relies on the following user-space memory layout:
 ```
   4-BYTE-BLOCKS

@@ -3,6 +3,7 @@
 ## Basics
 
 The MCPU assembly language is a case-insensitive Intel-syntax-based language to control the MCPU processor.
+You might want considering a look at the [MCPU syntax reference](./mcpu-syntax.md) if you only want to see, "how it is written".
 A MCPU program (unless empty) must declare its main entry-point by using the following token:
 ```
     .main
