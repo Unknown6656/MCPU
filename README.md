@@ -7,7 +7,9 @@ Category | Branch | Status
 ---|---|----
 Build | master | [![Build status](https://ci.appveyor.com/api/projects/status/k9t9jqap2iemau3c/branch/master?retina=true)](https://ci.appveyor.com/project/Unknown6656/mcpu)
 Build | dev | [![Build status](https://ci.appveyor.com/api/projects/status/k9t9jqap2iemau3c/branch/dev?retina=true)](https://ci.appveyor.com/project/Unknown6656/mcpu)
-Testing | _any_ | _not yet available_
+Build | mcpu++ | [![Build status](https://ci.appveyor.com/api/projects/status/k9t9jqap2iemau3c/branch/mcpu%2B%2B?retina=true)](https://ci.appveyor.com/project/Unknown6656/mcpu)
+Testing | master | [![Test status](https://ci.appveyor.com/api/projects/status/fyvayfc9e82xh6eg/branch/master?retina=true)](https://ci.appveyor.com/project/Unknown6656/mcpu-he9wv/branch/master)
+Testing | dev | [![Test status](https://ci.appveyor.com/api/projects/status/fyvayfc9e82xh6eg/branch/dev?retina=true)](https://ci.appveyor.com/project/Unknown6656/mcpu-he9wv/branch/dev)
 
 ### Reference Manual
 
