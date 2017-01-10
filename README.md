@@ -3,13 +3,13 @@ This project is a microprocessor emulator, which comes with its own instruction 
 It also comes with a higher-level programming language, named MCPU++, which can be executed on this microprocessor.
 The name **MCPU** stands for **M**inimalistic **C**entral **P**rocessing **U**nit, but can also be interpreted as **M**ine**c**raft **P**rocessing **U**nit, as the initial project was based on the idea to simulate a microprocessor inside the sandbox-game Minecraft.
 
-Category | Branch | Status
----|---|----
-Build | master | [![Build status](https://ci.appveyor.com/api/projects/status/k9t9jqap2iemau3c/branch/master?retina=true)](https://ci.appveyor.com/project/Unknown6656/mcpu)
-Build | dev | [![Build status](https://ci.appveyor.com/api/projects/status/k9t9jqap2iemau3c/branch/dev?retina=true)](https://ci.appveyor.com/project/Unknown6656/mcpu)
-Build | mcpu++ | [![Build status](https://ci.appveyor.com/api/projects/status/k9t9jqap2iemau3c/branch/mcpu%2B%2B?retina=true)](https://ci.appveyor.com/project/Unknown6656/mcpu)
-Testing | master | [![Test status](https://ci.appveyor.com/api/projects/status/fyvayfc9e82xh6eg/branch/master?retina=true)](https://ci.appveyor.com/project/Unknown6656/mcpu-he9wv/branch/master)
-Testing | dev | [![Test status](https://ci.appveyor.com/api/projects/status/fyvayfc9e82xh6eg/branch/dev?retina=true)](https://ci.appveyor.com/project/Unknown6656/mcpu-he9wv/branch/dev)
+Category | Status
+---|---
+Build | [![Build status](https://ci.appveyor.com/api/projects/status/k9t9jqap2iemau3c/branch/master?retina=true&pendingText=master%20-%20pending&failingText=master%20-%20failed&passingText=master%20-%20passed)](https://ci.appveyor.com/project/Unknown6656/mcpu)
+Build | [![Build status](https://ci.appveyor.com/api/projects/status/k9t9jqap2iemau3c/branch/dev?retina=true&pendingText=dev%20-%20pending&failingText=dev%20-%20failed&passingText=dev%20-%20passed)](https://ci.appveyor.com/project/Unknown6656/mcpu)
+Build | [![Build status](https://ci.appveyor.com/api/projects/status/k9t9jqap2iemau3c/branch/mcpu%2B%2B?retina=true&pendingText=mcpu%2B%2B%20-%20pending&failingText=mcpu%2B%2B%20-%20failed&passingText=mcpu%2B%2B%20-%20passed)](https://ci.appveyor.com/project/Unknown6656/mcpu)
+Testing | [![Test status](https://ci.appveyor.com/api/projects/status/fyvayfc9e82xh6eg/branch/master?retina=true&pendingText=master%20-%20pending&failingText=master%20-%20failed&passingText=master%20-%20passed)](https://ci.appveyor.com/project/Unknown6656/mcpu-he9wv/branch/master)
+Testing | [![Test status](https://ci.appveyor.com/api/projects/status/fyvayfc9e82xh6eg/branch/dev?retina=true&pendingText=dev%20-%20pending&failingText=dev%20-%20failed&passingText=dev%20-%20passed)](https://ci.appveyor.com/project/Unknown6656/mcpu-he9wv/branch/dev)
 
 ### Reference Manual
 
