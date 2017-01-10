@@ -1419,7 +1419,9 @@ namespace MCPU.Instructions
     {
         public exec()
             : base(1, (p, _) => {
-                throw new MCPUProcessingException("The OP-code 'exec' must be evaluated at compile-time.");
+                AssertNotInstructionSpace(0, _);
+
+                p.ProcessNext((OPCodes.CodesByID[(ushort)p.TranslateConstant(_[0])], _.Skip(1).ToArray()), false);
             })
         {
         }
