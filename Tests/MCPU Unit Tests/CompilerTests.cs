@@ -140,7 +140,7 @@ end func
         [TestMethod]
         public void Test_16() => CompileExpectError(@"
     .main
-    mov [4.2]   §### ERROR
+    mov [99] [4.2]   §### ERROR
 ", MCPUCompiler.GetString("INVALID_ARG"));
 
         [TestMethod]
@@ -152,7 +152,7 @@ end func
         [TestMethod]
         public void Test_18() => CompileExpectError(@"
     .main
-    mov kk[0]   §### ERROR
+    mov 5 kk[0]   §### ERROR
 ", MCPUCompiler.GetString("LABEL_FUNC_NFOUND"));
 
         [TestMethod]
@@ -219,5 +219,11 @@ pool:
             
             // TODO : Assertions ?
         }
+
+        [TestMethod]
+        public void Test_24() => CompileExpectError(@"
+    .main
+    mov 2   §### ERROR
+", MCPUCompiler.GetString("NEED_MORE_ARGS"));
     }
 }

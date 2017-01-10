@@ -408,7 +408,7 @@ namespace MCPU.Compiler
 
                             OPCode opc = CodesByToken[token];
                             
-                            if (opc.RequiredArguments < args.Count)
+                            if (opc.RequiredArguments > args.Count)
                                 return Error(GetString("NEED_MORE_ARGS", opc.Token, opc.RequiredArguments));
                             else if (opc == EXEC)
                                 try

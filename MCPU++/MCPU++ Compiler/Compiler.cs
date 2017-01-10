@@ -37,9 +37,9 @@ namespace MCPU.MCPUPP.Compiler
         /// </summary>
         public const int F_SYP = 0xf9;
         /// <summary>
-        /// The address of the MCPU++ field 'GOF'
+        /// The address of the MCPU++ field 'SSZ'
         /// </summary>
-        public const int F_GOF = 0xfc;
+        public const int F_SSZ = 0xfc;
         /// <summary>
         /// The address of the MCPU++ field 'GSZ'
         /// </summary>
@@ -68,10 +68,6 @@ namespace MCPU.MCPUPP.Compiler
         /// </summary>
         public Processor Processor { private set; get; }
         /// <summary>
-        /// The size of the memory segment reserved for global variables
-        /// </summary>
-        public int GlobalSectionOffset { private set; get; }
-        /// <summary>
         /// Returns the global precompiled MCPU++ code file heaeder
         /// </summary>
         public static string GlobalHeader => $@"
@@ -99,6 +95,38 @@ func MOVO                   ; mov [[dst]+offs₁] [[src]+offs₂] <==> call MOVD
     mov [[{F_CC - 1}]] [[{F_CC}]]
     pop [{F_CC}]
     pop [{F_CC - 1}]
+end func
+
+func SY_PUSH
+    mov [[{F_SYP}]] $0
+    incr [{F_SYP}]
+end func
+
+func SY_PUSHL
+    call MOVSO {F_CC} {F_LOF} $0
+    call SY_PUSH [[{F_CC}]]
+end func
+
+func SY_PUSHG
+    mov [{F_CC}] {TMP_SZ}
+    add [{F_CC}] $0
+    call SY_PUSH [[{F_CC}]]
+end func
+
+func SY_POP
+    decr [{F_SYP}]
+    mov [$0] [[{F_SYP}]]
+end func
+
+func SY_POPL
+    call MOVSO {F_CC} {F_LOF} $0
+    call SY_POP [{F_CC}]
+end func
+
+func SY_POPG
+    mov [{F_CC}] {TMP_SZ}
+    add [{F_CC}] $0
+    call SY_POP [{F_CC}]
 end func
 ";
 
@@ -182,23 +210,16 @@ end func
         /// <param name="nfo">Callee information</param>
         /// <param name="argv">Function arguments</param>
         /// <returns>Function call code</returns>
-        public string GenerateFunctionCall(MCPUPPFunctionCallInformation nfo, params InstructionArgument[] argv)
+        public string GenerateFunctionCall(Union<MCPUPPFunctionCallInformation, MCPUPPMainFunctionCallInformation> nfo, params InstructionArgument[] argv)
         {
-            string args = string.Join(" ", from arg in argv select arg.ToShortString());
-            string call_id = $"_call_{GetUniqueID()}_{nfo.Name}";
-            string lab_bef = "before" + call_id;
-            string lab_aft = "after" + call_id;
+            if (nfo.IsA)
+            {
+                string args = string.Join(" ", from arg in argv select arg.ToShortString());
+                string call_id = $"_call_{GetUniqueID()}_{nfo.AsA.Name}";
+                string lab_bef = "before" + call_id;
+                string lab_aft = "after" + call_id;
 
-            return nfo.Name == MAIN_FUNCTION_NAME ? $@"
-    .main
-    .kernel
-    clear [0] {TMP_SZ}
-    mov [{F_LOF}] {TMP_SZ}
-    mov [{F_LSZ}] {nfo.LocalSize}
-    mov [{F_GOF}] {GlobalSectionOffset}
-    call {MAIN_FUNCTION_NAME} {args}
-    halt
-" : $@"
+                return $@"
     pushf
     mov [{F_CC}] 0
 {lab_bef}:
@@ -210,9 +231,9 @@ end func
     push [{F_LOF}]
     push [{F_LSZ}]
     add [{F_LOF}] [{F_LSZ}]
-    mov [{F_LSZ}] {nfo.LocalSize}
+    mov [{F_LSZ}] {nfo.AsA.LocalSize}
     clear [0] {F_SYP + 1}
-    call {nfo.Name} {args}
+    call {nfo.AsA.Name} {args}
     pop [{F_LSZ}]
     pop [{F_LOF}]
     pop [{F_SYP}]
@@ -222,6 +243,20 @@ end func
     decr [{F_SYP}]
     cmp [{F_SYP}]
     jpos {lab_aft}
+";
+            }
+            else
+                return $@"
+    .main
+    .kernel
+    clear [0] {TMP_SZ}
+    mov [{F_LOF}] {TMP_SZ}
+    mov [{F_LSZ}] {nfo.AsB.LocalSize}
+    mov [{F_GSZ}] {nfo.AsB.GlobalSize}
+    mov [{F_LOF}] {TMP_SZ}
+    add [{F_LOF}] [{F_GSZ}]
+    call {MAIN_FUNCTION_NAME}
+    halt
 ";
         }
     }
@@ -260,6 +295,22 @@ end func
         public string Name { set; get; }
         /// <summary>
         /// The called function's local size
+        /// </summary>
+        public int LocalSize { set; get; }
+    }
+
+    /// <summary>
+    /// Represents a basic MCPU++ main function call information structure
+    /// </summary>
+    [Serializable]
+    public struct MCPUPPMainFunctionCallInformation
+    {
+        /// <summary>
+        /// The global variable section size
+        /// </summary>
+        public int GlobalSize { set; get; }
+        /// <summary>
+        /// The main function's local size
         /// </summary>
         public int LocalSize { set; get; }
     }
