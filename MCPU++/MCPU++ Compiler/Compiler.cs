@@ -37,9 +37,9 @@ namespace MCPU.MCPUPP.Compiler
         /// </summary>
         public const int F_SYP = 0xf9;
         /// <summary>
-        /// The address of the MCPU++ field 'GOF'
+        /// The address of the MCPU++ field 'SSZ'
         /// </summary>
-        public const int F_GOF = 0xfc;
+        public const int F_SSZ = 0xfc;
         /// <summary>
         /// The address of the MCPU++ field 'GSZ'
         /// </summary>
@@ -98,20 +98,36 @@ func MOVO                   ; mov [[dst]+offs₁] [[src]+offs₂] <==> call MOVD
 end func
 
 func SY_PUSH
+    mov [[{F_SYP}]] $0
+    incr [{F_SYP}]
 end func
 
 func SY_PUSHL
+    call MOVSO {F_CC} {F_LOF} $0
+    call SY_PUSH [[{F_CC}]]
 end func
 
 func SY_PUSHG
+    mov [{F_CC}] {TMP_SZ}
+    add [{F_CC}] $0
+    call SY_PUSH [[{F_CC}]]
+end func
+
+func SY_POP
+    decr [{F_SYP}]
+    mov [$0] [[{F_SYP}]]
 end func
 
 func SY_POPL
+    call MOVSO {F_CC} {F_LOF} $0
+    call SY_POP [{F_CC}]
 end func
 
 func SY_POPG
+    mov [{F_CC}] {TMP_SZ}
+    add [{F_CC}] $0
+    call SY_POP [{F_CC}]
 end func
-
 ";
 
         /// <summary>
@@ -236,13 +252,12 @@ end func
     clear [0] {TMP_SZ}
     mov [{F_LOF}] {TMP_SZ}
     mov [{F_LSZ}] {nfo.AsB.LocalSize}
-    mov [{F_GOF}] 100h
     mov [{F_GSZ}] {nfo.AsB.GlobalSize}
-    mov [{F_LOF}] [{F_GOF}]
+    mov [{F_LOF}] {TMP_SZ}
     add [{F_LOF}] [{F_GSZ}]
     call {MAIN_FUNCTION_NAME}
     halt
-" : 
+";
         }
     }
 

@@ -24,7 +24,10 @@ namespace MCPU.Testing
 
         public MCPUProcessingException ExpectError(string instr) => Throws<MCPUProcessingException>(() => Execute(instr));
 
-        public void Execute(string instr) => proc.ProcessWithoutReset(MCPUCompiler.Compile(instr).AsA.Instructions);
+        public void Execute(string instr) => MCPUCompiler.Compile(instr).Match(res => proc.ProcessWithoutReset(res.Instructions),
+                                                                               exc => {
+                                                                                   throw exc;
+                                                                               });
 
         public string ReadProcessorOutput(string instr)
         {
@@ -47,12 +50,7 @@ namespace MCPU.Testing
             foreach ((int, dynamic) cond in conditions)
                 IsValue(cond.Item1, cond.Item2);
         }
-
-        public ProcessorTests()
-            : base()
-        {
-        }
-
+        
         [TestInitialize]
         public override void Test_Init()
         {
@@ -485,7 +483,7 @@ end func
             Execute($@"
     .main
     .kernel
-    CLEAN [{offs}] {size}
+    CLEAR [{offs}] {size}
 ");
             for (int i = 0; i < 0xff; i++)
                 IsValue(i, (i - offs < size) && (i >= offs) ? 0 : i + 1);

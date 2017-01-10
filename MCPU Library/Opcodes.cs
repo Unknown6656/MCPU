@@ -1413,7 +1413,7 @@ namespace MCPU.Instructions
 
 
 
-    [OPCodeNumber(0xfffe)]
+    [OPCodeNumber(0xfffe), RequiresPrivilege, Keyword]
     public sealed unsafe class exec
         : OPCode
     {

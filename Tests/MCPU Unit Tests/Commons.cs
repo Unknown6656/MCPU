@@ -17,11 +17,7 @@ namespace MCPU.Testing
     {
         public const char ERROR_LOC = '§';
 
-
-        public Commons()
-        {
-            MCPUCompiler.ResetLanguage();
-        }
+        public Commons() => MCPUCompiler.ResetLanguage();
 
         public static bool ApproximateFormatStringEqual(string str, string format)
         {
