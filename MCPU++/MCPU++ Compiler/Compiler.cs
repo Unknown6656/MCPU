@@ -10,11 +10,14 @@ using MCPU;
 
 namespace MCPU.MCPUPP.Compiler
 {
+    /// <summary>
+    /// Provides functions to parse and compile given MCPU++ code segments to MCPU-compatible instructions or MCPU assembly code
+    /// </summary>
     public unsafe class MCPUPPCompiler
         : IDisposable
     {
         /// <summary>
-        /// 
+        /// The MCPU++ function name prefix
         /// </summary>
         public const string FUNCTION_PREFIX = "function__";
         /// <summary>
@@ -68,7 +71,36 @@ namespace MCPU.MCPUPP.Compiler
         /// The size of the memory segment reserved for global variables
         /// </summary>
         public int GlobalSectionOffset { private set; get; }
+        /// <summary>
+        /// Returns the global precompiled MCPU++ code file heaeder
+        /// </summary>
+        public static string GlobalHeader => $@"
+func MOVDO                  ; mov [[dst]+offs] [src] <==> call MOVDO dst offs src
+    push [{F_CC}]
+    mov [{F_CC}] [$0]
+    add [{F_CC}] $1
+    mov [[{F_CC}]] $2
+    pop [{F_CC}]
+end func
 
+func MOVSO                  ; mov [dst] [[src]+offs] <==> call MOVDO dst src offs
+    mov [$0] $1
+    add [$0] $2
+    mov [$0] [[$0]]
+end func
+
+func MOVO                   ; mov [[dst]+offs₁] [[src]+offs₂] <==> call MOVDO dst offs₁ src offs₂
+    push [{F_CC - 1}]
+    push [{F_CC}]
+    mov [{F_CC - 1}] $0
+    add [{F_CC - 1}] $1
+    mov [{F_CC}] $2
+    add [{F_CC}] $3
+    mov [[{F_CC - 1}]] [[{F_CC}]]
+    pop [{F_CC}]
+    pop [{F_CC - 1}]
+end func
+";
 
         /// <summary>
         /// Destructs the current MCPU++ Compiler instance
@@ -123,27 +155,34 @@ namespace MCPU.MCPUPP.Compiler
                                                                              where tl.Length > 0
                                                                              let cnt = tl.Contains(MCPUCompiler.COMMENT_START) ? tl.Remove(tl.IndexOf(MCPUCompiler.COMMENT_START)).Trim() : tl
                                                                              select (cnt.EndsWith(":") ? "" : "    ") + tl).ToArray();
-        
-         /*
-          * TODO : generate callee header and footer:
-          * 
-          * func __myfunc__
-          *     clear [[feh]] [ffh]
-          *     
-          *     ...
-          *     
-          *     mov [f8h] <return value>
-          *     ret
-          * end func
-          */
 
         /// <summary>
-        /// 
+        /// Generates the precompiled MCPU++ code for a function header
         /// </summary>
-        /// <param name="nfo"></param>
-        /// <param name="argv"></param>
-        /// <returns></returns>
-        public string GenerateFunctionCall(FunctionCallInformation nfo, params InstructionArgument[] argv)
+        /// <param name="funcname">The function name</param>
+        /// <returns>Function header</returns>
+        public string InnerFunctionHeader(string funcname) => $@"
+func {funcname}
+    clear [[{F_LOF}]] [{F_LSZ}]
+";
+
+        /// <summary>
+        /// Generates the precompiled MCPU++ code for a function footer
+        /// </summary>
+        /// <param name="returnval">The function's return argument/value</param>
+        /// <returns>Function footer</returns>
+        public string InnerFunctionFooter(InstructionArgument returnval) => $@"
+    mov [{F_RET}] {returnval.ToShortString()}
+end func
+";
+
+        /// <summary>
+        /// Generates the precompiled MCPU++ code for a function call
+        /// </summary>
+        /// <param name="nfo">Callee information</param>
+        /// <param name="argv">Function arguments</param>
+        /// <returns>Function call code</returns>
+        public string GenerateFunctionCall(MCPUPPFunctionCallInformation nfo, params InstructionArgument[] argv)
         {
             string args = string.Join(" ", from arg in argv select arg.ToShortString());
             string call_id = $"_call_{GetUniqueID()}_{nfo.Name}";
@@ -213,7 +252,7 @@ namespace MCPU.MCPUPP.Compiler
     /// Represents a basic MCPU++ function call information structure
     /// </summary>
     [Serializable]
-    public struct FunctionCallInformation
+    public struct MCPUPPFunctionCallInformation
     {
         /// <summary>
         /// The called function's name

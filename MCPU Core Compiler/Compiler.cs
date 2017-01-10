@@ -74,7 +74,7 @@ namespace MCPU.Compiler
 
         internal static readonly string[] __reserved = (from opc in OPCodes.CodesByID
                                                         where opc.Value.IsKeyword
-                                                        select opc.Value.Token.ToLower()).Concat(new string[] { "func", "end", "___main" }).ToArray();
+                                                        select opc.Value.Token.ToLower()).Concat(new string[] { "func", "end", "___main", "line", "epsilon", "tau", "phi", "e", "pi", "i_max", "f_max", "i_min", "f_min", "f_pinf", "f_ninf", "nan" }).ToArray();
         internal static readonly Dictionary<string, string> __defstrtable = new Dictionary<string, string>
         {
             ["JMP_INSIDE_FUNC"] = "A jump label may only be used inside a function or after the '.main'-token.",
@@ -98,6 +98,8 @@ namespace MCPU.Compiler
             ["INLINE_NYET_SUPP"] = "'.inline' not supported yet",
             ["FUNC_RESV_NAME"] = "The name '{0}' is reserved and can therefore not be used as function name.",
             ["LABEL_RESV_NAME"] = "The name '{0}' is reserved and can therefore not be used as label name.",
+            ["NEED_MORE_ARGS"] = "The OP-code '{0}' requires at least '{1}' arguments.",
+            ["COULDNT_TRANSLATE_EXEC"] = "The 'exec'-expression could not be translated.",
         };
         internal static Dictionary<string, string> __strtable;
 
@@ -105,6 +107,10 @@ namespace MCPU.Compiler
         /// Sets or gets, whether compiler optimizations are enabled (NOP-optimization, empty statements, inlining etc.)
         /// </summary>
         public static bool OptimizationEnabled { set; get; } = false;
+        /// <summary>
+        /// Returns a list of all reserved MCPU keywords
+        /// </summary>
+        public static string[] ReservedKeywords => __reserved;
 
 
         static MCPUCompiler() => ResetLanguage();
@@ -148,71 +154,55 @@ namespace MCPU.Compiler
             MCPUFunction curr_func = null;
             Match match;
 
-            (MCPUFunction[], MCPULabelMetadata[], int, string) Error(string message) => (null, null, linenr + 1, message);
-            MCPUFunction FindFirst(string name) => (from f in functions where f.Name == name select f).FirstOrDefault();
-            bool CheckGroup(string name, out string value) => (value = match.Groups[name].ToString().Trim()).Length > 0;
-            unsafe int ParseFloatArg(string s)
-            {
-                switch (s)
-                {
-                    case "τ":
-                    case "tau":
-                        return FC_τ;
-                    case "π":
-                    case "pi":
-                        return FC_π;
-                    case "φ":
-                    case "phi":
-                        return FC_φ;
-                    case "e":
-                        return FC_e;
-                    default:
-                        float f = float.Parse(s.Replace('.', ',')
-                                               .Replace('f', 'd')
-                                               .Replace("d", ""));
-                        return *((int*)&f);
-                }
-            }
-            int ParseIntArg(string s)
-            {
-                int intparse(string arg)
-                {
-                    if (arg.EndsWith("h"))
-                        return int.Parse(arg.Remove(arg.Length - 1), NumberStyles.HexNumber);
-                    else if (arg.StartsWith("0x"))
-                        return int.Parse(arg.Remove(0, 2), NumberStyles.HexNumber | NumberStyles.AllowHexSpecifier);
-                    else if (arg.StartsWith("0b"))
-                        return Convert.ToInt32(arg.Remove(0, 2), 2);
-                    else if (arg.StartsWith("0o"))
-                        return Convert.ToInt32(arg.Remove(0, 2), 8);
-                    else if ((arg == "null") & (arg == "false"))
-                        return 0;
-                    else if (arg == "true")
-                        return 1;
-                    else
-                        return int.Parse(arg);
-                }
-
-                bool isneg = false;
-
-                s = s.ToLower().Trim();
-
-                if (s.StartsWith("+"))
-                    s = s.Remove(0, 1);
-                else if (s.StartsWith("-"))
-                {
-                    isneg = true;
-                    s = s.Remove(0, 1);
-                }
-
-                int val = intparse(s.Trim());
-
-                return isneg ? -val : val;
-            }
-
-
             for (int l = lines.Length; linenr < l; ++linenr)
             {
+                int ParseIntArg(string s)
+                {
+                    int intparse(string arg)
+                    {
+                        switch (arg)
+                        {
+                            case "i_max":
+                                return int.MaxValue;
+                            case "i_min":
+                                return int.MinValue;
+                            case "line":
+                                return (linenr + 1);
+                            default:
+                                if (arg.EndsWith("h"))
+                                    return int.Parse(arg.Remove(arg.Length - 1), NumberStyles.HexNumber);
+                                else if (arg.StartsWith("0x"))
+                                    return int.Parse(arg.Remove(0, 2), NumberStyles.HexNumber | NumberStyles.AllowHexSpecifier);
+                                else if (arg.StartsWith("0b"))
+                                    return Convert.ToInt32(arg.Remove(0, 2), 2);
+                                else if (arg.StartsWith("0o"))
+                                    return Convert.ToInt32(arg.Remove(0, 2), 8);
+                                else if ((arg == "null") & (arg == "false"))
+                                    return 0;
+                                else if (arg == "true")
+                                    return 1;
+                                else
+                                    return int.Parse(arg);
+                        }
+                    }
+
+                    bool isneg = false;
+
+                    s = s.ToLower().Trim();
+
+                    if (s.StartsWith("+"))
+                        s = s.Remove(0, 1);
+                    else if (s.StartsWith("-"))
+                    {
+                        isneg = true;
+                        s = s.Remove(0, 1);
+                    }
+
+                    int val = intparse(s.Trim());
+
+                    return isneg ? -val : val;
+                }
+
                 string line = lines[linenr];
 
                 if (line.Contains(COMMENT_START))
@@ -261,16 +251,16 @@ namespace MCPU.Compiler
                         {
                             case "main":
                                 curr_func = new MCPUFunction(MAIN_FUNCTION_NAME) { ID = 0 };
-                                curr_func.Instructions.Add(OPCodes.NOP);
+                                curr_func.Instructions.Add(NOP);
                                 is_func = -1;
 
                                 continue;
                             case "kernel" when (is_func != 0):
-                                curr_func.Instructions.Add((OPCodes.KERNEL, new InstructionArgument[] { 1 }));
+                                curr_func.Instructions.Add((KERNEL, new InstructionArgument[] { 1 }));
 
                                 continue;
                             case "user" when (is_func != 0):
-                                curr_func.Instructions.Add((OPCodes.KERNEL, new InstructionArgument[] { 0 }));
+                                curr_func.Instructions.Add((KERNEL, new InstructionArgument[] { 0 }));
 
                                 continue;
                             default:
@@ -305,7 +295,7 @@ namespace MCPU.Compiler
                             else
                                 tid = ++id;
 
-                            curr_func = new MCPUFunction(name, OPCodes.NOP)
+                            curr_func = new MCPUFunction(name, NOP)
                             {
                                 ID = tid,
                                 IsInlined = inline,
@@ -318,7 +308,7 @@ namespace MCPU.Compiler
                     else if ((match = END_FUNC_REGEX.Match(line)).Success)
                         if (is_func != 0)
                         {
-                            curr_func.Instructions.Add(is_func == -1 ? OPCodes.HALT : OPCodes.RET as OPCode);
+                            curr_func.Instructions.Add(is_func == -1 ? HALT : RET as OPCode);
                             curr_func = (from f in functions where f.Name == MAIN_FUNCTION_NAME select f).FirstOrDefault();
                             is_func = 0;
                         }
@@ -332,7 +322,7 @@ namespace MCPU.Compiler
                             List<InstructionArgument> args = new List<InstructionArgument>();
                             string token = match.Groups["name"].ToString().ToLower();
 
-                            if (!OPCodes.CodesByToken.ContainsKey(token))
+                            if (!CodesByToken.ContainsKey(token))
                                 return Error(GetString("INSTR_NFOUND", token));
                             else if (token == "kernel")
                                 return Error(GetString("DONT_USE_KERNEL"));
@@ -416,7 +406,22 @@ namespace MCPU.Compiler
                                     else
                                         return Error(GetString("INVALID_ARG", arg));
 
-                            curr_func.Instructions.Add(new Instruction(OPCodes.CodesByToken[token], args.ToArray()));
+                            OPCode opc = CodesByToken[token];
+                            
+                            if (opc.RequiredArguments < args.Count)
+                                return Error(GetString("NEED_MORE_ARGS", opc.Token, opc.RequiredArguments));
+                            else if (opc == EXEC)
+                                try
+                                {
+                                    opc = CodesByID[(ushort)args[0]];
+                                    args.RemoveAt(0);
+                                }
+                                catch
+                                {
+                                    return Error(GetString("COULDNT_TRANSLATE_EXEC"));
+                                }
+
+                            curr_func.Instructions.Add(new Instruction(opc, args.ToArray()));
                         }
                     else
                         return Error(GetString("LINE_NPARSED", line));
@@ -433,6 +438,48 @@ namespace MCPU.Compiler
             }
             else
                 return (functions.ToArray(), labelmeta.ToArray(), -1, "");
+
+
+            (MCPUFunction[], MCPULabelMetadata[], int, string) Error(string message) => (null, null, linenr + 1, message);
+
+            MCPUFunction FindFirst(string name) => (from f in functions where f.Name == name select f).FirstOrDefault();
+
+            bool CheckGroup(string name, out string value) => (value = match.Groups[name].ToString().Trim()).Length > 0;
+
+            unsafe int ParseFloatArg(string s)
+            {
+                switch (s)
+                {
+                    case "nan":
+                        return (FloatIntUnion)float.NaN;
+                    case "f_max":
+                        return (FloatIntUnion)float.MaxValue;
+                    case "f_min":
+                        return (FloatIntUnion)float.MinValue;
+                    case "f_pinf":
+                        return (FloatIntUnion)float.PositiveInfinity;
+                    case "f_ninf":
+                        return (FloatIntUnion)float.NegativeInfinity;
+                    case "epsilon":
+                        return (FloatIntUnion)float.Epsilon;
+                    case "τ":
+                    case "tau":
+                        return FC_τ;
+                    case "π":
+                    case "pi":
+                        return FC_π;
+                    case "φ":
+                    case "phi":
+                        return FC_φ;
+                    case "e":
+                        return FC_e;
+                    default:
+                        float f = float.Parse(s.Replace('.', ',')
+                                               .Replace('f', 'd')
+                                               .Replace("d", ""));
+                        return *((int*)&f);
+                }
+            }
         }
 
         /// <summary>
@@ -498,8 +545,8 @@ namespace MCPU.Compiler
                         }
 
                         foreach (Instruction ins in f.Instructions)
-                            if (ins.OPCode is MCPUJumpLabel)
-                                jumptable[(ins.OPCode as MCPUJumpLabel).Value] = linenr;
+                            if (ins.OPCode is MCPUJumpLabel jmpl)
+                                jumptable[jmpl.Value] = linenr;
                             else
                             {
                                 instr.Add(ins);
@@ -887,7 +934,7 @@ namespace MCPU.Compiler
     /// <summary>
     /// Represents a temporary instruction, which is only used during compile-time
     /// </summary>
-    [OPCodeNumber(0xfffe)]
+    [OPCodeNumber(0xdead)]
     internal sealed class MCPUJumpLabel
         : OPCode
     {
