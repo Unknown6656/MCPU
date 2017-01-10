@@ -4,13 +4,12 @@ It also comes with a higher-level programming language, named MCPU++, which can 
 The name **MCPU** stands for **M**inimalistic **C**entral **P**rocessing **U**nit, but can also be interpreted as **M**ine**c**raft **P**rocessing **U**nit, as the initial project was based on the idea to simulate a microprocessor inside the sandbox-game Minecraft.
 
 #### Build status
-<img src="https://ci.appveyor.com/api/projects/status/k9t9jqap2iemau3c/branch/master?svg=true&pendingText=master%20-%20pending&failingText=master%20-%20failed&passingText=master%20-%20passed" width="250"/><br/>
-<img src="https://ci.appveyor.com/api/projects/status/k9t9jqap2iemau3c/branch/dev?svg=true&pendingText=dev%20-%20pending&failingText=dev%20-%20failed&passingText=dev%20-%20passed" width="250"/><br/>
-<img src="https://ci.appveyor.com/api/projects/status/k9t9jqap2iemau3c/branch/mcpu%2B%2B?svg=true&pendingText=mcpu%2B%2B%20-%20pending&failingText=mcpu%2B%2B%20-%20failed&passingText=mcpu%2B%2B%20-%20passed" width="250"/>
-
+[<img src="https://ci.appveyor.com/api/projects/status/k9t9jqap2iemau3c/branch/master?svg=true&pendingText=master%20-%20pending&failingText=master%20-%20failed&passingText=master%20-%20passed" height="40"/>](https://ci.appveyor.com/project/Unknown6656/mcpu/branch/master)<br/>
+[<img src="https://ci.appveyor.com/api/projects/status/k9t9jqap2iemau3c/branch/dev?svg=true&pendingText=dev%20-%20pending&failingText=dev%20-%20failed&passingText=dev%20-%20passed" height="40"/>](https://ci.appveyor.com/project/Unknown6656/mcpu/branch/dev)<br/>
+[<img src="https://ci.appveyor.com/api/projects/status/k9t9jqap2iemau3c/branch/mcpu%2B%2B?svg=true&pendingText=mcpu%2B%2B%20-%20pending&failingText=mcpu%2B%2B%20-%20failed&passingText=mcpu%2B%2B%20-%20passed" height="40"/>](https://ci.appveyor.com/project/Unknown6656/mcpu/branch/mcpu%2B%2B)
 #### Testing status
-<img src="https://ci.appveyor.com/api/projects/status/fyvayfc9e82xh6eg/branch/master?svg=true&pendingText=master%20-%20pending&failingText=master%20-%20failed&passingText=master%20-%20passed" width="250"/><br/>
-<img src="https://ci.appveyor.com/api/projects/status/fyvayfc9e82xh6eg/branch/dev?svg=true&pendingText=dev%20-%20pending&failingText=dev%20-%20failed&passingText=dev%20-%20passed" width="250"/><br/>
+[<img src="https://ci.appveyor.com/api/projects/status/fyvayfc9e82xh6eg/branch/master?svg=true&pendingText=master%20-%20pending&failingText=master%20-%20failed&passingText=master%20-%20passed" height="40"/>](https://ci.appveyor.com/project/Unknown6656/mcpu-he9wv/branch/master)<br/>
+[<img src="https://ci.appveyor.com/api/projects/status/fyvayfc9e82xh6eg/branch/dev?svg=true&pendingText=dev%20-%20pending&failingText=dev%20-%20failed&passingText=dev%20-%20passed" height="40"/>](https://ci.appveyor.com/project/Unknown6656/mcpu-he9wv/branch/dev)
 
 ### Reference Manual
 
