@@ -1413,6 +1413,18 @@ namespace MCPU.Instructions
 
 
 
+    [OPCodeNumber(0xfffe)]
+    public sealed unsafe class exec
+        : OPCode
+    {
+        public exec()
+            : base(1, (p, _) => {
+                throw new MCPUProcessingException("The OP-code 'exec' must be evaluated at compile-time.");
+            })
+        {
+        }
+    }
+
     [OPCodeNumber(0xffff)]
     public sealed unsafe class kernel
         : OPCode

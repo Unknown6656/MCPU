@@ -36,6 +36,8 @@
         <s:String x:Key="INLINE_NYET_SUPP">'.inline' Не поддерживается</s:String>
         <s:String x:Key="FUNC_RESV_NAME">Имя '{0}' зарезервировано и поэтому не может быть использован в качестве имени функции.</s:String>
         <s:String x:Key="LABEL_RESV_NAME">Имя '{0}' зарезервировано и поэтому не может быть использован в качестве имени метки.</s:String>
+        <s:String x:Key="NEED_MORE_ARGS">Команда '{0}' требует, по крайней мере, '{1}' аргументы.</s:String>
+        <s:String x:Key="COULDNT_TRANSLATE_EXEC">'exec'-выражение не может быть переведено.</s:String>
     </ResourceDictionary>
     <s:String x:Key="global_compiler_error">Oшибка компилятора</s:String>
     <s:String x:Key="autocomp_func">Функция {0}&#10;Функция {1}, который был определен на линии {2}</s:String>

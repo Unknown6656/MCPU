@@ -10,11 +10,14 @@ using MCPU;
 
 namespace MCPU.MCPUPP.Compiler
 {
+    /// <summary>
+    /// Provides functions to parse and compile given MCPU++ code segments to MCPU-compatible instructions or MCPU assembly code
+    /// </summary>
     public unsafe class MCPUPPCompiler
         : IDisposable
     {
         /// <summary>
-        /// 
+        /// The MCPU++ function name prefix
         /// </summary>
         public const string FUNCTION_PREFIX = "function__";
         /// <summary>
@@ -179,7 +182,7 @@ end func
         /// <param name="nfo">Callee information</param>
         /// <param name="argv">Function arguments</param>
         /// <returns>Function call code</returns>
-        public string GenerateFunctionCall(FunctionCallInformation nfo, params InstructionArgument[] argv)
+        public string GenerateFunctionCall(MCPUPPFunctionCallInformation nfo, params InstructionArgument[] argv)
         {
             string args = string.Join(" ", from arg in argv select arg.ToShortString());
             string call_id = $"_call_{GetUniqueID()}_{nfo.Name}";
@@ -249,7 +252,7 @@ end func
     /// Represents a basic MCPU++ function call information structure
     /// </summary>
     [Serializable]
-    public struct FunctionCallInformation
+    public struct MCPUPPFunctionCallInformation
     {
         /// <summary>
         /// The called function's name

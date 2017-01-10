@@ -41,25 +41,23 @@ namespace MCPU.IDE
         public static readonly TextStyle style_kword = CreateStyle(0x2E80EE, FontStyle.Regular);
         public static readonly Dictionary<TextStyle, string> styles = new Dictionary<TextStyle, string>
         {
-            { style_comments, REGEX_COMMENT },
-            { style_stoken, REGEX_STOKEN },
-            { style_param, REGEX_PARAM },
-            { style_kword, $@"({REGEX_FUNC}|{REGEX_END_FUNC}|\b({string.Join("|", from opc in OPCodes.CodesByID.Values
-                                                                                  where opc.IsKeyword
-                                                                                  select opc.Token.ToLower())}|___main)\b)" },
+            [style_comments] = REGEX_COMMENT,
+            [style_stoken] = REGEX_STOKEN,
+            [style_param] = REGEX_PARAM,
+            [style_kword] = $@"({REGEX_FUNC}|{REGEX_END_FUNC}|\b({string.Join("|", MCPUCompiler.ReservedKeywords)}|___main)\b)",
             // { style_labels, @"(^(\s|\b)+\w+\:|(?:\bfunc\s+)\w+\s*$)" },
-            { style_float, $@"\b({MCPUCompiler.FLOAT_CORE})\b" },
-            { style_int, $@"\b({MCPUCompiler.INTEGER_CORE})\b" },
-            { style_addr, REGEX_ADDR },
+            [style_float] = $@"\b({MCPUCompiler.FLOAT_CORE})\b",
+            [style_int] = $@"\b({MCPUCompiler.INTEGER_CORE})\b",
+            [style_addr] = REGEX_ADDR,
         };
         private static readonly Dictionary<string, Bitmap> autocomp_images = new Dictionary<string, Bitmap>
         {
-            { "opcode", Properties.Resources.autocomp_instruction },
-            { "address", Properties.Resources.autocomp_address },
-            { "directive", Properties.Resources.autocomp_directive },
-            { "function", Properties.Resources.autocomp_function },
-            { "label", Properties.Resources.autocomp_label },
-            { "keyword", Properties.Resources.autocomp_keyword },
+            ["opcode"] = Properties.Resources.autocomp_instruction,
+            ["address"] = Properties.Resources.autocomp_address,
+            ["directive"] = Properties.Resources.autocomp_directive,
+            ["function"] = Properties.Resources.autocomp_function,
+            ["label"] = Properties.Resources.autocomp_label,
+            ["keyword"] = Properties.Resources.autocomp_keyword,
         };
 
         public new event EventHandler<TextChangedEventArgs> TextChanged;
