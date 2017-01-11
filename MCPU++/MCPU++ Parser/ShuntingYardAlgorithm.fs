@@ -22,7 +22,7 @@ module ShuntingYardAlgorithm =
     let internal prec = function
                         // TODO : functions
                         | "!" | "~" -> 11
-                        | "**" -> 10
+                        | "^^" -> 10
                         | "*" | "/" | "%" -> 9
                         | "+" | "-" -> 8
                         | "<<" | ">>" | "<<<" | ">>>" -> 7
@@ -34,7 +34,7 @@ module ShuntingYardAlgorithm =
                         | "(" -> 1
                         | x -> failwith ("Unknown operator: " + x)
     let internal assoc = function
-                         | "**" | "!" | "~" -> Right
+                         | "^^" | "!" | "~" -> Right
                          | _ -> Left
  
     let rec ShuntingYard (s : SYAstate) =
