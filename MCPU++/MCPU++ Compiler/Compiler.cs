@@ -62,7 +62,7 @@ namespace MCPU.MCPUPP.Compiler
         public const int MIN_PROC_SZ = 0x200; // 2 KB
 
         private int idc = 0;
-
+        
         /// <summary>
         /// The MCPU Processor, on which the current compiler instance relies
         /// </summary>

@@ -5,13 +5,14 @@ type VariableType =
     | Int
     | Float
 and Identifier = string
-and IdentifierRef = { Identifier : string; }
-and VariableDeclaration =
+type IdentifierRef (name : string) =
+    member x.Identifier = name
+type VariableDeclaration =
     | ArrayDeclaration of VariableType * Identifier
     | ScalarDeclaration of VariableType * Identifier
     | PointerDeclaration of VariableType * Identifier
 and LocalVarDecl = VariableDeclaration list
-and Parameters = VariableDeclaration list
+and Parameters = VariableDeclaration[]
 and Literal =
     | IntLiteral of int
     | FloatLiteral of float
@@ -63,6 +64,7 @@ and Expression =
 and WhileStatement = Expression * Statement
 and IfStatement = Expression * Statement * Statement option
 and InlineAssemblyStatement = { Lines : string list; }
+and BlockStatement = LocalVarDecl * Statement list
 and Statement =
     | ExpressionStatement of ExpressionStatement
     | CompoundStatement of BlockStatement
@@ -74,10 +76,9 @@ and Statement =
 and ExpressionStatement =
     | Expression of Expression
     | Nop
-and BlockStatement = LocalVarDecl * Statement list
 and FunctionDeclaration = VariableType * Identifier * Parameters * BlockStatement
 and Declaration =
-    | GlobalVarDecl of VariableDeclaration
+    | GlobalVarDecl of LocalVarDecl
     | FunctionDeclaration of FunctionDeclaration
 and Program = Declaration list
 
@@ -93,7 +94,10 @@ module Builder =
         let unitstr = "void"
         match box ast with
         | :? string as s -> s
-        | :? Program as p -> MapBuild p "\n"
+        | :? Program as p -> MapBuild p "\n\n"
+        | :? Declaration as d -> Build indent <| match d with
+                                                 | GlobalVarDecl g -> box g
+                                                 | FunctionDeclaration f -> box f
         | :? Literal as l -> match l with
                              | IntLiteral i -> i.ToString()
                              | FloatLiteral f -> f.ToString()
@@ -111,10 +115,12 @@ module Builder =
                              |> failwith
             sprintf "%s%s %s" </ t <| s </ i
         | :? Arguments as a -> MapBuild a ", "
-        | :? Parameters as p -> MapBuild p ", "
+        | :? Parameters as p -> MapBuild (p |> Array.toList) ", "
+        | :? LocalVarDecl as l -> MapBuild l "; "
         | :? FunctionDeclaration as t ->
             let r, i, p, b = t
-            sprintf "function %s %s(%s)\n{\n%s\n}" </ r </ i </ p </ b
+            let t = tab indent
+            sprintf "%sfunction %s %s(%s)\n%s{\n%s\n%s}" t </ r </ i </ p <| t <// b <| t
         | :? UnaryOperator as u -> match u with
                                    | LogicalNegate -> "-"
                                    | Negate -> "~"
@@ -162,13 +168,17 @@ module Builder =
             | PointerAddressIdentifierExpression a -> sprintf "&%s" </ a
         | :? WhileStatement as s -> sprintf "while (%s)\n%s" </ fst s <// snd s
         | :? ExpressionStatement as e -> match e with
-                                         | Nop -> ""
-                                         | Expression e -> Build indent e
+                                         | Nop -> ";"
+                                         | Expression e -> (Build indent e) + ";"
+        | :? BlockStatement as b -> String.concat "\n" [|
+                                                           for i in fst b -> sprintf "%s%s;" <| tab indent </ i
+                                                           for j in snd b -> sprintf "%s%s" <| tab indent </ j
+                                                       |]
         | :? IfStatement as s -> 
             let c, s, o = s
             let res = sprintf "if (%s)\n%s" </ c <// s
             match o with
-            | Some o -> sprintf "\n%selse\n%s" res <// o
+            | Some o -> sprintf "%s\n%selse\n%s" res <| tab indent <// o
             | None -> res
         | :? InlineAssemblyStatement as a ->
             sprintf "__asm\n%s{\n%s\n%s}" <| tab indent
@@ -177,16 +187,61 @@ module Builder =
                                               |> List.toArray
                                               |> String.concat "\n")
                                           <| tab indent
-        | :? Statement as s -> sprintf "%s%s" <| tab indent <| match s with
-                                                               | BreakStatement -> "break;"
-                                                               | ReturnStatement e -> match e with
-                                                                                      | Some e -> sprintf "return %s;" </ e
-                                                                                      | None -> "return;"
-                                                               | InlineAssemblyStatement a -> Build indent a
-                                                               | ExpressionStatement e -> Build indent e
-                                                               | IfStatement i -> Build (indent + 1) i
-                                                               | WhileStatement w -> Build (indent + 1) w
-                                                               | CompoundStatement c -> sprintf "{\n%s\n%s}" <| () <| tab indent
-        | :? as -> 
-        | _ -> failwith "The type cannot be matched"
+        | :? Statement as s -> sprintf "%s%s" <| tab indent
+                                              <| match s with
+                                                 | BreakStatement -> "break;"
+                                                 | ReturnStatement e -> match e with
+                                                                         | Some e -> sprintf "return %s;" </ e
+                                                                         | None -> "return;"
+                                                 | InlineAssemblyStatement a -> Build indent a
+                                                 | ExpressionStatement e -> Build indent e
+                                                 | IfStatement i -> Build indent i
+                                                 | WhileStatement w -> Build indent w
+                                                 | CompoundStatement c -> sprintf "{\n%s\n%s}" <// c <| tab indent
+        | _ -> "The type " + ast.GetType().ToString() + " could not be matched."
+               |> failwith
         
+module BuilderTests =
+    let Test1 : Program =
+        let id = IdentifierRef >> IdentifierExpression
+        [
+            GlobalVarDecl[
+                ScalarDeclaration(Float, "global_var")
+            ]
+            FunctionDeclaration(Int, "foobar", [|
+                ScalarDeclaration(Int, "arg0")
+                ArrayDeclaration(Float, "arg1")
+                PointerDeclaration(Int, "arg2")
+            |], ([
+                ArrayDeclaration(Int, "local_var")
+                ScalarDeclaration(Float, "kekx")
+            ], [
+                IfStatement(
+                    BinaryExpression(
+                        ArrayIdentifierExpression(
+                            IdentifierRef("arg2"),
+                            id("local_var")
+                        ),
+                        GreaterEqual,
+                        LiteralExpression(
+                            IntLiteral(3)
+                        )
+                    ),
+                    ReturnStatement(
+                        Some(
+                            id("arg0")
+                        )
+                    ),
+                    Some(
+                        ExpressionStatement(
+                            Expression(
+                                ScalarAssignmentExpression(
+                                    IdentifierRef("kekx"),
+                                    id("arg1")
+                                )
+                            )
+                        )
+                    )
+                )
+            ]))
+        ]

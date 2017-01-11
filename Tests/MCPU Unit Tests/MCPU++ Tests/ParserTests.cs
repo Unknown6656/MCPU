@@ -8,6 +8,7 @@ using System.Text;
 using System.IO;
 using System;
 
+using MCPU.MCPUPP.Parser.SyntaxTree;
 using MCPU.MCPUPP.Parser;
 using MCPU.Compiler;
 
@@ -19,7 +20,6 @@ namespace MCPU.Testing
     public class ParserTests
         : Commons
     {
-
         [TestInitialize]
         public override void Test_Init()
         {
@@ -39,6 +39,15 @@ namespace MCPU.Testing
 
             foreach (string s in s2.Output.Reverse())
                 IsTrue(s == expected[i++]);
+        }
+
+        [TestMethod]
+        public void Test_02()
+        {
+            var ast = BuilderTests.Test1;
+            string code = Builder.Build(0, ast);
+            
+            Debugger.Break();
         }
     }
 }

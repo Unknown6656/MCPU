@@ -6,6 +6,8 @@ using System.Linq;
 using System.Text;
 using System;
 
+using MCPU.MCPUPP.Parser.SyntaxTree;
+using MCPU.MCPUPP.Parser;
 using MCPU.Compiler;
 
 namespace MCPU
@@ -21,13 +23,13 @@ namespace MCPU
         public static void Main(string[] args)
         {
             Processor proc = new Processor(64, 64, -559038737);
-            
+
             proc.OnError += (p, ex) => {
                 ForegroundColor = ConsoleColor.Red;
                 WriteLine($"WELL FUGG :D\n{ex.Message}\n{ex.StackTrace}");
                 ForegroundColor = ConsoleColor.White;
             };
-            
+
             var res = MCPUCompiler.Compile(@"
 func rec
     wait $2
