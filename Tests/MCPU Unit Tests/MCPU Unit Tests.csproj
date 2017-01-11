@@ -108,7 +108,7 @@
   </Target>
   <Import Project="..\..\packages\MSTest.TestAdapter.1.1.8-rc\build\net45\MSTest.TestAdapter.targets" Condition="Exists('..\..\packages\MSTest.TestAdapter.1.1.8-rc\build\net45\MSTest.TestAdapter.targets')" />
   <PropertyGroup>
-    <PostBuildEvent>rem "$(TargetDir)FSharp.Core.dll"
-copy "$(DevEnvDir)PublicAssemblies\FSharp.Core.dll" "$(TargetDir)FSharp.Core.dll"</PostBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
   </PropertyGroup>
 </Project>
