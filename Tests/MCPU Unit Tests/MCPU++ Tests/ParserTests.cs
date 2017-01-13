@@ -47,6 +47,7 @@ namespace MCPU.Testing
             var ast = BuilderTests.Test1;
             string code = Builder.BuildString(0, ast);
             
+            // TODO : verify code and/or tree
         }
     }
 }
