@@ -1,6 +1,7 @@
 ﻿namespace MCPU.MCPUPP.Parser.SyntaxTree
 
 open System
+open System.Xml;
 
 type VariableType =
     | Unit
@@ -202,6 +203,22 @@ module Builder =
                                                  | BlockStatement c -> sprintf "{\n%s\n%s}" <// c <| tab indent
         | _ -> "The type " + ast.GetType().ToString() + " could not be matched."
                |> failwith
+    
+    //let FromXML xml : Program =
+    //    let doc = new XmlDocument() in
+    //        doc.LoadXml xml
+    //    let rec proc (node : XmlNode) =
+    //        let lstconv (node : XmlNode) =
+    //            node.ChildNodes
+    //            |> Seq.cast<XmlNode> 
+    //            |> Seq.map proc
+    //            |> Seq.cast<'a>
+    //            |> Seq.toList
+    //        match node.Name.ToLower() with
+    //        | "program" -> lstconv node : Program
+    //        | "function" -> FunctionDeclaration(null, null, null, null);
+    //        | "globals" -> GlobalVarDecl()
+    //    unbox proc <| doc
 
 module BuilderTests =
     let Test1 : Program =
