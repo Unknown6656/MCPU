@@ -1,5 +1,8 @@
 ﻿namespace MCPU.MCPUPP.Parser.SyntaxTree
 
+open System
+open System.Xml;
+
 type VariableType =
     | Unit
     | Int
@@ -41,10 +44,10 @@ and UnaryOperator =
     | Negate
     | Identity
     | BooleanConvert
-    | RawAddressOf
 and Arguments = Expression list
 and Expression =
     | LiteralExpression of Literal
+    | RawAddressOfExpression of IdentifierRef
     | ScalarAssignmentExpression of IdentifierRef * Expression
     | PointerAssignmentExpression of IdentifierRef * Expression
     | PointerValueAssignmentExpression of IdentifierRef * Expression
@@ -67,7 +70,7 @@ and InlineAssemblyStatement = { Lines : string list; }
 and BlockStatement = LocalVarDecl * Statement list
 and Statement =
     | ExpressionStatement of ExpressionStatement
-    | CompoundStatement of BlockStatement
+    | BlockStatement of BlockStatement
     | IfStatement of IfStatement
     | WhileStatement of WhileStatement
     | ReturnStatement of Expression option
@@ -84,18 +87,18 @@ and Program = Declaration list
 
 
 module Builder =
-    let rec Build (indent : int) (ast : obj) =
-        let inline (</) f = Build indent >> f
-        let inline (<//) f = Build (indent + 1) >> f
+    let rec BuildString (indent : int) (ast : obj) =
+        let inline (</) f = BuildString indent >> f
+        let inline (<//) f = BuildString (indent + 1) >> f
         let tab i = System.String('\t', i)
         let MapBuild x c = x
-                           |> List.map(fun f -> Build indent f)
+                           |> List.map(fun f -> BuildString indent f)
                            |> String.concat c
         let unitstr = "void"
         match box ast with
         | :? string as s -> s
         | :? Program as p -> MapBuild p "\n\n"
-        | :? Declaration as d -> Build indent <| match d with
+        | :? Declaration as d -> BuildString indent <| match d with
                                                  | GlobalVarDecl g -> box g
                                                  | FunctionDeclaration f -> box f
         | :? Literal as l -> match l with
@@ -126,7 +129,6 @@ module Builder =
                                    | Negate -> "~"
                                    | Identity -> "+"
                                    | BooleanConvert -> "(bool)"
-                                   | RawAddressOf -> "#"
         | :? BinaryOperator as b -> match b with
                                     | Equal -> "=="
                                     | NotEqual -> "!="
@@ -150,14 +152,14 @@ module Builder =
         | :? Expression as e ->
             let assgn a b = sprintf "%s = %s" </ a </ b
             match e with
-            | LiteralExpression l -> Build indent l
+            | LiteralExpression l -> BuildString indent l
             | ScalarAssignmentExpression(i, e) -> assgn i e
             | PointerAssignmentExpression(i, e) -> assgn i e
             | PointerValueAssignmentExpression(i, e) -> sprintf "*%s = %s" </ i </ e
             | ArrayAssignmentExpression(a, i, e) -> sprintf "%s[%s] = %s" </ a </ i </ e
             | BinaryExpression(a, o, b) -> sprintf "%s %s %s" </ a </ o </ b
             | UnaryExpression(a, o) -> sprintf "%s%s" </ a </ o
-            | IdentifierExpression i -> Build indent i
+            | IdentifierExpression i -> BuildString indent i
             | FunctionCallExpression(f, a) -> sprintf "%s(%s)" </ f </ a
             | ArrayIdentifierExpression(a, i) -> sprintf "%s[%s]" </ a </ i
             | ArraySizeExpression a -> sprintf "%s.length" </ a
@@ -166,10 +168,11 @@ module Builder =
             | PointerAllocationExpression a -> sprintf "&%s" </ a
             | PointerValueIdentifierExpression a -> sprintf "*%s" </ a
             | PointerAddressIdentifierExpression a -> sprintf "&%s" </ a
+            | RawAddressOfExpression a -> sprintf "#%s" </ a
         | :? WhileStatement as s -> sprintf "while (%s)\n%s" </ fst s <// snd s
         | :? ExpressionStatement as e -> match e with
                                          | Nop -> ";"
-                                         | Expression e -> (Build indent e) + ";"
+                                         | Expression e -> (BuildString indent e) + ";"
         | :? BlockStatement as b -> String.concat "\n" [|
                                                            for i in fst b -> sprintf "%s%s;" <| tab indent </ i
                                                            for j in snd b -> sprintf "%s%s" <| tab indent </ j
@@ -193,14 +196,30 @@ module Builder =
                                                  | ReturnStatement e -> match e with
                                                                          | Some e -> sprintf "return %s;" </ e
                                                                          | None -> "return;"
-                                                 | InlineAssemblyStatement a -> Build indent a
-                                                 | ExpressionStatement e -> Build indent e
-                                                 | IfStatement i -> Build indent i
-                                                 | WhileStatement w -> Build indent w
-                                                 | CompoundStatement c -> sprintf "{\n%s\n%s}" <// c <| tab indent
+                                                 | InlineAssemblyStatement a -> BuildString indent a
+                                                 | ExpressionStatement e -> BuildString indent e
+                                                 | IfStatement i -> BuildString indent i
+                                                 | WhileStatement w -> BuildString indent w
+                                                 | BlockStatement c -> sprintf "{\n%s\n%s}" <// c <| tab indent
         | _ -> "The type " + ast.GetType().ToString() + " could not be matched."
                |> failwith
-        
+    
+    //let FromXML xml : Program =
+    //    let doc = new XmlDocument() in
+    //        doc.LoadXml xml
+    //    let rec proc (node : XmlNode) =
+    //        let lstconv (node : XmlNode) =
+    //            node.ChildNodes
+    //            |> Seq.cast<XmlNode> 
+    //            |> Seq.map proc
+    //            |> Seq.cast<'a>
+    //            |> Seq.toList
+    //        match node.Name.ToLower() with
+    //        | "program" -> lstconv node : Program
+    //        | "function" -> FunctionDeclaration(null, null, null, null);
+    //        | "globals" -> GlobalVarDecl()
+    //    unbox proc <| doc
+
 module BuilderTests =
     let Test1 : Program =
         let id = IdentifierRef >> IdentifierExpression
@@ -219,7 +238,7 @@ module BuilderTests =
                 IfStatement(
                     BinaryExpression(
                         ArrayIdentifierExpression(
-                            IdentifierRef("arg2"),
+                            IdentifierRef("arg1"),
                             id("local_var")
                         ),
                         GreaterEqual,
@@ -233,12 +252,48 @@ module BuilderTests =
                         )
                     ),
                     Some(
-                        ExpressionStatement(
-                            Expression(
-                                ScalarAssignmentExpression(
-                                    IdentifierRef("kekx"),
-                                    id("arg1")
+                        WhileStatement(
+                            BinaryExpression(
+                                RawAddressOfExpression(
+                                    IdentifierRef("arg2")
+                                ),
+                                Less,
+                                LiteralExpression(
+                                    IntLiteral(88)
                                 )
+                            ),
+                            BlockStatement(
+                                [
+                                ],
+                                [
+                                    
+                                    ExpressionStatement(
+                                        Expression(
+                                            PointerAssignmentExpression(
+                                                IdentifierRef("arg2"),
+                                                BinaryExpression(
+                                                    LiteralExpression(
+                                                        IntLiteral(1)
+                                                    ),
+                                                    Add,
+                                                    PointerAddressIdentifierExpression(
+                                                        IdentifierRef("arg2")
+                                                    )
+                                                )
+                                            )
+                                        )
+                                    )
+                                    ExpressionStatement(
+                                        Expression(
+                                            ScalarAssignmentExpression(
+                                                IdentifierRef("kekx"),
+                                                PointerValueIdentifierExpression(
+                                                    IdentifierRef("arg2")
+                                                )
+                                            )
+                                        )
+                                    )
+                                ]
                             )
                         )
                     )
