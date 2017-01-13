@@ -59,12 +59,6 @@
     <Compile Include="ShuntingYardAlgorithm.fs" />
     <Compile Include="SyntaxTree.fs" />
     <Compile Include="Lexer.fs" />
-    <FsYacc Include="Parser.fsy">
-      <OtherFlags>--module Parser</OtherFlags>
-    </FsYacc>
-    <FsLex Include="Lexer.fsl">
-      <OtherFlags>--unicode</OtherFlags>
-    </FsLex>
     <None Include="Script.fsx" />
     <Content Include="packages.config" />
   </ItemGroup>
@@ -93,13 +87,6 @@
       <Private>True</Private>
     </ProjectReference>
   </ItemGroup>
-  <Import Project="..\..\packages\FsLexYacc.7.0.3\build\FsLexYacc.targets" Condition="Exists('..\..\packages\FsLexYacc.7.0.3\build\FsLexYacc.targets')" />
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\..\packages\FsLexYacc.7.0.3\build\FsLexYacc.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\FsLexYacc.7.0.3\build\FsLexYacc.targets'))" />
-  </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

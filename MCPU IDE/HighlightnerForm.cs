@@ -95,7 +95,7 @@ namespace MCPU.IDE
                         err_range.SetStyle(style_error);
                     }
                 }
-                
+
                 Parent.Error = err = value;
             }
         }
@@ -202,7 +202,7 @@ namespace MCPU.IDE
         {
             fctb.OnSyntaxHighlight(new TextChangedEventArgs(fctb.Range));
         }
-        
+
         private void Fctb_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyData == (Keys.Space | Keys.Control))
@@ -227,7 +227,7 @@ namespace MCPU.IDE
             else if (!string.IsNullOrEmpty(e.HoveredWord))
             {
                 e.ToolTipIcon = ToolTipIcon.None;
-                
+
                 // TODO
 
                 e.ToolTipText = $"{e.HoveredWord}\nThis is the tooltip for '{e.HoveredWord}'";
@@ -255,7 +255,7 @@ namespace MCPU.IDE
                                          .Concat(std_autocompitems)
                                          .OrderBy(_ => _.Text));
             autocomp.Items.Invalidate();
-        }   
+        }
 
         private void Fctb_AutoIndentNeeded(object sender, AutoIndentEventArgs e)
         {
@@ -288,7 +288,7 @@ namespace MCPU.IDE
                 found.ClearStyle(style_kword);
                 rng.SetStyle(style_labels, $@"\b{found.Text}\b");
             }
-            
+
             TextChanged?.Invoke(sender, e);
 
             docmap.Invalidate();
