@@ -1,0 +1,3 @@
+[submodule "Piglet"]
+	path = Piglet
+	url = https://github.com/Dervall/Piglet
