@@ -82,15 +82,12 @@ type NonTerminalWrapper<'T> (nonTerminal : INonTerminal<obj>) =
     member x.AddProduction () =
         let production = nonTerminal.AddProduction()
         new ProductionWrapper<'T>(production)
-    
     member x.AddProduction (part : SymbolWrapper<'a>) =
         let production = nonTerminal.AddProduction(part.Symbol)
         new ProductionWrapper<'a,'T>(production)
-    
     member x.AddProduction((part1 : SymbolWrapper<'a>), (part2 : SymbolWrapper<'b>)) =
         let production = nonTerminal.AddProduction(part1.Symbol, part2.Symbol)
         new ProductionWrapper<'a,'b,'T>(production)
-
     member x.AddProduction((part1 : SymbolWrapper<'a>),
                            (part2 : SymbolWrapper<'b>),
                            (part3 : SymbolWrapper<'c>)) =
@@ -98,7 +95,6 @@ type NonTerminalWrapper<'T> (nonTerminal : INonTerminal<obj>) =
                                                    part2.Symbol,
                                                    part3.Symbol)
         new ProductionWrapper<'a,'b,'c,'T>(production)
-
     member x.AddProduction((part1 : SymbolWrapper<'a>),
                            (part2 : SymbolWrapper<'b>),
                            (part3 : SymbolWrapper<'c>),
@@ -108,7 +104,6 @@ type NonTerminalWrapper<'T> (nonTerminal : INonTerminal<obj>) =
                                                    part3.Symbol,
                                                    part4.Symbol)
         new ProductionWrapper<'a,'b,'c,'d,'T>(production)
-
     member x.AddProduction((part1 : SymbolWrapper<'a>),
                            (part2 : SymbolWrapper<'b>),
                            (part3 : SymbolWrapper<'c>),
@@ -120,7 +115,6 @@ type NonTerminalWrapper<'T> (nonTerminal : INonTerminal<obj>) =
                                                    part4.Symbol,
                                                    part5.Symbol)
         new ProductionWrapper<'a,'b,'c,'d,'e,'T>(production)
-
     member x.AddProduction((part1 : SymbolWrapper<'a>),
                            (part2 : SymbolWrapper<'b>),
                            (part3 : SymbolWrapper<'c>),
@@ -134,7 +128,6 @@ type NonTerminalWrapper<'T> (nonTerminal : INonTerminal<obj>) =
                                                    part5.Symbol,
                                                    part6.Symbol)
         new ProductionWrapper<'a,'b,'c,'d,'e,'f,'T>(production)
-
     member x.AddProduction((part1 : SymbolWrapper<'a>),
                            (part2 : SymbolWrapper<'b>),
                            (part3 : SymbolWrapper<'c>),

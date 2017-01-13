@@ -58,6 +58,7 @@
     <Compile Include="Helper.fs" />
     <Compile Include="ShuntingYardAlgorithm.fs" />
     <Compile Include="SyntaxTree.fs" />
+    <Compile Include="ParsingUtilities.fs" />
     <Compile Include="Lexer.fs" />
     <None Include="Script.fsx" />
     <Content Include="packages.config" />
@@ -84,6 +85,11 @@
     <ProjectReference Include="..\..\MCPU Library\MCPU Library.csproj">
       <Name>MCPU Library</Name>
       <Project>{2df6d431-a417-4d2d-abd9-e852671e947e}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Piglet\Piglet\Piglet.csproj">
+      <Name>Piglet</Name>
+      <Project>{1e23f251-94e1-4504-81e8-2618f5c9fea3}</Project>
       <Private>True</Private>
     </ProjectReference>
   </ItemGroup>
