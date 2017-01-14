@@ -56,7 +56,7 @@ module Lexer =
     let kw_new = Terminal "new"
     let kw_length = Terminal "length"
     let kw_delete = Terminal "delete"
-    let kw_void = Terminal "void"
+    let kw_unit = Terminal Builder.UnitString
     let kw_int = ParseTerminal "int" !<Int
     let kw_float = ParseTerminal "float" !<Float
     
@@ -134,6 +134,7 @@ module Lexer =
     lassoc[ op_raw ]
         
     // PRODUCTIONS
+    let reducef (s : NonTerminalWrapper<'a>) x = s.AddProduction().SetReduceFunction x
     let reduce0 (s : NonTerminalWrapper<'a>) a = s.AddProduction(a).SetReduceToFirst()
     let reduce1 (s : NonTerminalWrapper<'a>) a x = s.AddProduction(a).SetReduceFunction x
     let reduce2 (s : NonTerminalWrapper<'a>) a b x = s.AddProduction(a, b).SetReduceFunction x
@@ -141,6 +142,7 @@ module Lexer =
     let reduce4 (s : NonTerminalWrapper<'a>) a b c d x = s.AddProduction(a, b, c, d).SetReduceFunction x
     let reduce5 (s : NonTerminalWrapper<'a>) a b c d e x = s.AddProduction(a, b, c, d, e).SetReduceFunction x
     let reduce6 (s : NonTerminalWrapper<'a>) a b c d e f x = s.AddProduction(a, b, c, d, e, f).SetReduceFunction x
+    
     let elem x = [x]
         
     reduce0 nt_program nt_decllist
@@ -148,13 +150,34 @@ module Lexer =
     reduce1 nt_decllist nt_decl elem
     reduce1 nt_decl nt_staticvardecl GlobalVarDecl
     reduce1 nt_decl nt_funcdecl FunctionDeclaration
-    reduce1 nt_vartype kw_void !<Unit
+    reduce1 nt_vartype kw_unit !<Unit
     reduce0 nt_vartype kw_int
     reduce0 nt_vartype kw_float
     reduce3 nt_staticvardecl nt_vartype identifier sy_semicolon (fun a b _ -> ScalarDeclaration(a, b))
     reduce4 nt_staticvardecl nt_vartype identifier op_multiply sy_semicolon (fun a b _ _ -> PointerDeclaration(a, b))
     reduce5 nt_staticvardecl nt_vartype identifier sy_osquare sy_csquare sy_semicolon (fun a b _ _ _ -> ArrayDeclaration(a, b))
-    reduce6 nt_funcdecl identifier sy_oparen nt_params sy_cparen nt_blockstatement (fun a b _ d _ f -> (a, b, d, f))
+    reduce6 nt_funcdecl nt_vartype identifier sy_oparen nt_params sy_cparen nt_blockstatement (fun a b _ d _ f -> (a, b, d, f))
+    reduce0 nt_params nt_paramlist
+    reduce1 nt_params kw_unit !<[||]
+    reduce3 nt_paramlist nt_paramlist sy_comma nt_param (fun a _ c -> (Array.toList a)
+                                                                       @ elem c
+                                                                       |> List.toArray)
+    reduce1 nt_paramlist nt_param (elem >> List.toArray)
+    reduce1 nt_statement nt_exprstatement ExpressionStatement
+    reduce1 nt_statement nt_blockstatement BlockStatement
+    reduce1 nt_statement nt_if IfStatement
+    reduce1 nt_statement nt_while WhileStatement
+    reduce1 nt_statement nt_return ReturnStatement
+    reduce1 nt_statement nt_break !<BreakStatement
+    reduce2 nt_exprstatement nt_expr sy_semicolon (fun a _ -> Expression a)
+    reduce1 nt_exprstatement sy_semicolon !<Nop
+    reduce5 nt_while kw_while sy_oparen nt_expr sy_cparen nt_statement (fun _ _ c _ e -> (c, e))
+    reduce4 nt_blockstatement sy_ocurly nt_optlocalvardecl nt_optstatements sy_ccurly (fun _ b c _ -> (b, c))
+    
+    reduce0 nt_optlocalvardecl nt_localvardecl
+    reducef nt_optlocalvardecl !<[]
+
+
 
     do
         ()

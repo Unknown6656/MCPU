@@ -87,6 +87,8 @@ and Program = Declaration list
 
 
 module Builder =
+    let UnitString = "void"
+
     let rec BuildString (indent : int) (ast : obj) =
         let inline (</) f = BuildString indent >> f
         let inline (<//) f = BuildString (indent + 1) >> f
@@ -94,7 +96,6 @@ module Builder =
         let MapBuild x c = x
                            |> List.map(fun f -> BuildString indent f)
                            |> String.concat c
-        let unitstr = "void"
         match box ast with
         | :? string as s -> s
         | :? Program as p -> MapBuild p "\n\n"
@@ -108,13 +109,13 @@ module Builder =
         | :? VariableType as t -> match t with
                                   | Float -> "float"
                                   | Int -> "int"
-                                  | Unit -> unitstr
+                                  | Unit -> UnitString
         | :? VariableDeclaration as v ->
             let t, s, i = match v with
                           | ArrayDeclaration(t, i) -> (t, "[]", i)
                           | PointerDeclaration(t, i) -> (t, "*", i)
                           | ScalarDeclaration(t, i) -> (t, "", i)
-            if t = Unit then sprintf "A %s variable declaration is not valid" unitstr
+            if t = Unit then sprintf "A %s variable declaration is not valid" UnitString
                              |> failwith
             sprintf "%s%s %s" </ t <| s </ i
         | :? Arguments as a -> MapBuild a ", "
