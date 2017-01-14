@@ -18,7 +18,6 @@ module Lexer =
     
     // L := (Terminal, NonTerminal, Production, Start)
     
-
     // NON TERMINALS
     let nt_program = NonTerminal<Program>
     let nt_decl = NonTerminal<Declaration>
@@ -107,23 +106,43 @@ module Lexer =
     let sy_osquare = Terminal @"\["
     let sy_csquare = Terminal @"\]"
     
-    // TODO : Add association rules (left | right)
-
-
-    let InitProduction =
-        let reduce1 (s : NonTerminalWrapper<'a>) d f = s.AddProduction(d).SetReduceFunction f
-        let reduce2 (s : NonTerminalWrapper<'a>) a b f = s.AddProduction(a, b).SetReduceFunction f
-        let inline (!>) x = [x]
+    // OPERATOR ASSOCIATIVITY
+    let prec_optelse = Configurator.LeftAssociative()
+    let prec_binop = Configurator.LeftAssociative()
+    let prec_unnop = Configurator.RightAssociative()
+    let prec_power = Configurator.RightAssociative()
+    let lassoc x =
+        Configurator.LeftAssociative(x
+                                    |> List.map (fun (f : SymbolWrapper<_>) -> downcast f.Symbol)
+                                    |> List.toArray)
+        |> ignore
+            
+    // PRECEDENCE LIST
+    lassoc[ kw_else ]
+    lassoc[ op_equal ]
+    lassoc[ op_xor ]
+    lassoc[ op_or ]
+    lassoc[ op_and ]
+    lassoc[ op_equal; op_notequal ]
+    lassoc[ op_lessequal; op_less; op_greaterequal; op_greater ]
+    lassoc[ op_rotateleft; op_shiftleft; op_rotateright; op_shiftright ]
+    lassoc[ op_not; op_identity; op_minus ]
+    lassoc[ op_multiply; op_divide; op_modulus ]
+    lassoc[ op_power ]
+    lassoc[ op_raw ]
         
-        nt_program.AddProduction(nt_decllist).SetReduceToFirst()
+    // PRODUCTIONS
+    let reduce1 (s : NonTerminalWrapper<'a>) d f = s.AddProduction(d).SetReduceFunction f
+    let reduce2 (s : NonTerminalWrapper<'a>) a b f = s.AddProduction(a, b).SetReduceFunction f
+    let inline (!>) x = [x]
         
-        reduce2 nt_decllist nt_decllist nt_decl (fun x y -> x @ !> y)
-        reduce1 nt_decllist nt_decl (!>)
-        // reduce1 nt_decl nt_staticvardecl VariableDeclaration
-        reduce1 nt_decl nt_funcdecl FunctionDeclaration
-
-        do
-            ()
+    nt_program.AddProduction(nt_decllist).SetReduceToFirst()
+        
+    reduce2 nt_decllist nt_decllist nt_decl (fun x y -> x @ !> y)
+    reduce1 nt_decllist nt_decl (!>)
+    // reduce1 nt_decl nt_staticvardecl VariableDeclaration
+    reduce1 nt_decl nt_funcdecl FunctionDeclaration
+    
 
     do
         ()
