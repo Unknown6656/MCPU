@@ -61,10 +61,12 @@ module Lexer =
     let kw_float = ParseTerminal "float" !<Float
     
     // OPERATORS
-    let op_identity = Terminal @"\+"
     let op_minus = Terminal @"\-"
+    let op_plus = Terminal @"\+"
     let op_not = Terminal @"\~"
+    let op_int = Terminal @"\(int\)"
     let op_bool = Terminal @"\(bool\)"
+    let op_float = Terminal @"\(float\)"
     let op_add = Terminal @"\+"
     let op_subtract = Terminal @"\-"
     let op_multiply = Terminal @"\*"
@@ -130,10 +132,10 @@ module Lexer =
     assoc Left [ op_equal; op_notequal ]
     assoc Left [ op_lessequal; op_less; op_greaterequal; op_greater ]
     assoc Left [ op_rotateleft; op_shiftleft; op_rotateright; op_shiftright ]
-    assoc Left [ op_not; op_identity; op_minus ]
+    assoc Left [ op_not; op_add; op_subtract ]
     assoc Left [ op_multiply; op_divide; op_modulus ]
     assoc Right [ op_power ]
-    // assoc Right [ op_raw ]
+    assoc Right [ op_plus; op_minus; op_raw; ]
         
     // PRODUCTIONS
     let reducef (s : NonTerminalWrapper<'a>) x = s.AddProduction().SetReduceFunction x
@@ -200,6 +202,7 @@ module Lexer =
     reduce6 nt_expr identifier sy_osquare nt_expr sy_csquare op_assign nt_expr (fun a _ c _ _ f -> ArrayAssignmentExpression(!.a, c, f))
     reduce4 nt_expr op_and identifier op_assign nt_expr (fun _ b _ d -> PointerAssignmentExpression(!.b, d))
     reduce4 nt_expr op_multiply identifier op_assign nt_expr (fun _ b _ d -> PointerValueAssignmentExpression(!.b, d))
+    reduce2 nt_expr op_raw identifier ((!.) >> RawAddressOfExpression >> (!<))
     
     let reduce_bop token op = reduce3 nt_expr nt_expr token nt_expr (fun a _ c -> BinaryExpression(a, op, c))
     
@@ -227,8 +230,38 @@ module Lexer =
     uprod.SetPrecedence prec_unnop
 
     reduce3 nt_expr sy_oparen nt_expr sy_cparen (fun _ b _ -> b)
+    reduce1 nt_expr identifier ((!.) >> IdentifierExpression)
+    reduce4 nt_expr identifier sy_osquare nt_expr sy_csquare (fun a _ c _ -> ArrayIdentifierExpression(!.a, c))
+    reduce4 nt_expr identifier sy_oparen nt_optargs sy_cparen (fun a _ c _ -> FunctionCallExpression(a, c))
+    reduce3 nt_expr identifier sy_point kw_length (fun a _ _ -> ArraySizeExpression(!.a))
+    reduce1 nt_expr lt_true LiteralExpression
+    reduce1 nt_expr lt_false LiteralExpression
+    reduce1 nt_expr lt_null LiteralExpression
+    reduce1 nt_expr lt_int LiteralExpression
+    reduce1 nt_expr lt_hex LiteralExpression
+    reduce1 nt_expr lt_float LiteralExpression
+    reduce5 nt_expr kw_new nt_vartype sy_osquare nt_expr sy_csquare (fun _ b _ d _ -> ArrayAllocationExpression(b, d))
+    reduce2 nt_expr kw_delete identifier ((!.) >> ArrayDeletionExpression >> (!<))
+    reduce1 nt_uop op_not !<Negate
+    reduce1 nt_uop op_minus !<LogicalNegate
+    reduce1 nt_uop op_plus !<Identity
+    reduce1 nt_uop op_int !<IntConvert
+    reduce1 nt_uop op_float !<FloatConvert
+    reduce1 nt_uop op_bool !<BooleanConvert
+    reduce0 nt_optargs nt_args
+    reducef nt_optargs !<[]
+    reduce3 nt_args nt_args sy_comma nt_expr (fun a _ c -> a @ elem c)
+    reduce1 nt_args nt_expr elem
 
-    // reduce3 nt_expr nt_expr op_raw nt_expr (fun a _ c -> BinaryExpression(a, RawAddressOfExpression, c))
-    
+    // WHITESPACE AND COMMENTS
+    Configurator.LexerSettings.Ignore <- [|
+        @"\s+"
+        @"/\*[^(\*/)]*\*/"
+        @"//[^\n]*\n"
+    |]
+
+    let Parser = Configurator.CreateParser()
+    let parse (s : string) = Parser.Parse s :?> Program
+
     do
         ()

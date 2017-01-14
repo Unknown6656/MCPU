@@ -46,8 +46,14 @@ namespace MCPU.Testing
         {
             var ast = BuilderTests.Test1;
             string code = Builder.BuildString(0, ast);
-            
+
             // TODO : verify code and/or tree
+        }
+
+        [TestMethod]
+        public void Test_03()
+        {
+            var kek = Lexer.parse("int a;");
         }
     }
 }

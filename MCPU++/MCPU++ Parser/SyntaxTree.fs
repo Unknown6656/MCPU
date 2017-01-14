@@ -43,6 +43,8 @@ and UnaryOperator =
     | LogicalNegate
     | Negate
     | Identity
+    | IntConvert
+    | FloatConvert
     | BooleanConvert
 and Arguments = Expression list
 and Expression =
@@ -57,7 +59,7 @@ and Expression =
     | ArrayIdentifierExpression of IdentifierRef * Expression
     | ArraySizeExpression of IdentifierRef
     | ArrayAllocationExpression of VariableType * Expression
-    | ArrayDeletionExpression of VariableType
+    | ArrayDeletionExpression of IdentifierRef
     | PointerAssignmentExpression of IdentifierRef * Expression
     | PointerValueAssignmentExpression of IdentifierRef * Expression
     | PointerAllocationExpression of IdentifierRef
@@ -129,6 +131,8 @@ module Builder =
                                    | LogicalNegate -> "-"
                                    | Negate -> "~"
                                    | Identity -> "+"
+                                   | IntConvert -> "(int)"
+                                   | FloatConvert -> "(float)"
                                    | BooleanConvert -> "(bool)"
         | :? BinaryOperator as b -> match b with
                                     | Equal -> "=="
