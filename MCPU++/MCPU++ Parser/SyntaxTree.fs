@@ -49,17 +49,17 @@ and Expression =
     | LiteralExpression of Literal
     | RawAddressOfExpression of IdentifierRef
     | ScalarAssignmentExpression of IdentifierRef * Expression
-    | PointerAssignmentExpression of IdentifierRef * Expression
-    | PointerValueAssignmentExpression of IdentifierRef * Expression
-    | ArrayAssignmentExpression of IdentifierRef * Expression * Expression
     | BinaryExpression of Expression * BinaryOperator * Expression
     | UnaryExpression of UnaryOperator * Expression
     | IdentifierExpression of IdentifierRef
     | FunctionCallExpression of Identifier * Arguments
+    | ArrayAssignmentExpression of IdentifierRef * Expression * Expression
     | ArrayIdentifierExpression of IdentifierRef * Expression
     | ArraySizeExpression of IdentifierRef
     | ArrayAllocationExpression of VariableType * Expression
     | ArrayDeletionExpression of VariableType
+    | PointerAssignmentExpression of IdentifierRef * Expression
+    | PointerValueAssignmentExpression of IdentifierRef * Expression
     | PointerAllocationExpression of IdentifierRef
     | PointerValueIdentifierExpression of IdentifierRef
     | PointerAddressIdentifierExpression of IdentifierRef

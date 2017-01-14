@@ -85,6 +85,7 @@ module Lexer =
     let op_less = Terminal @"\<"
     let op_greaterequal = Terminal @"\>\="
     let op_greater = Terminal @"\>"
+    let op_assign = Terminal @"\="
 
     // LITERALS
     let lt_int = ParseTerminal @"\d+" (IntLiteral << int)
@@ -113,25 +114,26 @@ module Lexer =
     let prec_binop = Configurator.LeftAssociative()
     let prec_unnop = Configurator.RightAssociative()
     let prec_power = Configurator.RightAssociative()
-    let lassoc x =
-        Configurator.LeftAssociative(x
-                                    |> List.map (fun (f : SymbolWrapper<_>) -> downcast f.Symbol)
-                                    |> List.toArray)
+    let assoc d x =
+        let arg = List.map (fun (f : SymbolWrapper<_>) -> downcast f.Symbol)
+               >> List.toArray
+        match d with
+        | Left -> Configurator.LeftAssociative(arg x)
+        | Right -> Configurator.RightAssociative(arg x)
         |> ignore
             
     // PRECEDENCE LIST
-    lassoc[ kw_else ]
-    lassoc[ op_equal ]
-    lassoc[ op_xor ]
-    lassoc[ op_or ]
-    lassoc[ op_and ]
-    lassoc[ op_equal; op_notequal ]
-    lassoc[ op_lessequal; op_less; op_greaterequal; op_greater ]
-    lassoc[ op_rotateleft; op_shiftleft; op_rotateright; op_shiftright ]
-    lassoc[ op_not; op_identity; op_minus ]
-    lassoc[ op_multiply; op_divide; op_modulus ]
-    lassoc[ op_power ]
-    lassoc[ op_raw ]
+    assoc Left [ kw_else ]
+    assoc Left [ op_xor ]
+    assoc Left [ op_or ]
+    assoc Left [ op_and ]
+    assoc Left [ op_equal; op_notequal ]
+    assoc Left [ op_lessequal; op_less; op_greaterequal; op_greater ]
+    assoc Left [ op_rotateleft; op_shiftleft; op_rotateright; op_shiftright ]
+    assoc Left [ op_not; op_identity; op_minus ]
+    assoc Left [ op_multiply; op_divide; op_modulus ]
+    assoc Right [ op_power ]
+    // assoc Right [ op_raw ]
         
     // PRODUCTIONS
     let reducef (s : NonTerminalWrapper<'a>) x = s.AddProduction().SetReduceFunction x
@@ -144,6 +146,7 @@ module Lexer =
     let reduce6 (s : NonTerminalWrapper<'a>) a b c d e f x = s.AddProduction(a, b, c, d, e, f).SetReduceFunction x
     
     let elem x = [x]
+    let (!.) x = IdentifierRef x
         
     reduce0 nt_program nt_decllist
     reduce2 nt_decllist nt_decllist nt_decl (fun x y -> x @ elem y)
@@ -173,11 +176,59 @@ module Lexer =
     reduce1 nt_exprstatement sy_semicolon !<Nop
     reduce5 nt_while kw_while sy_oparen nt_expr sy_cparen nt_statement (fun _ _ c _ e -> (c, e))
     reduce4 nt_blockstatement sy_ocurly nt_optlocalvardecl nt_optstatements sy_ccurly (fun _ b c _ -> (b, c))
-    
-    reduce0 nt_optlocalvardecl nt_localvardecl
+    reduce0 nt_optlocalvardecl nt_localvardecllist
     reducef nt_optlocalvardecl !<[]
+    nt_localvardecllist.AddProduction(nt_localvardecllist, nt_localvardecl).SetReduceToFirst()
+    reduce1 nt_localvardecllist nt_localvardecl elem
+    reduce6 nt_if kw_if sy_oparen nt_expr sy_cparen nt_statement nt_optelse (fun _ _ c _ e f -> (c, e, f))
+    
+    let prod_else = nt_optelse.AddProduction(kw_else, nt_statement)
 
+    prod_else.SetReduceFunction (fun _ b -> Some b)
+    prod_else.SetPrecedence prec_optelse
 
+    let prod_else_epsilon = nt_optelse.AddProduction()
+    
+    prod_else_epsilon.SetReduceFunction !<None
+    prod_else_epsilon.SetPrecedence prec_optelse
 
+    reduce3 nt_return kw_return nt_expr sy_semicolon (fun _ b _ -> Some b)
+    reduce2 nt_return kw_return sy_semicolon !<(!<None)
+    reduce2 nt_break kw_break sy_semicolon !<(!<())
+    
+    reduce3 nt_expr identifier op_assign nt_expr (fun a _ c -> ScalarAssignmentExpression(!.a, c))
+    reduce6 nt_expr identifier sy_osquare nt_expr sy_csquare op_assign nt_expr (fun a _ c _ _ f -> ArrayAssignmentExpression(!.a, c, f))
+    reduce4 nt_expr op_and identifier op_assign nt_expr (fun _ b _ d -> PointerAssignmentExpression(!.b, d))
+    reduce4 nt_expr op_multiply identifier op_assign nt_expr (fun _ b _ d -> PointerValueAssignmentExpression(!.b, d))
+    
+    let reduce_bop token op = reduce3 nt_expr nt_expr token nt_expr (fun a _ c -> BinaryExpression(a, op, c))
+    
+    reduce_bop op_equal Equal
+    reduce_bop op_notequal NotEqual
+    reduce_bop op_xor Xor
+    reduce_bop op_and And
+    reduce_bop op_or Or
+    reduce_bop op_lessequal LessEqual
+    reduce_bop op_less Less
+    reduce_bop op_greaterequal GreaterEqual
+    reduce_bop op_greater Greater
+    reduce_bop op_rotateleft RotateLeft
+    reduce_bop op_rotateright RotateRight
+    reduce_bop op_shiftleft ShiftLeft
+    reduce_bop op_shiftright ShiftRight
+    reduce_bop op_subtract Subtract
+    reduce_bop op_multiply Multiply
+    reduce_bop op_divide Divide
+    reduce_bop op_modulus Modulus
+    reduce_bop op_power Power
+    
+    let uprod = nt_expr.AddProduction(nt_uop, nt_expr)
+    uprod.SetReduceFunction (fun a b -> UnaryExpression(a, b))
+    uprod.SetPrecedence prec_unnop
+
+    reduce3 nt_expr sy_oparen nt_expr sy_cparen (fun _ b _ -> b)
+
+    // reduce3 nt_expr nt_expr op_raw nt_expr (fun a _ c -> BinaryExpression(a, RawAddressOfExpression, c))
+    
     do
         ()
