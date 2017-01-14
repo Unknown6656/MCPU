@@ -81,7 +81,7 @@ and ExpressionStatement =
     | Nop
 and FunctionDeclaration = VariableType * Identifier * Parameters * BlockStatement
 and Declaration =
-    | GlobalVarDecl of LocalVarDecl
+    | GlobalVarDecl of VariableDeclaration
     | FunctionDeclaration of FunctionDeclaration
 and Program = Declaration list
 
@@ -99,8 +99,8 @@ module Builder =
         | :? string as s -> s
         | :? Program as p -> MapBuild p "\n\n"
         | :? Declaration as d -> BuildString indent <| match d with
-                                                 | GlobalVarDecl g -> box g
-                                                 | FunctionDeclaration f -> box f
+                                                       | GlobalVarDecl g -> box g
+                                                       | FunctionDeclaration f -> box f
         | :? Literal as l -> match l with
                              | IntLiteral i -> i.ToString()
                              | FloatLiteral f -> f.ToString()
@@ -224,9 +224,9 @@ module BuilderTests =
     let Test1 : Program =
         let id = IdentifierRef >> IdentifierExpression
         [
-            GlobalVarDecl[
+            GlobalVarDecl(
                 ScalarDeclaration(Float, "global_var")
-            ]
+            )
             FunctionDeclaration(Int, "foobar", [|
                 ScalarDeclaration(Int, "arg0")
                 ArrayDeclaration(Float, "arg1")

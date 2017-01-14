@@ -2,6 +2,7 @@
 
 open System
 open System.Globalization
+open Microsoft.FSharp.Reflection
 
 open Piglet.Parser
 open Piglet.Parser.Configuration
@@ -55,6 +56,7 @@ module Lexer =
     let kw_new = Terminal "new"
     let kw_length = Terminal "length"
     let kw_delete = Terminal "delete"
+    let kw_void = Terminal "void"
     let kw_int = ParseTerminal "int" !<Int
     let kw_float = ParseTerminal "float" !<Float
     
@@ -132,17 +134,27 @@ module Lexer =
     lassoc[ op_raw ]
         
     // PRODUCTIONS
-    let reduce1 (s : NonTerminalWrapper<'a>) d f = s.AddProduction(d).SetReduceFunction f
-    let reduce2 (s : NonTerminalWrapper<'a>) a b f = s.AddProduction(a, b).SetReduceFunction f
-    let inline (!>) x = [x]
+    let reduce0 (s : NonTerminalWrapper<'a>) a = s.AddProduction(a).SetReduceToFirst()
+    let reduce1 (s : NonTerminalWrapper<'a>) a x = s.AddProduction(a).SetReduceFunction x
+    let reduce2 (s : NonTerminalWrapper<'a>) a b x = s.AddProduction(a, b).SetReduceFunction x
+    let reduce3 (s : NonTerminalWrapper<'a>) a b c x = s.AddProduction(a, b, c).SetReduceFunction x
+    let reduce4 (s : NonTerminalWrapper<'a>) a b c d x = s.AddProduction(a, b, c, d).SetReduceFunction x
+    let reduce5 (s : NonTerminalWrapper<'a>) a b c d e x = s.AddProduction(a, b, c, d, e).SetReduceFunction x
+    let reduce6 (s : NonTerminalWrapper<'a>) a b c d e f x = s.AddProduction(a, b, c, d, e, f).SetReduceFunction x
+    let elem x = [x]
         
-    nt_program.AddProduction(nt_decllist).SetReduceToFirst()
-        
-    reduce2 nt_decllist nt_decllist nt_decl (fun x y -> x @ !> y)
-    reduce1 nt_decllist nt_decl (!>)
-    // reduce1 nt_decl nt_staticvardecl VariableDeclaration
+    reduce0 nt_program nt_decllist
+    reduce2 nt_decllist nt_decllist nt_decl (fun x y -> x @ elem y)
+    reduce1 nt_decllist nt_decl elem
+    reduce1 nt_decl nt_staticvardecl GlobalVarDecl
     reduce1 nt_decl nt_funcdecl FunctionDeclaration
-    
+    reduce1 nt_vartype kw_void !<Unit
+    reduce0 nt_vartype kw_int
+    reduce0 nt_vartype kw_float
+    reduce3 nt_staticvardecl nt_vartype identifier sy_semicolon (fun a b _ -> ScalarDeclaration(a, b))
+    reduce4 nt_staticvardecl nt_vartype identifier op_multiply sy_semicolon (fun a b _ _ -> PointerDeclaration(a, b))
+    reduce5 nt_staticvardecl nt_vartype identifier sy_osquare sy_csquare sy_semicolon (fun a b _ _ _ -> ArrayDeclaration(a, b))
+    reduce6 nt_funcdecl identifier sy_oparen nt_params sy_cparen nt_blockstatement (fun a b _ d _ f -> (a, b, d, f))
 
     do
         ()
