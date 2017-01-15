@@ -41,6 +41,17 @@
     <None Include="app.config" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Compiler.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\MCPU Core Compiler\MCPU Core Compiler.csproj">
       <Project>{7e31c14a-a3b4-4d0c-b67a-3b842dca55b1}</Project>
       <Name>MCPU Core Compiler</Name>
@@ -53,17 +64,10 @@
       <Project>{ec613ade-fdff-461d-9e84-9093e96aa759}</Project>
       <Name>MCPUPP.Parser</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Compiler.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
-    <Reference Include="System.Xml.Linq" />
+    <ProjectReference Include="..\Piglet\Piglet\Piglet.csproj">
+      <Project>{1e23f251-94e1-4504-81e8-2618f5c9fea3}</Project>
+      <Name>Piglet</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
