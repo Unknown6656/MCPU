@@ -53,7 +53,7 @@ namespace MCPU.Testing
         [TestMethod]
         public void Test_03()
         {
-            var kek = Lexer.parse("int a;");
+            var ast = Lexer.parse("int a;");
         }
     }
 }

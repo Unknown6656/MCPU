@@ -2,22 +2,25 @@
 
 open System
 open System.Globalization
-open Microsoft.FSharp.Reflection
 
 open Piglet.Parser
-open Piglet.Parser.Configuration
 open MCPU.MCPUPP.Parser.SyntaxTree
 
+type CompilerException(message : string) =
+    inherit System.Exception(message)
+
+module Errors =
+    let LexerError a = CompilerException(sprintf "MCPUPP001 Lexer error: %s" a)
+    let ParserError a = CompilerException(sprintf "MCPUPP002 Parser error: %s" a)
 
 module Lexer =
     let internal identity = fun x -> x
     let inline (!<) x = fun _ -> x
     let Configurator = ParserFactory.Configure<obj>()
-    let NonTerminal<'a> = new NonTerminalWrapper<'a>(Configurator.CreateNonTerminal())
-    let Terminal regex = new TerminalWrapper<string>(Configurator.CreateTerminal(regex))
-    let ParseTerminal regex (f : string -> 'a) = new TerminalWrapper<'a>(Configurator.CreateTerminal(regex, (fun s -> (f >> box) s)))
     
     // L := (Terminal, NonTerminal, Production, Start)
+    
+    let NonTerminal<'a> = new NonTerminalWrapper<'a>(Configurator.CreateNonTerminal())
     
     // NON TERMINALS
     let nt_program = NonTerminal<Program>
@@ -47,6 +50,9 @@ module Lexer =
     let nt_optargs = NonTerminal<Arguments>
     let nt_args = NonTerminal<Arguments>
 
+    let ParseTerminal regex (f : string -> 'a) = new TerminalWrapper<'a>(Configurator.CreateTerminal(regex, (fun s -> (f >> box) s)))
+    let Terminal regex = new TerminalWrapper<string>(Configurator.CreateTerminal(regex))
+    
     // KEYWORDS
     let kw_if = Terminal "if"
     let kw_else = Terminal "else"
@@ -61,31 +67,31 @@ module Lexer =
     let kw_float = ParseTerminal "float" !<Float
     
     // OPERATORS
-    let op_not = Terminal @"\~"
+    let op_not = Terminal "~"
     let op_int = Terminal @"\(int\)"
     let op_bool = Terminal @"\(bool\)"
     let op_float = Terminal @"\(float\)"
     let op_add = Terminal @"\+"
-    let op_subtract = Terminal @"\-"
+    let op_subtract = Terminal "-"
     let op_multiply = Terminal @"\*"
-    let op_divide = Terminal @"\/"
-    let op_modulus = Terminal @"\%"
-    let op_power = Terminal @"\^\^"
-    let op_xor = Terminal @"\^"
-    let op_and = Terminal @"\&"
+    let op_divide = Terminal "/"
+    let op_modulus = Terminal "%"
+    let op_power = Terminal "^^"
+    let op_xor = Terminal "^"
+    let op_and = Terminal "&"
     let op_or = Terminal @"\|"
-    let op_raw = Terminal @"\#"
-    let op_shiftleft = Terminal @"\<\<"
-    let op_shiftright = Terminal @"\>\>"
-    let op_rotateleft = Terminal @"\<\<\<"
-    let op_rotateright = Terminal @"\>\>\>"
-    let op_equal = Terminal @"\=\="
-    let op_notequal = Terminal @"\!\="
-    let op_lessequal = Terminal @"\<\="
-    let op_less = Terminal @"\<"
-    let op_greaterequal = Terminal @"\>\="
-    let op_greater = Terminal @"\>"
-    let op_assign = Terminal @"\="
+    let op_raw = Terminal "#"
+    let op_shiftleft = Terminal "<<"
+    let op_shiftright = Terminal ">>"
+    let op_rotateleft = Terminal "<<<"
+    let op_rotateright = Terminal ">>>"
+    let op_equal = Terminal "=="
+    let op_notequal = Terminal "!="
+    let op_lessequal = Terminal "<="
+    let op_less = Terminal "<"
+    let op_greaterequal = Terminal ">="
+    let op_greater = Terminal ">"
+    let op_assign = Terminal "="
 
     // LITERALS
     let lt_int = ParseTerminal @"\d+" (IntLiteral << int)
@@ -100,7 +106,7 @@ module Lexer =
 
     // SYMBOLS
     let sy_semicolon = Terminal ";"
-    let sy_comma = Terminal @"\,"
+    let sy_comma = Terminal ","
     let sy_point = Terminal @"\."
     let sy_oparen = Terminal @"\("
     let sy_cparen = Terminal @"\)"
@@ -243,7 +249,7 @@ module Lexer =
     reduce2 nt_expr kw_delete identifier ((!.) >> ArrayDeletionExpression >> (!<))
     reduce1 nt_uop op_not !<Negate
     reduce1 nt_uop op_subtract !<LogicalNegate
-    // reduce1 nt_uop op_add !<Identity
+    reduce1 nt_uop op_add !<Identity
     reduce1 nt_uop op_int !<IntConvert
     reduce1 nt_uop op_float !<FloatConvert
     reduce1 nt_uop op_bool !<BooleanConvert
