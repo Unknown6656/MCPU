@@ -1,8 +1,5 @@
 ﻿namespace MCPU.MCPUPP.Parser.SyntaxTree
 
-open System
-open System.Xml;
-
 type VariableType =
     | Unit
     | Int
@@ -43,23 +40,25 @@ and UnaryOperator =
     | LogicalNegate
     | Negate
     | Identity
+    | IntConvert
+    | FloatConvert
     | BooleanConvert
 and Arguments = Expression list
 and Expression =
     | LiteralExpression of Literal
     | RawAddressOfExpression of IdentifierRef
     | ScalarAssignmentExpression of IdentifierRef * Expression
-    | PointerAssignmentExpression of IdentifierRef * Expression
-    | PointerValueAssignmentExpression of IdentifierRef * Expression
-    | ArrayAssignmentExpression of IdentifierRef * Expression * Expression
     | BinaryExpression of Expression * BinaryOperator * Expression
     | UnaryExpression of UnaryOperator * Expression
     | IdentifierExpression of IdentifierRef
     | FunctionCallExpression of Identifier * Arguments
+    | ArrayAssignmentExpression of IdentifierRef * Expression * Expression
     | ArrayIdentifierExpression of IdentifierRef * Expression
     | ArraySizeExpression of IdentifierRef
     | ArrayAllocationExpression of VariableType * Expression
-    | ArrayDeletionExpression of VariableType
+    | ArrayDeletionExpression of IdentifierRef
+    | PointerAssignmentExpression of IdentifierRef * Expression
+    | PointerValueAssignmentExpression of IdentifierRef * Expression
     | PointerAllocationExpression of IdentifierRef
     | PointerValueIdentifierExpression of IdentifierRef
     | PointerAddressIdentifierExpression of IdentifierRef
@@ -81,12 +80,14 @@ and ExpressionStatement =
     | Nop
 and FunctionDeclaration = VariableType * Identifier * Parameters * BlockStatement
 and Declaration =
-    | GlobalVarDecl of LocalVarDecl
+    | GlobalVarDecl of VariableDeclaration
     | FunctionDeclaration of FunctionDeclaration
 and Program = Declaration list
 
 
 module Builder =
+    let UnitString = "void"
+
     let rec BuildString (indent : int) (ast : obj) =
         let inline (</) f = BuildString indent >> f
         let inline (<//) f = BuildString (indent + 1) >> f
@@ -94,13 +95,12 @@ module Builder =
         let MapBuild x c = x
                            |> List.map(fun f -> BuildString indent f)
                            |> String.concat c
-        let unitstr = "void"
         match box ast with
         | :? string as s -> s
         | :? Program as p -> MapBuild p "\n\n"
         | :? Declaration as d -> BuildString indent <| match d with
-                                                 | GlobalVarDecl g -> box g
-                                                 | FunctionDeclaration f -> box f
+                                                       | GlobalVarDecl g -> box g
+                                                       | FunctionDeclaration f -> box f
         | :? Literal as l -> match l with
                              | IntLiteral i -> i.ToString()
                              | FloatLiteral f -> f.ToString()
@@ -108,13 +108,13 @@ module Builder =
         | :? VariableType as t -> match t with
                                   | Float -> "float"
                                   | Int -> "int"
-                                  | Unit -> unitstr
+                                  | Unit -> UnitString
         | :? VariableDeclaration as v ->
             let t, s, i = match v with
                           | ArrayDeclaration(t, i) -> (t, "[]", i)
                           | PointerDeclaration(t, i) -> (t, "*", i)
                           | ScalarDeclaration(t, i) -> (t, "", i)
-            if t = Unit then sprintf "A %s variable declaration is not valid" unitstr
+            if t = Unit then sprintf "A %s variable declaration is not valid" UnitString
                              |> failwith
             sprintf "%s%s %s" </ t <| s </ i
         | :? Arguments as a -> MapBuild a ", "
@@ -128,6 +128,8 @@ module Builder =
                                    | LogicalNegate -> "-"
                                    | Negate -> "~"
                                    | Identity -> "+"
+                                   | IntConvert -> "(int)"
+                                   | FloatConvert -> "(float)"
                                    | BooleanConvert -> "(bool)"
         | :? BinaryOperator as b -> match b with
                                     | Equal -> "=="
@@ -203,100 +205,4 @@ module Builder =
                                                  | BlockStatement c -> sprintf "{\n%s\n%s}" <// c <| tab indent
         | _ -> "The type " + ast.GetType().ToString() + " could not be matched."
                |> failwith
-    
-    //let FromXML xml : Program =
-    //    let doc = new XmlDocument() in
-    //        doc.LoadXml xml
-    //    let rec proc (node : XmlNode) =
-    //        let lstconv (node : XmlNode) =
-    //            node.ChildNodes
-    //            |> Seq.cast<XmlNode> 
-    //            |> Seq.map proc
-    //            |> Seq.cast<'a>
-    //            |> Seq.toList
-    //        match node.Name.ToLower() with
-    //        | "program" -> lstconv node : Program
-    //        | "function" -> FunctionDeclaration(null, null, null, null);
-    //        | "globals" -> GlobalVarDecl()
-    //    unbox proc <| doc
-
-module BuilderTests =
-    let Test1 : Program =
-        let id = IdentifierRef >> IdentifierExpression
-        [
-            GlobalVarDecl[
-                ScalarDeclaration(Float, "global_var")
-            ]
-            FunctionDeclaration(Int, "foobar", [|
-                ScalarDeclaration(Int, "arg0")
-                ArrayDeclaration(Float, "arg1")
-                PointerDeclaration(Int, "arg2")
-            |], ([
-                ArrayDeclaration(Int, "local_var")
-                ScalarDeclaration(Float, "kekx")
-            ], [
-                IfStatement(
-                    BinaryExpression(
-                        ArrayIdentifierExpression(
-                            IdentifierRef("arg1"),
-                            id("local_var")
-                        ),
-                        GreaterEqual,
-                        LiteralExpression(
-                            IntLiteral(3)
-                        )
-                    ),
-                    ReturnStatement(
-                        Some(
-                            id("arg0")
-                        )
-                    ),
-                    Some(
-                        WhileStatement(
-                            BinaryExpression(
-                                RawAddressOfExpression(
-                                    IdentifierRef("arg2")
-                                ),
-                                Less,
-                                LiteralExpression(
-                                    IntLiteral(88)
-                                )
-                            ),
-                            BlockStatement(
-                                [
-                                ],
-                                [
-                                    
-                                    ExpressionStatement(
-                                        Expression(
-                                            PointerAssignmentExpression(
-                                                IdentifierRef("arg2"),
-                                                BinaryExpression(
-                                                    LiteralExpression(
-                                                        IntLiteral(1)
-                                                    ),
-                                                    Add,
-                                                    PointerAddressIdentifierExpression(
-                                                        IdentifierRef("arg2")
-                                                    )
-                                                )
-                                            )
-                                        )
-                                    )
-                                    ExpressionStatement(
-                                        Expression(
-                                            ScalarAssignmentExpression(
-                                                IdentifierRef("kekx"),
-                                                PointerValueIdentifierExpression(
-                                                    IdentifierRef("arg2")
-                                                )
-                                            )
-                                        )
-                                    )
-                                ]
-                            )
-                        )
-                    )
-                )
-            ]))
-        ]
+               

@@ -1,4 +1,5 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.FSharp.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Diagnostics;
@@ -10,6 +11,7 @@ using System;
 
 using MCPU.MCPUPP.Parser.SyntaxTree;
 using MCPU.MCPUPP.Parser;
+using MCPU.MCPUPP.Tests;
 using MCPU.Compiler;
 
 namespace MCPU.Testing
@@ -20,6 +22,13 @@ namespace MCPU.Testing
     public class ParserTests
         : Commons
     {
+        internal static void ValidateTest((string code, FSharpList<Declaration> ast) data)
+        {
+            FSharpList<Declaration> generated = Lexer.parse(data.code);
+
+            AreEqual(generated, data.ast);
+        }
+
         [TestInitialize]
         public override void Test_Init()
         {
@@ -42,12 +51,6 @@ namespace MCPU.Testing
         }
 
         [TestMethod]
-        public void Test_02()
-        {
-            var ast = BuilderTests.Test1;
-            string code = Builder.BuildString(0, ast);
-            
-            // TODO : verify code and/or tree
-        }
+        public void Test_02() => ValidateTest(UnitTests.Test01);
     }
 }

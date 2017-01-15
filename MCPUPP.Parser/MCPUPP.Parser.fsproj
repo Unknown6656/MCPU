@@ -5,28 +5,26 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>179e3955-51f8-4a5b-a4e5-8e00a5889554</ProjectGuid>
+    <ProjectGuid>ec613ade-fdff-461d-9e84-9093e96aa759</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>MCPU___Parser</RootNamespace>
-    <AssemblyName>mcpu++.plib</AssemblyName>
+    <RootNamespace>MCPU.MCPUPP.Parser</RootNamespace>
+    <AssemblyName>mcpupp.plib</AssemblyName>
     <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <TargetFSharpCoreVersion>4.4.1.0</TargetFSharpCoreVersion>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <Name>MCPU++ Parser</Name>
+    <Name>MCPUPP.Parser</Name>
     <TargetFrameworkProfile />
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <Tailcalls>true</Tailcalls>
+    <Tailcalls>false</Tailcalls>
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\Debug\mcpu++.plib.xml</DocumentationFile>
-    <OtherFlags>--sig:"bin\Debug\mcpu++.plib.fsi"</OtherFlags>
+    <DocumentationFile>bin\Debug\mcpupp.plib.xml</DocumentationFile>
+    <OtherFlags>--sig:"bin\Debug\mcpupp.plib.fsi"</OtherFlags>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -35,11 +33,13 @@
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\$(Configuration)\$(AssemblyName).XML</DocumentationFile>
+    <DocumentationFile>bin\$(Configuration)\$(AssemblyName).xml</DocumentationFile>
+    <OtherFlags>--sig:"bin\$(Configuration)\$(AssemblyName).fsi"</OtherFlags>
   </PropertyGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
   </PropertyGroup>
+  <!--
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '11.0'">
       <PropertyGroup Condition="Exists('$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.0\Framework\v4.0\Microsoft.FSharp.Targets')">
@@ -52,38 +52,44 @@
       </PropertyGroup>
     </Otherwise>
   </Choose>
-  <Import Project="$(FSharpTargetsPath)" />
+  -->
+  <Import Project="$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\4.1\Framework\v4.0\Microsoft.FSharp.Targets" />
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Helper.fs" />
     <Compile Include="ShuntingYardAlgorithm.fs" />
     <Compile Include="SyntaxTree.fs" />
+    <Compile Include="ParsingUtilities.fs" />
     <Compile Include="Lexer.fs" />
     <None Include="Script.fsx" />
     <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="FSharp.Core, Version=4.4.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="mscorlib" />
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.ValueTuple">
-      <HintPath>..\..\packages\System.ValueTuple.4.3.0\lib\netstandard1.0\System.ValueTuple.dll</HintPath>
+    <Reference Include="FSharp.Core">
+      <Name>FSharp.Core</Name>
+      <AssemblyName>FSharp.Core.dll</AssemblyName>
+      <HintPath>$(MSBuildProgramFiles32)\Reference Assemblies\Microsoft\FSharp\.NETFramework\v4.0\$(TargetFSharpCoreVersion)\FSharp.Core.dll</HintPath>
     </Reference>
-    <Reference Include="System.Xml" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Xml.XmlDocument, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <Reference Include="System" />
+    <Reference Include="System.ValueTuple">
+      <HintPath>..\packages\System.ValueTuple.4.3.0\lib\netstandard1.0\System.ValueTuple.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\MCPU Core Compiler\MCPU Core Compiler.csproj">
+    <ProjectReference Include="..\MCPU Core Compiler\MCPU Core Compiler.csproj">
       <Name>MCPU Core Compiler</Name>
       <Project>{7e31c14a-a3b4-4d0c-b67a-3b842dca55b1}</Project>
       <Private>True</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\MCPU Library\MCPU Library.csproj">
+    <ProjectReference Include="..\MCPU Library\MCPU Library.csproj">
       <Name>MCPU Library</Name>
       <Project>{2df6d431-a417-4d2d-abd9-e852671e947e}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Piglet\Piglet\Piglet.csproj">
+      <Name>Piglet</Name>
+      <Project>{1e23f251-94e1-4504-81e8-2618f5c9fea3}</Project>
       <Private>True</Private>
     </ProjectReference>
   </ItemGroup>
