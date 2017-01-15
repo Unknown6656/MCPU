@@ -10,16 +10,13 @@ open System.Runtime.InteropServices
 [<assembly: AssemblyTitle("MCPU++ Parser")>]
 [<assembly: AssemblyDescription("")>]
 [<assembly: AssemblyConfiguration("")>]
-[<assembly: AssemblyCompany("")>]
+[<assembly: AssemblyCompany("Unknown665")>]
 [<assembly: AssemblyProduct("MCPU++ Parser")>]
-[<assembly: AssemblyCopyright("Copyright ©  2017")>]
+[<assembly: AssemblyCopyright("Copyright © Unknown665, 2017")>]
 [<assembly: AssemblyTrademark("")>]
-[<assembly: AssemblyCulture("")>]
+[<assembly: AssemblyCulture("en-GB")>]
 
-// Setting ComVisible to false makes the types in this assembly not visible 
-// to COM components.  If you need to access a type in this assembly from 
-// COM, set the ComVisible attribute to true on that type.
-[<assembly: ComVisible(false)>]
+[<assembly: ComVisible(true)>]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
 [<assembly: Guid("179e3955-51f8-4a5b-a4e5-8e00a5889554")>]

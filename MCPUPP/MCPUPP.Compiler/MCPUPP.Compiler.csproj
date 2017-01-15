@@ -49,8 +49,8 @@
       <Project>{2df6d431-a417-4d2d-abd9-e852671e947e}</Project>
       <Name>MCPU Library</Name>
     </ProjectReference>
-    <ProjectReference Include="..\MCPU++ Parser\MCPU++ Parser.fsproj">
-      <Project>{179e3955-51f8-4a5b-a4e5-8e00a5889554}</Project>
+    <ProjectReference Include="..\MCPUPP.Parser\MCPUPP.Parser.fsproj">
+      <Project>{ec613ade-fdff-461d-9e84-9093e96aa759}</Project>
       <Name>MCPU++ Parser</Name>
     </ProjectReference>
   </ItemGroup>
