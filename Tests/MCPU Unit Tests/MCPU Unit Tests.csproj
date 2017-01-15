@@ -100,6 +100,10 @@
       <Project>{1e23f251-94e1-4504-81e8-2618f5c9fea3}</Project>
       <Name>Piglet</Name>
     </ProjectReference>
+    <ProjectReference Include="..\MCPUPP Unit Tests\MCPUPP Unit Tests.fsproj">
+      <Project>{56bda770-be2b-4e83-b363-7c3e385deda5}</Project>
+      <Name>MCPUPP Unit Tests</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
