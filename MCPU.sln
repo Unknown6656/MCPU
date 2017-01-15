@@ -25,7 +25,7 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "MCPUPP.Parser", "MCPUPP.Par
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MCPUPP.Compiler", "MCPUPP.Compiler\MCPUPP.Compiler.csproj", "{DDE7FD0A-F879-4E62-A3CA-8FC69CEA380C}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "MCPUPP Unit Tests", "Tests\MCPUPP.UnitTests\MCPUPP.UnitTests.fsproj", "{56BDA770-BE2B-4E83-B363-7C3E385DEDA5}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "MCPUPP.UnitTests", "MCPUPP.UnitTests\MCPUPP.UnitTests.fsproj", "{56BDA770-BE2B-4E83-B363-7C3E385DEDA5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
