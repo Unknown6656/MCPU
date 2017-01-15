@@ -14,7 +14,7 @@ open System.Runtime.InteropServices
 [<assembly: AssemblyProduct("MCPU++ Parser")>]
 [<assembly: AssemblyCopyright("Copyright © Unknown665, 2017")>]
 [<assembly: AssemblyTrademark("")>]
-[<assembly: AssemblyCulture("en-GB")>]
+[<assembly: AssemblyCulture("")>]
 
 [<assembly: ComVisible(true)>]
 

@@ -36,9 +36,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>MCPU.UnitTestWrapper</StartupObject>
+    <StartupObject>MCPU.Program</StartupObject>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="FSharp.Core, Version=4.4.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="Microsoft.VisualStudio.TestPlatform.TestFramework, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\..\packages\MSTest.TestFramework.1.0.8-rc\lib\net45\Microsoft.VisualStudio.TestPlatform.TestFramework.dll</HintPath>
     </Reference>
@@ -83,6 +84,10 @@
     <ProjectReference Include="..\..\MCPUPP.Parser\MCPUPP.Parser.fsproj">
       <Project>{ec613ade-fdff-461d-9e84-9093e96aa759}</Project>
       <Name>MCPUPP.Parser</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Piglet\Piglet\Piglet.csproj">
+      <Project>{1e23f251-94e1-4504-81e8-2618f5c9fea3}</Project>
+      <Name>Piglet</Name>
     </ProjectReference>
     <ProjectReference Include="..\MCPU Unit Tests\MCPU Unit Tests.csproj">
       <Project>{15a7417f-b941-406b-a0b7-8fb3402dfffc}</Project>

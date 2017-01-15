@@ -22,6 +22,7 @@ namespace MCPU
     {
         public static void Main(string[] args)
         {
+            var kek = Lexer.parse("int a;");
             Processor proc = new Processor(64, 64, -559038737);
 
             proc.OnError += (p, ex) => {

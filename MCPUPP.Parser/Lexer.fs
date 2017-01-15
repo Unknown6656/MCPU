@@ -61,8 +61,6 @@ module Lexer =
     let kw_float = ParseTerminal "float" !<Float
     
     // OPERATORS
-    let op_minus = Terminal @"\-"
-    let op_plus = Terminal @"\+"
     let op_not = Terminal @"\~"
     let op_int = Terminal @"\(int\)"
     let op_bool = Terminal @"\(bool\)"
@@ -135,7 +133,7 @@ module Lexer =
     assoc Left [ op_not; op_add; op_subtract ]
     assoc Left [ op_multiply; op_divide; op_modulus ]
     assoc Right [ op_power ]
-    assoc Right [ op_plus; op_minus; op_raw; ]
+    assoc Right [ op_raw; ]
         
     // PRODUCTIONS
     let reducef (s : NonTerminalWrapper<'a>) x = s.AddProduction().SetReduceFunction x
@@ -220,6 +218,7 @@ module Lexer =
     reduce_bop op_shiftleft ShiftLeft
     reduce_bop op_shiftright ShiftRight
     reduce_bop op_subtract Subtract
+    reduce_bop op_add Add
     reduce_bop op_multiply Multiply
     reduce_bop op_divide Divide
     reduce_bop op_modulus Modulus
@@ -243,8 +242,8 @@ module Lexer =
     reduce5 nt_expr kw_new nt_vartype sy_osquare nt_expr sy_csquare (fun _ b _ d _ -> ArrayAllocationExpression(b, d))
     reduce2 nt_expr kw_delete identifier ((!.) >> ArrayDeletionExpression >> (!<))
     reduce1 nt_uop op_not !<Negate
-    reduce1 nt_uop op_minus !<LogicalNegate
-    reduce1 nt_uop op_plus !<Identity
+    reduce1 nt_uop op_subtract !<LogicalNegate
+    // reduce1 nt_uop op_add !<Identity
     reduce1 nt_uop op_int !<IntConvert
     reduce1 nt_uop op_float !<FloatConvert
     reduce1 nt_uop op_bool !<BooleanConvert
