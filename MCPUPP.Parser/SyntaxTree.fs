@@ -59,7 +59,6 @@ and Expression =
     | ArrayDeletionExpression of IdentifierRef
     | PointerAssignmentExpression of IdentifierRef * Expression
     | PointerValueAssignmentExpression of IdentifierRef * Expression
-    | PointerAllocationExpression of IdentifierRef
     | PointerValueIdentifierExpression of IdentifierRef
     | PointerAddressIdentifierExpression of IdentifierRef
     // TODO
@@ -167,7 +166,6 @@ module Builder =
             | ArraySizeExpression a -> sprintf "%s.length" </ a
             | ArrayAllocationExpression(a, s) -> sprintf "new %s[%s]" </ a </ s
             | ArrayDeletionExpression a -> sprintf "delete %s" </ a
-            | PointerAllocationExpression a -> sprintf "&%s" </ a
             | PointerValueIdentifierExpression a -> sprintf "*%s" </ a
             | PointerAddressIdentifierExpression a -> sprintf "&%s" </ a
             | RawAddressOfExpression a -> sprintf "#%s" </ a

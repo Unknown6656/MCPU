@@ -290,6 +290,10 @@ type ExpressionTypeDictionary(program, ftable : FunctionTable, stable : SymbolTa
                  | PointerValueIdentifierExpression i -> ScalarType (stable.GetIdentifierType i).Type
                  | PointerAddressIdentifierExpression _ -> ScalarType Int
                  | FunctionCallExpression (i, args) ->
+                     if not (ftable.ContainsKey i) then
+                         Errors.NameNotFound i
+                     let func = ftable.[i]
+                     let paramt = func.ParameterTypes
                      // TODO
                      ()
                  | LiteralExpression l -> match l with
@@ -300,9 +304,6 @@ type ExpressionTypeDictionary(program, ftable : FunctionTable, stable : SymbolTa
                      ()
                  | ArrayDeletionExpression i ->
                      let i = stable.GetIdentifierType i
-                     // TODO
-                     ()
-                 | PointerAllocationExpression i ->
                      // TODO
                      ()
              ()
