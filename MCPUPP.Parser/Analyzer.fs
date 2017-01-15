@@ -217,10 +217,10 @@ type ExpressionTypeDictionary(program, ftable : FunctionTable, stable : SymbolTa
                      let i, e = ttransform(i, e)
                      CheckTypes i e
                      i
-                 | PointerAssignmentExpression (i, e) ->
-                     let i, e = ttransform(i, e)
-                     // TODO !!!!!!
-                     ()
+                 | PointerAssignmentExpression (_, e) ->
+                     let e = ScanExpression e
+                     CheckIndexType e
+                     ScalarType Int
                  | PointerValueAssignmentExpression (i, e) ->
                      let i, e = ttransform(i, e)
 
@@ -248,18 +248,61 @@ type ExpressionTypeDictionary(program, ftable : FunctionTable, stable : SymbolTa
                      let e2 = ScanExpression e2
                      let fail = Errors.CannotApplyBinaryOperator op e1 e2
                      
-                     if e1.IsArray <> e2.IsArray then
-                        fail
+                     if e1.IsArray <> e2.IsArray then fail
+                     elif e1.IsUnit || e2.IsUnit then fail 
                      else match op with
                           | Or | And | Xor ->
-                              if (e1 = ScalarType Int) && (e2 = ScalarType Int) then
-                                  ScalarType Int
-                              else fail
+                              CheckIndexType e1
+                              CheckIndexType e2
+                              ScalarType Int
                           | Equal | NotEqual ->
                               if e1 <> e2 then fail
-                          
-                              ScalarType Int
-                          | LessEqual | Less | GreaterEqual | Greater -> ()
-                          | Add | Subtract | Multiply | Divide | Modulus | Power ->
-                              e1
+                              else ScalarType Int
+                          | LessEqual | Less | GreaterEqual | Greater ->
+                              if e1.IsArray then fail
+                              else ScalarType Int
+                          | Add | Subtract ->
+                              if e1.IsPointer && e2.IsPointer then fail
+                              elif e1.IsPointer && e2 <> ScalarType Int then fail
+                              elif e2.IsPointer && e1 <> ScalarType Int then fail
+                              elif e1.IsPointer then e1
+                              elif e2.IsPointer then e2
+                              elif (e1 = ScalarType Float) || (e2 = ScalarType Float) then ScalarType Float
+                              else e2
+                          | Multiply | Divide | Modulus | Power ->
+                              if (e1 = ScalarType Float) || (e2 = ScalarType Float) then ScalarType Float
+                              else e2
+                 | UnaryExpression (op, e) ->
+                     let e = ScanExpression e
+                     let fail = Errors.CannotApplyUnaryOperator op e
+
+                     if not e.IsScalar then fail
+                     elif e.IsUnit then fail
+                     else match op with
+                          | Negate -> if e.IsFloat then fail else e
+                          | LogicalNegate | Identity -> e
+                          | FloatConvert -> ScalarType Float
+                          | IntConvert | BooleanConvert -> ScalarType Int
+                 | IdentifierExpression i -> stable.GetIdentifierType i
+                 | ArrayIdentifierExpression (i, e) ->
+                     CheckIndexType e
+                     ScalarType (stable.GetIdentifierType i).Type
+                 | PointerValueIdentifierExpression i -> ScalarType (stable.GetIdentifierType i).Type
+                 | PointerAddressIdentifierExpression _ -> ScalarType Int
+                 | FunctionCallExpression (i, args) ->
+                     // TODO
+                     ()
+                 | LiteralExpression l -> match l with
+                                          | IntLiteral _ -> ScalarType Int
+                                          | FloatLiteral _ -> ScalarType Float
+                 | ArrayAllocationExpression (t, e) ->
+                     // TODO
+                     ()
+                 | ArrayDeletionExpression i ->
+                     let i = stable.GetIdentifierType i
+                     // TODO
+                     ()
+                 | PointerAllocationExpression i ->
+                     // TODO
+                     ()
              ()
