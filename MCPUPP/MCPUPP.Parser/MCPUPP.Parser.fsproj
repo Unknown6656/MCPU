@@ -8,7 +8,7 @@
     <ProjectGuid>ec613ade-fdff-461d-9e84-9093e96aa759</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>MCPU.MCPUPP.Parser</RootNamespace>
-    <AssemblyName>mcpu++.plib</AssemblyName>
+    <AssemblyName>mcpupp.plib</AssemblyName>
     <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <TargetFSharpCoreVersion>4.4.1.0</TargetFSharpCoreVersion>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>

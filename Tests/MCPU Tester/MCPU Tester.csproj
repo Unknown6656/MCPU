@@ -39,7 +39,6 @@
     <StartupObject>MCPU.UnitTestWrapper</StartupObject>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="FSharp.Core, Version=4.4.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="Microsoft.VisualStudio.TestPlatform.TestFramework, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\..\packages\MSTest.TestFramework.1.0.8-rc\lib\net45\Microsoft.VisualStudio.TestPlatform.TestFramework.dll</HintPath>
     </Reference>
@@ -79,11 +78,11 @@
     </ProjectReference>
     <ProjectReference Include="..\..\MCPUPP\MCPUPP.Compiler\MCPUPP.Compiler.csproj">
       <Project>{dde7fd0a-f879-4e62-a3ca-8fc69cea380c}</Project>
-      <Name>MCPU++ Compiler</Name>
+      <Name>MCPUPP.Compiler</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\MCPUPP\MCPUPP.Parser\MCPUPP.Parser.fsproj">
       <Project>{ec613ade-fdff-461d-9e84-9093e96aa759}</Project>
-      <Name>MCPU++ Parser</Name>
+      <Name>MCPUPP.Parser</Name>
     </ProjectReference>
     <ProjectReference Include="..\MCPU Unit Tests\MCPU Unit Tests.csproj">
       <Project>{15a7417f-b941-406b-a0b7-8fb3402dfffc}</Project>

@@ -407,7 +407,7 @@ namespace MCPU.Compiler
                                         return Error(GetString("INVALID_ARG", arg));
 
                             OPCode opc = CodesByToken[token];
-                            
+
                             if (opc.RequiredArguments > args.Count)
                                 return Error(GetString("NEED_MORE_ARGS", opc.Token, opc.RequiredArguments));
                             else if (opc == EXEC)
