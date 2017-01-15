@@ -6,13 +6,6 @@ open System.Globalization
 open Piglet.Parser
 open MCPU.MCPUPP.Parser.SyntaxTree
 
-type CompilerException(message : string) =
-    inherit System.Exception(message)
-
-module Errors =
-    let LexerError a = CompilerException(sprintf "MCPUPP001 Lexer error: %s" a)
-    let ParserError a = CompilerException(sprintf "MCPUPP002 Parser error: %s" a)
-
 module Lexer =
     let internal identity = fun x -> x
     let inline (!<) x = fun _ -> x
