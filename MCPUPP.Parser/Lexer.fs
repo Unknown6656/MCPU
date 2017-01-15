@@ -259,7 +259,8 @@ module Lexer =
     |]
 
     let Parser = Configurator.CreateParser()
-    let parse (s : string) = Parser.Parse s :?> Program
-
+    let parse (s : string) = match s.Trim() with
+                             | "" -> List.empty<Declaration>
+                             | _ -> Parser.Parse s :?> Program
     do
         ()

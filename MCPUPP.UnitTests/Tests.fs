@@ -5,6 +5,8 @@ open MCPU.MCPUPP.Parser
 
 module UnitTests =
     let Test01 =
+        !~<("", List.empty<Declaration>)
+    let Test02 =
         !~<("int a;", [
             GlobalVarDecl(
                 ScalarDeclaration(

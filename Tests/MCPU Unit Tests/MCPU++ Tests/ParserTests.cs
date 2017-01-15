@@ -52,5 +52,8 @@ namespace MCPU.Testing
 
         [TestMethod]
         public void Test_02() => ValidateTest(UnitTests.Test01);
+
+        [TestMethod]
+        public void Test_03() => ValidateTest(UnitTests.Test02);
     }
 }
