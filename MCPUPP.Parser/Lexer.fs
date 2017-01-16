@@ -102,8 +102,8 @@ module Lexer =
     let sy_point = Terminal @"\."
     let sy_oparen = Terminal @"\("
     let sy_cparen = Terminal @"\)"
-    let sy_ocurly = Terminal @"\}"
-    let sy_ccurly = Terminal @"\{"
+    let sy_ocurly = Terminal @"\{"
+    let sy_ccurly = Terminal @"\}"
     let sy_osquare = Terminal @"\["
     let sy_csquare = Terminal @"\]"
     

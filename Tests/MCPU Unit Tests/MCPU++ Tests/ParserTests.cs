@@ -59,7 +59,21 @@ namespace MCPU.Testing
         [TestMethod]
         public void Test_04()
         {
+            string code = @"
+int a;
 
+void main(void)
+{
+    int b;
+
+    a = 42;
+    b = 88;
+    
+    return a - b;
+}
+";
+            var ast = Lexer.parse(code);
+            string sym = Builder.ToString(ast);
         }
     }
 }
