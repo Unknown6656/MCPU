@@ -57,7 +57,13 @@ namespace MCPU.Testing
         public void Test_03() => ValidateTest(UnitTests.Test02);
 
         [TestMethod]
-        public void Test_04()
+        public void Test_04() => ValidateTest(UnitTests.Test03);
+
+        [TestMethod]
+        public void Test_05() => ValidateTest(UnitTests.Test04);
+
+        [TestMethod]
+        public void Test_06()
         {
             string code = @"
 int a;

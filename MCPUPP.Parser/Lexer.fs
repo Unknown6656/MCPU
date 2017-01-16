@@ -6,7 +6,6 @@ open Piglet.Parser
 open MCPU.MCPUPP.Parser.SyntaxTree
 
 module Lexer =
-    let internal identity = fun x -> x
     let inline (!<) x = fun _ -> x
     let Configurator = ParserFactory.Configure<obj>()
     
@@ -94,7 +93,7 @@ module Lexer =
     let lt_null = ParseTerminal "null" !<(IntLiteral 0)
     
     // IDENTIFIER
-    let identifier = ParseTerminal "[a-zA-Z_][a-zA-Z_0-9]*" identity
+    let identifier = ParseTerminal "[a-zA-Z_][a-zA-Z_0-9]*" id
 
     // SYMBOLS
     let sy_semicolon = Terminal ";"

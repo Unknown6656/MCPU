@@ -15,6 +15,39 @@ module UnitTests =
                 )
             )
         ])
+    let Test03 =
+        !~<("void main(void) { }", [
+            FunctionDeclaration(
+                Unit,
+                "main",
+                [|
+                |],
+                (
+                    [
+                    ],
+                    [
+                    ]
+                )
+            )
+        ])
+    let Test04 =
+        !~<("int test(float[] a, int* b, int c) { }", [
+            FunctionDeclaration(
+                Int,
+                "test",
+                [|
+                    ArrayDeclaration(Float, "a")
+                    PointerDeclaration(Int, "b")
+                    ScalarDeclaration(Int, "c")
+                |],
+                (
+                    [
+                    ],
+                    [
+                    ]
+                )
+            )
+        ])
 
     do
         ()
