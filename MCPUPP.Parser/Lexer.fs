@@ -2,19 +2,10 @@
 
 open System
 open System.Globalization
-
 open Piglet.Parser
 open MCPU.MCPUPP.Parser.SyntaxTree
 
-type CompilerException(message : string) =
-    inherit System.Exception(message)
-
-module Errors =
-    let LexerError a = CompilerException(sprintf "MCPUPP001 Lexer error: %s" a)
-    let ParserError a = CompilerException(sprintf "MCPUPP002 Parser error: %s" a)
-
 module Lexer =
-    let internal identity = fun x -> x
     let inline (!<) x = fun _ -> x
     let Configurator = ParserFactory.Configure<obj>()
     
@@ -102,7 +93,7 @@ module Lexer =
     let lt_null = ParseTerminal "null" !<(IntLiteral 0)
     
     // IDENTIFIER
-    let identifier = ParseTerminal "[a-zA-Z_][a-zA-Z_0-9]*" identity
+    let identifier = ParseTerminal "[a-zA-Z_][a-zA-Z_0-9]*" id
 
     // SYMBOLS
     let sy_semicolon = Terminal ";"
@@ -110,8 +101,8 @@ module Lexer =
     let sy_point = Terminal @"\."
     let sy_oparen = Terminal @"\("
     let sy_cparen = Terminal @"\)"
-    let sy_ocurly = Terminal @"\}"
-    let sy_ccurly = Terminal @"\{"
+    let sy_ocurly = Terminal @"\{"
+    let sy_ccurly = Terminal @"\}"
     let sy_osquare = Terminal @"\["
     let sy_csquare = Terminal @"\]"
     
@@ -266,7 +257,8 @@ module Lexer =
     |]
 
     let Parser = Configurator.CreateParser()
-    let parse (s : string) = Parser.Parse s :?> Program
-
+    let parse (s : string) = match s.Trim() with
+                             | "" -> List.empty<Declaration>
+                             | _ -> Parser.Parse s :?> Program
     do
         ()

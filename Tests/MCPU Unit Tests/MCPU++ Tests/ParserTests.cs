@@ -52,5 +52,34 @@ namespace MCPU.Testing
 
         [TestMethod]
         public void Test_02() => ValidateTest(UnitTests.Test01);
+
+        [TestMethod]
+        public void Test_03() => ValidateTest(UnitTests.Test02);
+
+        [TestMethod]
+        public void Test_04() => ValidateTest(UnitTests.Test03);
+
+        [TestMethod]
+        public void Test_05() => ValidateTest(UnitTests.Test04);
+
+        [TestMethod]
+        public void Test_06()
+        {
+            string code = @"
+int a;
+
+void main(void)
+{
+    int b;
+
+    a = 42;
+    b = 88;
+    
+    return a - b;
+}
+";
+            var ast = Lexer.parse(code);
+            string sym = Builder.ToString(ast);
+        }
     }
 }
