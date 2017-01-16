@@ -1,5 +1,7 @@
 ﻿namespace MCPU.MCPUPP.Parser.SyntaxTree
 
+open Microsoft.FSharp.Reflection
+
 type VariableType =
     | Unit
     | Int
@@ -203,4 +205,22 @@ module Builder =
                                                  | BlockStatement c -> sprintf "{\n%s\n%s}" <// c <| tab indent
         | _ -> "The type " + ast.GetType().ToString() + " could not be matched."
                |> failwith
-               
+
+    let ToString (program : Program) =
+        let tupleToList = FSharpValue.GetTupleFields >> Array.toList
+        let rec tstr (obj : obj) indent =
+            let tab = new string(' ', indent * 4)
+            let inner =
+                let transf = if FSharpType.IsTuple(obj.GetType()) then tupleToList >> box else id
+                let obj = (transf << box) obj
+                let tp = box.GetType().Name
+                match box obj with
+                | :? list<_> as l -> sprintf "%s : [\n%s\n%s]" tp (l
+                                                                   |> List.map (fun e -> tstr e (indent + 1))
+                                                                   |> List.fold (+) "\n") tab
+                | :? (_[]) as arr -> sprintf "%s : [|\n%s\n%s|]"tp  (arr
+                                                                     |> Array.map (fun e -> tstr e (indent + 1))
+                                                                     |> Array.fold (+) "\n") tab
+                | _ -> sprintf "%s : %s" tp <| obj.ToString()
+            tab + inner
+        tstr program 0
