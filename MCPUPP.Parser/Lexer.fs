@@ -2,7 +2,6 @@
 
 open System
 open System.Globalization
-
 open Piglet.Parser
 open MCPU.MCPUPP.Parser.SyntaxTree
 

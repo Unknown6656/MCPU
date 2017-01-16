@@ -180,7 +180,7 @@ type FunctionTable(program) as self =
         List.iter ScanDeclaration program
 
 type ExpressionTypeDictionary(program, ftable : FunctionTable, stable : SymbolTable) as self =
-    inherit Dictionary<Expression, VariableType>(HashIdentity.Reference)
+    inherit Dictionary<Expression, SymbolVariableType>(HashIdentity.Reference)
     
     let rec ScanDeclaration = function
                               | FunctionDeclaration x -> ScanFunctionDeclaration x
@@ -211,99 +211,132 @@ type ExpressionTypeDictionary(program, ftable : FunctionTable, stable : SymbolTa
             let CheckTypes s t = if s <> t then Errors.InvalidConversion s t
             let CheckIndexType e = CheckTypes (ScanExpression e) (ScalarType Int)
             let ExpressionType =
-                 let ttransform (i, e) = (stable.GetIdentifierType i, ScanExpression e)
-                 match expr with
-                 | ScalarAssignmentExpression (i, e) ->
-                     let i, e = ttransform(i, e)
-                     CheckTypes i e
-                     i
-                 | PointerAssignmentExpression (_, e) ->
-                     let e = ScanExpression e
-                     CheckIndexType e
-                     ScalarType Int
-                 | PointerValueAssignmentExpression (i, e) ->
-                     let i, e = ttransform(i, e)
+                let ttransform (i, e) = (stable.GetIdentifierType i, ScanExpression e)
+                match expr with
+                | ScalarAssignmentExpression (i, e) ->
+                    let i, e = ttransform(i, e)
+                    CheckTypes i e
+                    i
+                | PointerAssignmentExpression (_, e) ->
+                    CheckIndexType e
+                    ScalarType Int
+                | PointerValueAssignmentExpression (i, e) ->
+                    let i, e = ttransform(i, e)
 
-                     if not i.IsPointer then
-                         Errors.CannotIndex (i.ToString())
-                     elif not e.IsScalar then
-                         Errors.InvalidConversion e i
-                     else
-                         CheckTypes i e
-                     ScalarType i.Type
-                 | ArrayAssignmentExpression (i, e1, e2) ->
-                     CheckIndexType e1
-                     let e2 = ScanExpression e2
-                     let i = stable.GetIdentifierType i
+                    if not i.IsPointer then
+                        Errors.CannotIndex (i.ToString())
+                    elif not e.IsScalar then
+                        Errors.InvalidConversion e i
+                    else
+                        CheckTypes i e
+                    ScalarType i.Type
+                | ArrayAssignmentExpression (i, e1, e2) ->
+                    CheckIndexType e1
+                    let e2 = ScanExpression e2
+                    let i = stable.GetIdentifierType i
 
-                     if not i.IsArray then
-                         Errors.CannotIndex (i.ToString())
-                     elif not e2.IsScalar then
-                         Errors.InvalidConversion e2 i
-                     else
-                         CheckTypes i e2
-                     ScalarType i.Type
-                 | BinaryExpression (e1, op, e2) ->
-                     let e1 = ScanExpression e1
-                     let e2 = ScanExpression e2
-                     let fail = Errors.CannotApplyBinaryOperator op e1 e2
+                    if not i.IsArray then
+                        Errors.CannotIndex (i.ToString())
+                    elif not e2.IsScalar then
+                        Errors.InvalidConversion e2 i
+                    else
+                        CheckTypes i e2
+                    ScalarType i.Type
+                | BinaryExpression (e1, op, e2) ->
+                    let t1 = ScanExpression e1
+                    let t2 = ScanExpression e2
+                    let fail = Errors.CannotApplyBinaryOperator op t1 t2
                      
-                     if e1.IsArray <> e2.IsArray then fail
-                     elif e1.IsUnit || e2.IsUnit then fail 
-                     else match op with
-                          | Or | And | Xor ->
-                              CheckIndexType e1
-                              CheckIndexType e2
-                              ScalarType Int
-                          | Equal | NotEqual ->
-                              if e1 <> e2 then fail
-                              else ScalarType Int
-                          | LessEqual | Less | GreaterEqual | Greater ->
-                              if e1.IsArray then fail
-                              else ScalarType Int
-                          | Add | Subtract ->
-                              if e1.IsPointer && e2.IsPointer then fail
-                              elif e1.IsPointer && e2 <> ScalarType Int then fail
-                              elif e2.IsPointer && e1 <> ScalarType Int then fail
-                              elif e1.IsPointer then e1
-                              elif e2.IsPointer then e2
-                              elif (e1 = ScalarType Float) || (e2 = ScalarType Float) then ScalarType Float
-                              else e2
-                          | Multiply | Divide | Modulus | Power ->
-                              if (e1 = ScalarType Float) || (e2 = ScalarType Float) then ScalarType Float
-                              else e2
-                 | UnaryExpression (op, e) ->
-                     let e = ScanExpression e
-                     let fail = Errors.CannotApplyUnaryOperator op e
+                    if t1.IsArray <> t2.IsArray then fail
+                    elif t1.IsUnit || t2.IsUnit then fail 
+                    else match op with
+                         | Or | And | Xor ->
+                             CheckIndexType e1
+                             CheckIndexType e2
+                             ScalarType Int
+                         | Equal | NotEqual ->
+                             if t1 <> t2 then fail
+                             else ScalarType Int
+                         | LessEqual | Less | GreaterEqual | Greater ->
+                             if t1.IsArray then fail
+                             else ScalarType Int
+                         | Add | Subtract ->
+                             if t1.IsPointer && t2.IsPointer then fail
+                             elif t1.IsPointer && t2 <> ScalarType Int then fail
+                             elif t2.IsPointer && t1 <> ScalarType Int then fail
+                             elif t1.IsPointer then t1
+                             elif t2.IsPointer then t2
+                             elif (t1 = ScalarType Float) || (t2 = ScalarType Float) then ScalarType Float
+                             else t2
+                         | Multiply | Divide | Modulus | Power ->
+                             if (t1 = ScalarType Float) || (t2 = ScalarType Float) then ScalarType Float
+                             else t2
+                | UnaryExpression (op, e) ->
+                    let e = ScanExpression e
+                    let fail = Errors.CannotApplyUnaryOperator op e
+                
+                    if not e.IsScalar then fail
+                    elif e.IsUnit then fail
+                    else match op with
+                         | Negate -> if e.IsFloat then fail else e
+                         | LogicalNegate | Identity -> e
+                         | FloatConvert -> ScalarType Float
+                         | IntConvert | BooleanConvert -> ScalarType Int
+                | IdentifierExpression i -> stable.GetIdentifierType i
+                | ArrayIdentifierExpression (i, e) ->
+                    CheckIndexType e
+                    ScalarType (stable.GetIdentifierType i).Type
+                | PointerValueIdentifierExpression i -> ScalarType (stable.GetIdentifierType i).Type
+                | PointerAddressIdentifierExpression _ -> ScalarType Int
+                | FunctionCallExpression (i, args) ->
+                    if not (ftable.ContainsKey i) then
+                        Errors.NameNotFound i
+                    let func = ftable.[i]
+                    let paramt = func.ParameterTypes
+                    
+                    if List.length args <> List.length paramt then
+                        Errors.InvalidArgumentCount i (List.length paramt)
+                   
+                    let atype = List.map ScanExpression args
+                    let tmatch n l r =
+                        if l <> r then Errors.InvalidArgument i (n + 1) l r
+                    
+                    List.iteri2 tmatch atype paramt
+                    ScalarType func.ReturnType
+                | LiteralExpression l -> match l with
+                                         | IntLiteral _ -> ScalarType Int
+                                         | FloatLiteral _ -> ScalarType Float
+                | ArrayAllocationExpression (t, e) ->
+                    CheckIndexType e
+                    { Type = t; Cover = Array }
+                | ArrayDeletionExpression i ->
+                    let i = stable.GetIdentifierType i
+                    
+                    if not i.IsArray then
+                        Errors.ArrayExpected
+                    ScalarType Unit
+                | _ -> ScalarType Unit
+            self.Add (expr, ExpressionType)
+            ExpressionType
+        ScanBlockStatement blockstat
+    do
+        program
+        |> List.iter ScanDeclaration
 
-                     if not e.IsScalar then fail
-                     elif e.IsUnit then fail
-                     else match op with
-                          | Negate -> if e.IsFloat then fail else e
-                          | LogicalNegate | Identity -> e
-                          | FloatConvert -> ScalarType Float
-                          | IntConvert | BooleanConvert -> ScalarType Int
-                 | IdentifierExpression i -> stable.GetIdentifierType i
-                 | ArrayIdentifierExpression (i, e) ->
-                     CheckIndexType e
-                     ScalarType (stable.GetIdentifierType i).Type
-                 | PointerValueIdentifierExpression i -> ScalarType (stable.GetIdentifierType i).Type
-                 | PointerAddressIdentifierExpression _ -> ScalarType Int
-                 | FunctionCallExpression (i, args) ->
-                     if not (ftable.ContainsKey i) then
-                         Errors.NameNotFound i
-                     let func = ftable.[i]
-                     let paramt = func.ParameterTypes
-                     // TODO
-                     ()
-                 | LiteralExpression l -> match l with
-                                          | IntLiteral _ -> ScalarType Int
-                                          | FloatLiteral _ -> ScalarType Float
-                 | ArrayAllocationExpression (t, e) ->
-                     // TODO
-                     ()
-                 | ArrayDeletionExpression i ->
-                     let i = stable.GetIdentifierType i
-                     // TODO
-                     ()
-             ()
+type AnalyzerResult =
+    {
+        SymbolTable : SymbolTable
+        ExpressionTypes : ExpressionTypeDictionary
+    }
+
+
+let Analyze program =
+    let stable = SymbolTable program
+    let ftable = FunctionTable program
+    if not (ftable.ContainsKey "main") then
+        Errors.MissingEntryPoint
+    let exprt = ExpressionTypeDictionary(program, ftable, stable)
+    {
+        SymbolTable = stable
+        ExpressionTypes = exprt
+    }
