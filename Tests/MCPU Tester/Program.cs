@@ -17,11 +17,42 @@ namespace MCPU
     using static System.Console;
     using static ArgumentType;
     using static OPCodes;
+    using Piglet.Lexer;
 
     public unsafe class Program
     {
         public static void Main(string[] args)
         {
+            var mcppp = @"
+int i;
+void foo(int a)
+{}
+
+int bar(void)
+{
+}
+
+float topkek (int lulz)
+{
+    return 42.0;
+}
+".Trim();
+            try
+            {
+                var ast = Lexer.parse(mcppp);
+                string repr = Builder.ToString(ast);
+            }
+            catch (LexerException ex)
+            {
+                WriteLine(ex.LineNumber);
+                WriteLine(ex.LineContents);
+                WriteLine(ex.Message);
+                WriteLine(ex.StackTrace);
+                ReadKey(false);
+
+                return;
+            }
+                
             Processor proc = new Processor(64, 64, -559038737);
 
             proc.OnError += (p, ex) => {
