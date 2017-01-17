@@ -96,7 +96,8 @@ and Expression =
     // TODO
 and WhileStatement = Expression * Statement
 and IfStatement = Expression * Statement * Statement option
-and InlineAssemblyStatement = { Lines : string list; }
+and InlineAssemblyStatement (code : string) =
+    member x.Code = code
 and BlockStatement = LocalVarDecl * Statement list
 and Statement =
     | ExpressionStatement of ExpressionStatement
@@ -105,7 +106,7 @@ and Statement =
     | WhileStatement of WhileStatement
     | ReturnStatement of Expression option
     | BreakStatement
-    | InlineAssemblyStatement of InlineAssemblyStatement
+    | InlineAsmStatement of InlineAssemblyStatement
 and ExpressionStatement =
     | Expression of Expression
     | Nop
@@ -217,9 +218,8 @@ module Builder =
             | None -> res
         | :? InlineAssemblyStatement as a ->
             sprintf "__asm\n%s{\n%s\n%s}" <| tab indent
-                                          <| (a.Lines
-                                              |> List.map (fun f -> tab(indent + 1) + f)
-                                              |> List.toArray
+                                          <| (a.Code.Split('\n')
+                                              |> Array.map (fun f -> tab(indent + 1) + f)
                                               |> String.concat "\n")
                                           <| tab indent
         | :? Statement as s -> sprintf "%s%s" <| tab indent
@@ -228,7 +228,7 @@ module Builder =
                                                  | ReturnStatement e -> match e with
                                                                          | Some e -> sprintf "return %s;" </ e
                                                                          | None -> "return;"
-                                                 | InlineAssemblyStatement a -> BuildString indent a
+                                                 | InlineAsmStatement a -> BuildString indent a
                                                  | ExpressionStatement e -> BuildString indent e
                                                  | IfStatement i -> BuildString indent i
                                                  | WhileStatement w -> BuildString indent w
@@ -244,7 +244,7 @@ module Builder =
     //            let printl = List.map (fun e -> tstr e (indent + 1))
     //                      >> List.fold (+) ",\n"
     //            let prints p l s = sprintf "%s : %s\n%s\n%s%s" tp p (printl l) tab s
-                
+    //         
     //            match box obj with
     //            | :? list<_> as l -> prints "[" l "]"
     //            | :? (_[]) as arr -> prints "[|" (Array.toList arr) "|]"

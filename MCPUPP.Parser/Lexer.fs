@@ -40,6 +40,7 @@ module Lexer =
     let nt_uop = NonTerminal<UnaryOperator>
     let nt_optargs = NonTerminal<Arguments>
     let nt_args = NonTerminal<Arguments>
+    let nt_asm = NonTerminal<InlineAssemblyStatement>
 
     let ParseTerminal regex (f : string -> 'a) = new TerminalWrapper<'a>(Configurator.CreateTerminal(regex, (fun s -> (f >> box) s)))
     let Terminal regex = new TerminalWrapper<string>(Configurator.CreateTerminal(regex))
@@ -53,6 +54,7 @@ module Lexer =
     let kw_new = Terminal "new"
     let kw_length = Terminal "length"
     let kw_delete = Terminal "delete"
+    let kw_asm = Terminal "__asm"
     let kw_unit = Terminal Builder.UnitString
     let kw_int = ParseTerminal "int" !<Int
     let kw_float = ParseTerminal "float" !<Float
@@ -91,6 +93,7 @@ module Lexer =
     let lt_true = ParseTerminal "true" !<(IntLiteral 1)
     let lt_false = ParseTerminal "false" !<(IntLiteral 0)
     let lt_null = ParseTerminal "null" !<(IntLiteral 0)
+    let lt_asm = ParseTerminal @"[\w\s\.:]+" InlineAssemblyStatement
     
     // IDENTIFIER
     let identifier = ParseTerminal @"[a-zA-Z_]\w*" id
@@ -182,13 +185,14 @@ module Lexer =
     // statements -> statements statement | statement
     reduce2 nt_statementlist nt_statementlist nt_statement (fun a b -> a @ elem b)
     reduce1 nt_statementlist nt_statement elem
-    // statement -> exprstatement | block | if | while | return | break
+    // statement -> exprstatement | block | if | while | return | break | asm
     reduce1 nt_statement nt_exprstatement ExpressionStatement
     reduce1 nt_statement nt_blockstatement BlockStatement
     reduce1 nt_statement nt_if IfStatement
     reduce1 nt_statement nt_while WhileStatement
     reduce1 nt_statement nt_return ReturnStatement
     reduce1 nt_statement nt_break !<BreakStatement
+    reduce1 nt_statement nt_asm InlineAsmStatement
     // exprstatement -> (| expr ) semicolon
     reduce2 nt_exprstatement nt_expr sy_semicolon (fun a _ -> Expression a)
     reduce1 nt_exprstatement sy_semicolon !<Nop
@@ -206,6 +210,8 @@ module Lexer =
     reduce3 nt_localvardecl nt_vartype identifier sy_semicolon (fun a b _ -> ScalarDeclaration(a, b))
     reduce4 nt_localvardecl nt_vartype op_multiply identifier sy_semicolon (fun a b _ _ -> PointerDeclaration(a, b))
     reduce5 nt_localvardecl nt_vartype sy_osquare sy_csquare identifier sy_semicolon (fun a b _ _ _ -> ArrayDeclaration(a, b))
+    // asm -> \__asm  \{ .... \}
+    reduce4 nt_asm kw_asm sy_ocurly lt_asm sy_ccurly (fun _ _ c _ -> c)
     // if -> \if \( expr \) statement opt_else
     reduce6 nt_if kw_if sy_oparen nt_expr sy_cparen nt_statement nt_optelse (fun _ _ c _ e f -> (c, e, f))
     // opt_else -> \else statement |

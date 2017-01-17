@@ -57,19 +57,9 @@ namespace MCPU
         public static void Main(string[] args)
         {
             var mcppp = @"
-int i;
-
-int bar(void)
+void main(void)
 {
-    float* ptr;
-}
-
-void foo(int a)
-{}
-
-float topkek (int lulz)
-{
-    return 42.0;
+    __asm{NOP}
 }
 ".Trim();
             try
