@@ -10,6 +10,7 @@ using System.IO;
 using System;
 
 using MCPU.MCPUPP.Parser.SyntaxTree;
+using MCPU.MCPUPP.Compiler;
 using MCPU.MCPUPP.Parser;
 using MCPU.MCPUPP.Tests;
 using MCPU.Compiler;
@@ -17,6 +18,7 @@ using MCPU.Compiler;
 namespace MCPU.Testing
 {
     using static Microsoft.VisualStudio.TestTools.UnitTesting.Assert;
+    using static ObjectDumper.Dumper;
 
     [TestClass]
     public class LexerTests
@@ -79,7 +81,7 @@ void main(void)
 }
 ";
             var ast = Lexer.parse(code);
-            string sym = Builder.ToString(ast);
+            string sym = ast.Dump(2);
 
             Debugger.Break();// TODO
         }

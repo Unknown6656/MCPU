@@ -10,6 +10,7 @@ using Piglet.Lexer;
 using Piglet.Parser;
 
 using MCPU.MCPUPP.Parser.SyntaxTree;
+using MCPU.MCPUPP.Compiler;
 using MCPU.MCPUPP.Parser;
 using MCPU.Compiler;
 
@@ -74,7 +75,7 @@ float topkek (int lulz)
             try
             {
                 var ast = Lexer.parse(mcppp);
-                string repr = Builder.ToString(ast);
+                string repr = SyntaxTreeExtensions.ToDebugString(ast);
             }
             catch (Exception ex)
             {

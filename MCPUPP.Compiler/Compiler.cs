@@ -1,12 +1,21 @@
-﻿using System.Runtime.Serialization;
+﻿using Microsoft.FSharp.Collections;
+using System.Runtime.Serialization;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
 using System.Text;
 using System;
 
+using MCPU.MCPUPP.Parser.SyntaxTree;
+using MCPU.MCPUPP.Parser;
 using MCPU.Compiler;
 using MCPU;
+
+using Program = Microsoft.FSharp.Collections.FSharpList<MCPU.MCPUPP.Parser.SyntaxTree.Declaration>;
+using Microsoft.FSharp.Reflection;
+using System.Collections;
+using System.Reflection;
+using Microsoft.FSharp.Core;
 
 namespace MCPU.MCPUPP.Compiler
 {
@@ -258,6 +267,49 @@ end func
     call {MAIN_FUNCTION_NAME}
     halt
 ";
+        }
+    }
+
+    /// <summary>
+    /// Contains a number of extension methods concerning the MCPU++ Abstract Syntax Tree (AST)
+    /// </summary>
+    public static class SyntaxTreeExtensions
+    {
+        /// <summary>
+        /// Returns the debugging-string representation of the MCPU++ program represented by the given AST
+        /// </summary>
+        /// <param name="prog">MCPU++ program AST</param>
+        /// <returns>String representation</returns>
+        public static string ToDebugString(this Program prog)
+        {
+            // this is a C#-port from the F#-function:
+            // https://github.com/Unknown6656/MCPU/blob/ae1240f405a09b56e6f37fd1fc5575b32e55bd3b/MCPUPP.Parser/SyntaxTree.fs#L239..L257
+
+            string tstr(object val, int indent)
+            {
+                string tab = new string(' ', 4 * indent);
+                Type type = val.GetType();
+
+                string inner()
+                {
+                    if (val == null)
+                        return "(null)";
+                    
+                    if (FSharpType.IsTuple(type))
+                        return prints("(", FSharpValue.GetTupleFields(val), ")");
+                    if (val is IEnumerable @enum)
+                        return prints("[", @enum, "]");
+                    else
+                        return $"{type.Name} : {val}";
+
+                    string printl(IEnumerable l) => string.Join(",\n", from object e in l select tstr(e, indent + 1));
+                    string prints(string p, IEnumerable l, string s) => $"{type.Name} : {p}\n{printl(l)}\n{tab}{s}";
+                }
+
+                return tab + inner();
+            }
+
+            return tstr(prog, 0);
         }
     }
 

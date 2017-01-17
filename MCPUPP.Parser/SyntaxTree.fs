@@ -236,22 +236,22 @@ module Builder =
         | _ -> "The type " + ast.GetType().ToString() + " could not be matched."
                |> failwith
 
-    let ToString (program : Program) = // TODO : fix!
-        let rec tstr obj indent =
-            let tab = new string(' ', indent * 4)
-            let inner =
-                let tp = obj.GetType().Name
-                let printl = List.map (fun e -> tstr e (indent + 1))
-                          >> List.fold (+) ",\n"
-                let prints p l s = sprintf "%s : %s\n%s\n%s%s" tp p (printl l) tab s
+    //let ToString (program : Program) = // TODO : fix!
+    //    let rec tstr obj indent =
+    //        let tab = new string(' ', indent * 4)
+    //        let inner =
+    //            let tp = obj.GetType().Name
+    //            let printl = List.map (fun e -> tstr e (indent + 1))
+    //                      >> List.fold (+) ",\n"
+    //            let prints p l s = sprintf "%s : %s\n%s\n%s%s" tp p (printl l) tab s
                 
-                match box obj with
-                | :? list<_> as l -> prints "[" l "]"
-                | :? (_[]) as arr -> prints "[|" (Array.toList arr) "|]"
-                | _ -> let tupleToList = FSharpValue.GetTupleFields >> Array.toList
-                       if FSharpType.IsTuple(obj.GetType()) then
-                           prints "(" (tupleToList obj) ")"
-                       else
-                           sprintf "%s : %s" tp <| obj.ToString()
-            tab + inner
-        tstr program 0
+    //            match box obj with
+    //            | :? list<_> as l -> prints "[" l "]"
+    //            | :? (_[]) as arr -> prints "[|" (Array.toList arr) "|]"
+    //            | _ -> let tupleToList = FSharpValue.GetTupleFields >> Array.toList
+    //                   if FSharpType.IsTuple(obj.GetType()) then
+    //                       prints "(" (tupleToList obj) ")"
+    //                   else
+    //                       sprintf "%s : %s" tp <| obj.ToString()
+    //        tab + inner
+    //    tstr program 0
