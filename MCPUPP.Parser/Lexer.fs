@@ -108,9 +108,6 @@ module Lexer =
     
     // OPERATOR ASSOCIATIVITY
     let prec_optelse = Configurator.LeftAssociative()
-    let prec_binop = Configurator.LeftAssociative()
-    let prec_unnop = Configurator.RightAssociative()
-    let prec_power = Configurator.RightAssociative()
     let assoc d x =
         let arg = List.map (fun (f : SymbolWrapper<_>) -> downcast f.Symbol)
                >> List.toArray
@@ -121,6 +118,7 @@ module Lexer =
             
     // PRECEDENCE LIST
     assoc Left [ kw_else ]
+    assoc Left [ op_assign ]
     assoc Left [ op_xor ]
     assoc Left [ op_or ]
     assoc Left [ op_and ]
@@ -130,8 +128,12 @@ module Lexer =
     assoc Left [ op_not; op_add; op_subtract ]
     assoc Left [ op_multiply; op_divide; op_modulus ]
     assoc Right [ op_power ]
-    assoc Right [ op_raw; ]
+    assoc Right [ op_raw ]
+    assoc Right [ op_int; op_float; op_bool ]
         
+    let prec_binop = Configurator.LeftAssociative()
+    let prec_unnop = Configurator.RightAssociative()
+
     // PRODUCTIONS
     let reducef (s : NonTerminalWrapper<'a>) x = s.AddProduction().SetReduceFunction x
     let reduce0 (s : NonTerminalWrapper<'a>) a = s.AddProduction(a).SetReduceToFirst()
@@ -153,14 +155,14 @@ module Lexer =
     // decl -> funcdecl | globaldecl
     reduce1 nt_decl nt_globalvardecl GlobalVarDecl
     reduce1 nt_decl nt_funcdecl FunctionDeclaration
-    // globaldecl -> vartype (| pointer | array ) identifier semicolon
-    reduce3 nt_globalvardecl nt_vartype identifier sy_semicolon (fun a b _ -> ScalarDeclaration(a, b))
-    reduce4 nt_globalvardecl nt_vartype op_multiply identifier sy_semicolon (fun a b _ _ -> PointerDeclaration(a, b))
-    reduce5 nt_globalvardecl nt_vartype sy_osquare sy_csquare identifier sy_semicolon (fun a b _ _ _ -> ArrayDeclaration(a, b))
     // vartype -> unit | int | float
     reduce1 nt_vartype kw_unit !<Unit
     reduce0 nt_vartype kw_int
     reduce0 nt_vartype kw_float
+    // globaldecl -> vartype (| pointer | array ) identifier semicolon
+    reduce3 nt_globalvardecl nt_vartype identifier sy_semicolon (fun a b _ -> ScalarDeclaration(a, b))
+    reduce4 nt_globalvardecl nt_vartype op_multiply identifier sy_semicolon (fun a b _ _ -> PointerDeclaration(a, b))
+    reduce5 nt_globalvardecl nt_vartype sy_osquare sy_csquare identifier sy_semicolon (fun a b _ _ _ -> ArrayDeclaration(a, b))
     // funcdecl -> type name \( params \) block
     reduce6 nt_funcdecl nt_vartype identifier sy_oparen nt_params sy_cparen nt_blockstatement (fun a b _ d _ f -> (a, b, d, f))
     // params -> unit | paramlist
@@ -172,11 +174,14 @@ module Lexer =
                                                                        @ elem c
                                                                        |> List.toArray)
     reduce2 nt_param nt_vartype identifier (fun a b -> ScalarDeclaration(a, b))
-    // block -> \{ vars statements \}
-    reduce4 nt_blockstatement sy_ocurly nt_optlocalvardecl nt_optstatements sy_ccurly (fun _ b c _ -> (b, c))
-    
-    reduce2 nt_optstatements nt_statement nt_optstatements (fun a l -> elem a @ l)
+    reduce3 nt_param nt_vartype op_multiply identifier (fun a _ b -> PointerDeclaration(a, b))
+    reduce4 nt_param nt_vartype sy_osquare sy_csquare identifier (fun a _ _ b -> ArrayDeclaration(a, b))
+    // optstatements -> | statements
+    reduce0 nt_optstatements nt_statementlist
     reducef nt_optstatements !<[]
+    // statements -> statements statement | statement
+    reduce2 nt_statementlist nt_statementlist nt_statement (fun a b -> a @ elem b)
+    reduce1 nt_statementlist nt_statement elem
     // statement -> exprstatement | block | if | while | return | break
     reduce1 nt_statement nt_exprstatement ExpressionStatement
     reduce1 nt_statement nt_blockstatement BlockStatement
@@ -187,15 +192,20 @@ module Lexer =
     // exprstatement -> (| expr ) semicolon
     reduce2 nt_exprstatement nt_expr sy_semicolon (fun a _ -> Expression a)
     reduce1 nt_exprstatement sy_semicolon !<Nop
+    // while -> \while \( expr \) statement
+    reduce5 nt_while kw_while sy_oparen nt_expr sy_cparen nt_statement (fun _ _ c _ e -> (c, e))
+    // block -> \{ vars statements \}
+    reduce4 nt_blockstatement sy_ocurly nt_optlocalvardecl nt_optstatements sy_ccurly (fun _ b c _ -> (b, c))
     // vars -> vars var | var |
     reduce0 nt_optlocalvardecl nt_localvardecllist
     reducef nt_optlocalvardecl !<[]
-
-    nt_localvardecllist.AddProduction(nt_localvardecllist, nt_localvardecl).SetReduceToFirst()
-    
+    // nt_localvardecllist.AddProduction(nt_localvardecllist, nt_localvardecl).SetReduceToFirst()
+    reduce2 nt_localvardecllist nt_localvardecllist nt_localvardecl (fun a b -> a @ elem b)
     reduce1 nt_localvardecllist nt_localvardecl elem
-    // while -> \while \( expr \) statement
-    reduce5 nt_while kw_while sy_oparen nt_expr sy_cparen nt_statement (fun _ _ c _ e -> (c, e))
+    // var -> vartype (| pointer | array ) identifier semicolon
+    reduce3 nt_localvardecl nt_vartype identifier sy_semicolon (fun a b _ -> ScalarDeclaration(a, b))
+    reduce4 nt_localvardecl nt_vartype op_multiply identifier sy_semicolon (fun a b _ _ -> PointerDeclaration(a, b))
+    reduce5 nt_localvardecl nt_vartype sy_osquare sy_csquare identifier sy_semicolon (fun a b _ _ _ -> ArrayDeclaration(a, b))
     // if -> \if \( expr \) statement opt_else
     reduce6 nt_if kw_if sy_oparen nt_expr sy_cparen nt_statement nt_optelse (fun _ _ c _ e f -> (c, e, f))
     // opt_else -> \else statement |

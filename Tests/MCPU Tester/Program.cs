@@ -57,12 +57,14 @@ namespace MCPU
         {
             var mcppp = @"
 int i;
-void foo(int a)
-{}
 
 int bar(void)
 {
+    float* ptr;
 }
+
+void foo(int a)
+{}
 
 float topkek (int lulz)
 {
