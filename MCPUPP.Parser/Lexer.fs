@@ -59,9 +59,9 @@ module Lexer =
     
     // OPERATORS
     let op_not = Terminal "~"
-    let op_int = Terminal @"\(int\)"
-    let op_bool = Terminal @"\(bool\)"
-    let op_float = Terminal @"\(float\)"
+    let op_int = Terminal @"int$"
+    let op_bool = Terminal @"bool$"
+    let op_float = Terminal @"float$"
     let op_add = Terminal @"\+"
     let op_subtract = Terminal "-"
     let op_multiply = Terminal @"\*"
@@ -85,15 +85,15 @@ module Lexer =
     let op_assign = Terminal "="
 
     // LITERALS
-    let lt_int = ParseTerminal @"\d+" (IntLiteral << int)
-    let lt_hex = ParseTerminal @"0x[a-f0-9]+" (fun s -> IntLiteral(Int32.Parse(s, NumberStyles.HexNumber)))
     let lt_float = ParseTerminal @"\d+\.\d+" (FloatLiteral << float)
+    let lt_hex = ParseTerminal @"0x[a-f0-9]+" (fun s -> IntLiteral(Int32.Parse(s, NumberStyles.HexNumber)))
+    let lt_int = ParseTerminal @"\d+" (IntLiteral << int)
     let lt_true = ParseTerminal "true" !<(IntLiteral 1)
     let lt_false = ParseTerminal "false" !<(IntLiteral 0)
     let lt_null = ParseTerminal "null" !<(IntLiteral 0)
     
     // IDENTIFIER
-    let identifier = ParseTerminal @"\b[a-zA-Z_]\w*\b" id
+    let identifier = ParseTerminal @"[a-zA-Z_]\w*" id
 
     // SYMBOLS
     let sy_semicolon = Terminal ";"
@@ -164,15 +164,19 @@ module Lexer =
     // funcdecl -> type name \( params \) block
     reduce6 nt_funcdecl nt_vartype identifier sy_oparen nt_params sy_cparen nt_blockstatement (fun a b _ d _ f -> (a, b, d, f))
     // params -> unit | paramlist
-    reduce0 nt_params nt_paramlist
     reduce1 nt_params kw_unit !<[||]
+    reduce0 nt_params nt_paramlist
     // paramlist -> paramlist comma param | param
+    reduce1 nt_paramlist nt_param (elem >> List.toArray)
     reduce3 nt_paramlist nt_paramlist sy_comma nt_param (fun a _ c -> (Array.toList a)
                                                                        @ elem c
                                                                        |> List.toArray)
-    reduce1 nt_paramlist nt_param (elem >> List.toArray)
+    reduce2 nt_param nt_vartype identifier (fun a b -> ScalarDeclaration(a, b))
     // block -> \{ vars statements \}
     reduce4 nt_blockstatement sy_ocurly nt_optlocalvardecl nt_optstatements sy_ccurly (fun _ b c _ -> (b, c))
+    
+    reduce2 nt_optstatements nt_statement nt_optstatements (fun a l -> elem a @ l)
+    reducef nt_optstatements !<[]
     // statement -> exprstatement | block | if | while | return | break
     reduce1 nt_statement nt_exprstatement ExpressionStatement
     reduce1 nt_statement nt_blockstatement BlockStatement

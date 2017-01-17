@@ -18,6 +18,9 @@ and Parameters = VariableDeclaration[]
 and Literal =
     | IntLiteral of int
     | FloatLiteral of float
+    override x.ToString() = match x with
+                            | IntLiteral i -> i.ToString()
+                            | FloatLiteral f -> f.ToString()
 and BinaryOperator =
     | Equal
     | NotEqual
@@ -38,6 +41,26 @@ and BinaryOperator =
     | ShiftRight
     | RotateLeft
     | RotateRight
+    override x.ToString() = match x with
+                            | Or            -> "|"
+                            | Equal         -> "=="
+                            | NotEqual      -> "!="
+                            | LessEqual     -> "<="
+                            | Less          -> "<"
+                            | GreaterEqual  -> ">="
+                            | Greater       -> ">"
+                            | And           -> "&"
+                            | Add           -> "+"
+                            | Subtract      -> "-"
+                            | Multiply      -> "*"
+                            | Divide        -> "/"
+                            | Modulus       -> "%"
+                            | Power         -> "^^"
+                            | Xor           -> "^"
+                            | ShiftLeft     -> "<<"
+                            | ShiftRight    -> ">>"
+                            | RotateLeft    -> "<<<"
+                            | RotateRight   -> ">>>"
 and UnaryOperator =
     | LogicalNegate
     | Negate
@@ -45,6 +68,13 @@ and UnaryOperator =
     | IntConvert
     | FloatConvert
     | BooleanConvert
+    override x.ToString() = match x with
+                            | LogicalNegate  -> "-"
+                            | Negate         -> "~"
+                            | Identity       -> "+"
+                            | IntConvert     -> "(int)"
+                            | FloatConvert   -> "(float)"
+                            | BooleanConvert -> "(bool)"         
 and Arguments = Expression list
 and Expression =
     | LiteralExpression of Literal
