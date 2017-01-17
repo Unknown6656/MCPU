@@ -19,7 +19,7 @@ namespace MCPU.Testing
     using static Microsoft.VisualStudio.TestTools.UnitTesting.Assert;
 
     [TestClass]
-    public class ParserTests
+    public class LexerTests
         : Commons
     {
         internal static void ValidateTest((string code, FSharpList<Declaration> ast) data)
@@ -80,6 +80,8 @@ void main(void)
 ";
             var ast = Lexer.parse(code);
             string sym = Builder.ToString(ast);
+
+            Debugger.Break();// TODO
         }
     }
 }

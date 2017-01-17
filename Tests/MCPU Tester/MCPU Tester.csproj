@@ -93,9 +93,9 @@
       <Project>{1e23f251-94e1-4504-81e8-2618f5c9fea3}</Project>
       <Name>Piglet</Name>
     </ProjectReference>
-    <ProjectReference Include="..\MCPU Unit Tests\MCPU Unit Tests.csproj">
+    <ProjectReference Include="..\MCPU Unit Tests\MCPU.UnitTests.csproj">
       <Project>{15a7417f-b941-406b-a0b7-8fb3402dfffc}</Project>
-      <Name>MCPU Unit Tests</Name>
+      <Name>MCPU.UnitTests</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

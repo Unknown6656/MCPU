@@ -15,7 +15,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{FA32467C
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MCPU Tester", "Tests\MCPU Tester\MCPU Tester.csproj", "{729B5FD8-7C51-4BE1-ADC3-8E628A4542F8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MCPU Unit Tests", "Tests\MCPU Unit Tests\MCPU Unit Tests.csproj", "{15A7417F-B941-406B-A0B7-8FB3402DFFFC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MCPU.UnitTests", "Tests\MCPU Unit Tests\MCPU.UnitTests.csproj", "{15A7417F-B941-406B-A0B7-8FB3402DFFFC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Piglet", "Piglet\Piglet\Piglet.csproj", "{1E23F251-94E1-4504-81E8-2618F5C9FEA3}"
 EndProject

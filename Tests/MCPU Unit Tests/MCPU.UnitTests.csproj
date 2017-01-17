@@ -59,7 +59,7 @@
     <Compile Include="CompilerTests.cs" />
     <Compile Include="ProcessorTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="MCPU++ Tests\ParserTests.cs" />
+    <Compile Include="LexerTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
