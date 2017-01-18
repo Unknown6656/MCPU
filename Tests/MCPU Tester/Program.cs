@@ -59,9 +59,10 @@ namespace MCPU
             var mcppp = @"
 void main(void)
 {
-    __asm{NOP}
+    /// __asm{NOP}
 }
 ".Trim();
+
             try
             {
                 var ast = Lexer.parse(mcppp);
