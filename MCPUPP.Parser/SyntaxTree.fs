@@ -1,11 +1,13 @@
 ﻿namespace MCPU.MCPUPP.Parser.SyntaxTree
 
-open Microsoft.FSharp.Reflection
-
 type VariableType =
     | Unit
     | Int
     | Float
+    override x.ToString() = match x with
+                            | Unit -> "void"
+                            | Int -> "int"
+                            | Float -> "float"
 and Identifier = string
 type IdentifierRef (name : string) =
     member x.Identifier = name
@@ -126,7 +128,9 @@ and Program = Declaration list
 
 
 module Builder =
-    let UnitString = "void"
+    let UnitString =
+        let unit = Unit
+        unit.ToString()
 
     let rec BuildString (indent : int) (ast : obj) =
         let inline (</) f = BuildString indent >> f

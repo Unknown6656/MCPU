@@ -55,7 +55,7 @@ module UnitTests =
             while (true)
                 break;
         }", [
-            FunctionDeclaration(Unit, "test", [||], (
+            FunctionDeclaration(Unit, "main", [||], (
                     [], [
                         WhileStatement(
                             LiteralExpression(
@@ -74,7 +74,7 @@ module UnitTests =
             if (false)
                 return;
         }", [
-            FunctionDeclaration(Unit, "test", [||], (
+            FunctionDeclaration(Unit, "main", [||], (
                     [], [
                         WhileStatement(
                             LiteralExpression(
@@ -94,7 +94,7 @@ module UnitTests =
 
             arr = new float[8];
         }", [
-            FunctionDeclaration(Unit, "test", [||], (
+            FunctionDeclaration(Unit, "main", [||], (
                     [
                         ArrayDeclaration(Float, "arr")
                     ],
@@ -124,7 +124,7 @@ module UnitTests =
 
             delete arr;
         }", [
-            FunctionDeclaration(Unit, "test", [||], (
+            FunctionDeclaration(Unit, "main", [||], (
                     [
                         ArrayDeclaration(Float, "arr")
                     ],
@@ -144,12 +144,9 @@ module UnitTests =
         !~<(@"
         void main(void)
         {
-            __asm
-            {
-                NOP
-            }
+            __asm ""NOP"";
         }", [
-            FunctionDeclaration(Unit, "test", [||], (
+            FunctionDeclaration(Unit, "main", [||], (
                     [], [
                         InlineAsmStatement(
                             InlineAssemblyStatement "NOP"

@@ -94,10 +94,8 @@ module Lexer =
     let lt_true = ParseTerminal "true" !<(IntLiteral 1)
     let lt_false = ParseTerminal "false" !<(IntLiteral 0)
     let lt_null = ParseTerminal "null" !<(IntLiteral 0)
-    // TODO : let lt_asm = ParseTerminal @"[\w\s\.:]+" 
     let lt_string = ParseTerminal "\"([^\"]*)\"" (fun s -> if s.Length < 2 then
-                                                               Piglet.Lexer.LexerException "Unable to parse string"
-                                                               |> raise
+                                                               Errors.UnableParseInlineAsm; ""
                                                            else
                                                                s.Substring(1, s.Length - 2))
     
@@ -105,7 +103,6 @@ module Lexer =
     let identifier = ParseTerminal @"[a-zA-Z_]\w*" id
 
     // SYMBOLS
-    let sy_quote = Terminal "\""
     let sy_semicolon = Terminal ";"
     let sy_comma = Terminal ","
     let sy_point = Terminal @"\."
@@ -227,7 +224,7 @@ module Lexer =
     // opt_else -> \else statement |
     let prod_else = nt_optelse.AddProduction(kw_else, nt_statement)
 
-    prod_else.SetReduceFunction (fun _ b -> Some b)
+    prod_else.SetReduceFunction !<Some
     prod_else.SetPrecedence prec_optelse
 
     let prod_else_epsilon = nt_optelse.AddProduction()
@@ -276,7 +273,7 @@ module Lexer =
     reduce1 nt_expr identifier ((!.) >> IdentifierExpression)
     reduce4 nt_expr identifier sy_osquare nt_expr sy_csquare (fun a _ c _ -> ArrayIdentifierExpression(!.a, c))
     reduce4 nt_expr identifier sy_oparen nt_optargs sy_cparen (fun a _ c _ -> FunctionCallExpression(a, c))
-    reduce3 nt_expr identifier sy_point kw_length (fun a _ _ -> ArraySizeExpression(!.a))
+    reduce3 nt_expr identifier sy_point kw_length (fun a _ _ -> ArraySizeExpression !.a)
     reduce1 nt_expr lt_true LiteralExpression
     reduce1 nt_expr lt_false LiteralExpression
     reduce1 nt_expr lt_null LiteralExpression

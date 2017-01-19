@@ -20,3 +20,4 @@ module Errors =
     let InvalidArgumentCount f p = !!(sprintf "The function %s expects %d arguments" f p)
     let InvalidArgument f i g e = !!(sprintf "Invalid argument №%d for function %s given: Expected a value of the type %s, but recived an argument of the type %s." i f <| e.ToString() <| g.ToString())
     let MissingEntryPoint = ignore !!"The program's entry-point function 'void main()' could not be found"
+    let UnableParseInlineAsm = (Piglet.Lexer.LexerException >> raise >> ignore) "Unable to parse the inline-MCPU assembly code"

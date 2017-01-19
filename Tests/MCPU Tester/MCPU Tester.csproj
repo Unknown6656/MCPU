@@ -36,7 +36,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>MCPU.Program</StartupObject>
+    <StartupObject>MCPU.UnitTestWrapper</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="FSharp.Core, Version=4.4.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
@@ -84,6 +84,10 @@
     <ProjectReference Include="..\..\MCPUPP.Parser\MCPUPP.Parser.fsproj">
       <Project>{ec613ade-fdff-461d-9e84-9093e96aa759}</Project>
       <Name>MCPUPP.Parser</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\MCPUPP.UnitTests\MCPUPP.UnitTests.fsproj">
+      <Project>{56bda770-be2b-4e83-b363-7c3e385deda5}</Project>
+      <Name>MCPUPP.UnitTests</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\ObjectDumper\ObjectDumper.csproj">
       <Project>{08a40eeb-232f-42d0-a02d-2e6e303c063e}</Project>

@@ -278,6 +278,38 @@ end func
     {
         internal static readonly Type ITupleType = typeof(Tuple).Assembly.GetType("System.ITuple");
 
+
+        internal static dynamic GenerateTuple(object val)
+        {
+            if (val == null)
+                return null;
+
+            List<object> values = new List<object>();
+            Type t = val.GetType();
+            int i = 0;
+
+            while (true)
+                try
+                {
+                    values.Add(t.GetProperty(i == 0 ? "Item" : $"Item{i}").GetValue(val));
+
+                    ++i;
+                }
+                catch
+                {
+                    break;
+                }
+
+            if (i == 0)
+                return null;
+            else if (i == 1)
+                return val;
+            else
+                return typeof(Tuple).GetMethod(nameof(Tuple.Create))
+                                    .MakeGenericMethod((from v in values select v?.GetType() ?? typeof(object)).ToArray())
+                                    .Invoke(null, values.ToArray());
+        }
+        
         /// <summary>
         /// Returns the debugging-string representation of the MCPU++ program represented by the given AST
         /// </summary>
@@ -288,7 +320,7 @@ end func
             // this is a C#-port from the F#-function:
             // https://github.com/Unknown6656/MCPU/blob/ae1240f405a09b56e6f37fd1fc5575b32e55bd3b/MCPUPP.Parser/SyntaxTree.fs#L239..L257
 
-            string tstr(object val, int indent)
+            string tstr(object val, int indent, bool padstart = true)
             {
                 string tab = new string(' ', 4 * indent);
 
@@ -301,40 +333,67 @@ end func
 
                     Type type = val.GetType();
 
+                    try
+                    {
+                        if (type?.GetGenericTypeDefinition() == typeof(FSharpOption<>))
+                            return tstr(type.GetProperty("Value").GetValue(val), 0);
+                    }
+                    catch { }
+
                     if (FSharpType.IsTuple(type))
                         return prints("(", FSharpValue.GetTupleFields(val), ")");
-                    if (ITupleType.IsAssignableFrom(type))
+                    else if (ITupleType.IsAssignableFrom(type))
                     {
                         PropertyInfo prop = ITupleType.GetProperty("Size", BindingFlags.Instance | BindingFlags.NonPublic);
                         int sz = (int)prop.GetValue(val, new object[0]);
-      
+
                         return prints("(", from i in Enumerable.Range(1, sz) select ITupleType.GetProperty($"Item{i}").GetValue(val), ")");
                     }
-                    if (val is ValueTuple vtuple)
+                    else if (val is ValueTuple vtuple)
                     {
-                       
-
+                        throw null; // TODO
                     }
-                    if (val is IEnumerable @enum)
+                    else if (val is IEnumerable @enum)
                         return prints("[", @enum, "]");
                     else
                         switch (val)
                         {
-                            case Declaration.FunctionDeclaration fdecl:
-                                return tstr(fdecl.Item, indent);
-                            case Declaration.GlobalVarDecl vdecl:
-                                return tstr(vdecl.Item, indent);
-
-
+                            case Statement.IfStatement _:
+                            case Statement.WhileStatement _:
+                            case Statement.BlockStatement _:
+                            case Statement.InlineAsmStatement _:
+                            case Statement.ExpressionStatement _:
+                            case Statement.ReturnStatement _:
+                            case ExpressionStatement.Expression _:
+                            case Expression.ArrayDeletionExpression _:
+                            case Expression.IdentifierExpression _:
+                            case Expression.ArraySizeExpression _:
+                            case Expression.LiteralExpression _:
+                            case Expression.PointerValueIdentifierExpression _:
+                            case Expression.RawAddressOfExpression _:
+                            case Declaration _:
+                                return tstritem(val); 
+                            case Expression.ArrayAllocationExpression _:
+                            case Expression.ArrayAssignmentExpression _:
+                            case Expression.ArrayIdentifierExpression _:
+                            case Expression.BinaryExpression _:
+                            case Expression.FunctionCallExpression _:
+                            case Expression.PointerAddressIdentifierExpression _:
+                            case Expression.PointerAssignmentExpression _:
+                            case Expression.PointerValueAssignmentExpression _:
+                            case Expression.ScalarAssignmentExpression _:
+                            case Expression.UnaryExpression _:
+                                return tstritem(GenerateTuple(val));
                             default:
                                 return $"{type.Name} : {val}";
                         }
 
                     string printl(IEnumerable l) => string.Join(",\n", from object e in l select tstr(e, indent + 1));
                     string prints(string p, IEnumerable l, string s) => $"{type.Name} : {p}\n{printl(l)}\n{tab}{s}";
+                    string tstritem(object obj) => tstr(obj.GetType().GetProperty("Item").GetValue(obj), indent + 1, false);
                 }
 
-                return tab + inner();
+                return (padstart ? tab : "") + inner();
             }
 
             return tstr(prog, 0);

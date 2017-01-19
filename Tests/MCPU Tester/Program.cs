@@ -12,6 +12,7 @@ using Piglet.Parser;
 using MCPU.MCPUPP.Parser.SyntaxTree;
 using MCPU.MCPUPP.Compiler;
 using MCPU.MCPUPP.Parser;
+using MCPU.MCPUPP.Tests;
 using MCPU.Compiler;
 
 namespace MCPU
@@ -64,9 +65,13 @@ void main(int[] arr)
     int f;
     float* ptr;
 
-    __asm ""NOP"";
-    __asm ""HALT"";
-    __asm ""TOP: KEK"";
+    __asm ""
+        .kernel
+        NOP
+        MOV k[44]  [[$0]] __test
+__test:
+        HALT
+    "";
 }
 ".Trim();
 
@@ -139,13 +144,13 @@ end func
 
             foreach (var i in instr)
                 WriteLine($"{line++:d3}: {i}");
-            
+
             proc.ProcessWithoutReset(instr);
 
             WriteLine($"SBP: {proc.StackBaseAddress:x8}");
             WriteLine($"SP:  {proc.StackPointerAddress:x8}");
             WriteLine($"SSZ: {proc.StackSize * 4}");
-            
+
             ReadKey(true);
         }
     }
