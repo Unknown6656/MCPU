@@ -96,7 +96,7 @@ void main(void)
         public void Test_08() => ValidateTest(UnitTests.Test06);
 
         [TestMethod]
-        public void Test_09() => ValidateTest(UnitTests.Test07, true);
+        public void Test_09() => ValidateTest(UnitTests.Test07);
 
         [TestMethod]
         public void Test_10() => ValidateTest(UnitTests.Test08, true);

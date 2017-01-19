@@ -102,8 +102,11 @@ module UnitTests =
                             ),
                             ReturnStatement(
                                 Some(
-                                    LiteralExpression(
-                                        IntLiteral(-42)
+                                    UnaryExpression(
+                                        LogicalNegate,
+                                        LiteralExpression(
+                                            IntLiteral(42)
+                                        )
                                     )
                                 )
                             )
