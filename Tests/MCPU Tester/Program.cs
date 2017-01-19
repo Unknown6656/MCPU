@@ -57,16 +57,24 @@ namespace MCPU
         public static void Main(string[] args)
         {
             var mcppp = @"
-void main(void)
+int* test;
+
+void main(int[] arr)
 {
-    /// __asm{NOP}
+    int f;
+    float* ptr;
+
+    __asm ""NOP"";
+    __asm ""HALT"";
+    __asm ""TOP: KEK"";
 }
 ".Trim();
 
             try
             {
                 var ast = Lexer.parse(mcppp);
-                string repr = SyntaxTreeExtensions.ToDebugString(ast);
+
+                WriteLine(SyntaxTreeExtensions.ToDebugString(ast));
             }
             catch (Exception ex)
             {

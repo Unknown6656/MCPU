@@ -1,7 +1,12 @@
 ﻿using Microsoft.FSharp.Collections;
+using Microsoft.FSharp.Reflection;
+using Microsoft.FSharp.Core;
+
 using System.Runtime.Serialization;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Collections;
+using System.Reflection;
 using System.Linq;
 using System.Text;
 using System;
@@ -12,10 +17,6 @@ using MCPU.Compiler;
 using MCPU;
 
 using Program = Microsoft.FSharp.Collections.FSharpList<MCPU.MCPUPP.Parser.SyntaxTree.Declaration>;
-using Microsoft.FSharp.Reflection;
-using System.Collections;
-using System.Reflection;
-using Microsoft.FSharp.Core;
 
 namespace MCPU.MCPUPP.Compiler
 {
@@ -275,6 +276,8 @@ end func
     /// </summary>
     public static class SyntaxTreeExtensions
     {
+        internal static readonly Type ITupleType = typeof(Tuple).Assembly.GetType("System.ITuple");
+
         /// <summary>
         /// Returns the debugging-string representation of the MCPU++ program represented by the given AST
         /// </summary>
@@ -288,19 +291,44 @@ end func
             string tstr(object val, int indent)
             {
                 string tab = new string(' ', 4 * indent);
-                Type type = val.GetType();
 
                 string inner()
                 {
                     if (val == null)
-                        return "(null)";
-                    
+                        return $"(null)";
+                    else if (val is string str)
+                        return $"\"{str}\"";
+
+                    Type type = val.GetType();
+
                     if (FSharpType.IsTuple(type))
                         return prints("(", FSharpValue.GetTupleFields(val), ")");
+                    if (ITupleType.IsAssignableFrom(type))
+                    {
+                        PropertyInfo prop = ITupleType.GetProperty("Size", BindingFlags.Instance | BindingFlags.NonPublic);
+                        int sz = (int)prop.GetValue(val, new object[0]);
+      
+                        return prints("(", from i in Enumerable.Range(1, sz) select ITupleType.GetProperty($"Item{i}").GetValue(val), ")");
+                    }
+                    if (val is ValueTuple vtuple)
+                    {
+                       
+
+                    }
                     if (val is IEnumerable @enum)
                         return prints("[", @enum, "]");
                     else
-                        return $"{type.Name} : {val}";
+                        switch (val)
+                        {
+                            case Declaration.FunctionDeclaration fdecl:
+                                return tstr(fdecl.Item, indent);
+                            case Declaration.GlobalVarDecl vdecl:
+                                return tstr(vdecl.Item, indent);
+
+
+                            default:
+                                return $"{type.Name} : {val}";
+                        }
 
                     string printl(IEnumerable l) => string.Join(",\n", from object e in l select tstr(e, indent + 1));
                     string prints(string p, IEnumerable l, string s) => $"{type.Name} : {p}\n{printl(l)}\n{tab}{s}";

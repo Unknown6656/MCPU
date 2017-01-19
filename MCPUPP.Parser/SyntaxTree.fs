@@ -9,10 +9,16 @@ type VariableType =
 and Identifier = string
 type IdentifierRef (name : string) =
     member x.Identifier = name
+    override x.ToString() =
+        x.Identifier
 type VariableDeclaration =
     | ArrayDeclaration of VariableType * Identifier
     | ScalarDeclaration of VariableType * Identifier
     | PointerDeclaration of VariableType * Identifier
+    override x.ToString() = match x with
+                            | ArrayDeclaration(t, i)
+                            | ScalarDeclaration(t, i)
+                            | PointerDeclaration(t, i) -> sprintf "%s %s" (t.ToString()) i
 and LocalVarDecl = VariableDeclaration list
 and Parameters = VariableDeclaration[]
 and Literal =
@@ -98,6 +104,8 @@ and WhileStatement = Expression * Statement
 and IfStatement = Expression * Statement * Statement option
 and InlineAssemblyStatement (code : string) =
     member x.Code = code
+    override x.ToString() =
+        x.Code
 and BlockStatement = LocalVarDecl * Statement list
 and Statement =
     | ExpressionStatement of ExpressionStatement
@@ -236,22 +244,27 @@ module Builder =
         | _ -> "The type " + ast.GetType().ToString() + " could not be matched."
                |> failwith
 
-    //let ToString (program : Program) = // TODO : fix!
+    //let ToDebugString (program : Program) = // TODO : fix!
     //    let rec tstr obj indent =
     //        let tab = new string(' ', indent * 4)
+    //        let tp = obj.GetType().Name
     //        let inner =
-    //            let tp = obj.GetType().Name
-    //            let printl = List.map (fun e -> tstr e (indent + 1))
+    //            let printl = List.map (fun (e : 'a) -> tstr (box e) (indent + 1))
     //                      >> List.fold (+) ",\n"
-    //            let prints p l s = sprintf "%s : %s\n%s\n%s%s" tp p (printl l) tab s
-    //         
+    //            let prints p l s = sprintf "%s\n%s\n%s%s" p (printl l) tab s
+    //    
     //            match box obj with
-    //            | :? list<_> as l -> prints "[" l "]"
-    //            | :? (_[]) as arr -> prints "[|" (Array.toList arr) "|]"
-    //            | _ -> let tupleToList = FSharpValue.GetTupleFields >> Array.toList
-    //                   if FSharpType.IsTuple(obj.GetType()) then
-    //                       prints "(" (tupleToList obj) ")"
-    //                   else
-    //                       sprintf "%s : %s" tp <| obj.ToString()
-    //        tab + inner
+    //            | :? Parameters as p -> prints "[|" (Array.toList p) "|]"
+    //            | :? Arguments as a -> prints "[" a "]"
+    //            | :? Program as l -> prints "[" l "]"
+    //            | :? Declaration as d -> ""
+    //            | :? IdentifierRef as i -> i.Identifier
+    //            | :? VariableDeclaration as v -> match v with
+    //                                             | ScalarDeclaration (t, i)
+    //                                             | ArrayDeclaration (t, i)
+    //                                             | PointerDeclaration (t, i) -> prints "(" [t;i] ")"
+    //            | :? LocalVarDecl as l -> prints "[" l "]"
+    //            | _ -> obj.ToString()
+    //
+    //        sprintf "%s%s : %s" tp tab inner
     //    tstr program 0

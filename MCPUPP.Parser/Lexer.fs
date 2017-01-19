@@ -40,7 +40,8 @@ module Lexer =
     let nt_uop = NonTerminal<UnaryOperator>
     let nt_optargs = NonTerminal<Arguments>
     let nt_args = NonTerminal<Arguments>
-    // TODO : let nt_asm = NonTerminal<InlineAssemblyStatement>
+    let nt_asm = NonTerminal<InlineAssemblyStatement>
+    let nt_string = NonTerminal<string>
 
     let ParseTerminal regex (f : string -> 'a) = new TerminalWrapper<'a>(Configurator.CreateTerminal(regex, (fun s -> (f >> box) s)))
     let Terminal regex = new TerminalWrapper<string>(Configurator.CreateTerminal(regex))
@@ -54,7 +55,7 @@ module Lexer =
     let kw_new = Terminal "new"
     let kw_length = Terminal "length"
     let kw_delete = Terminal "delete"
-    // TODO : let kw_asm = Terminal "__asm"
+    let kw_asm = Terminal "__asm"
     let kw_unit = Terminal Builder.UnitString
     let kw_int = ParseTerminal "int" !<Int
     let kw_float = ParseTerminal "float" !<Float
@@ -93,12 +94,18 @@ module Lexer =
     let lt_true = ParseTerminal "true" !<(IntLiteral 1)
     let lt_false = ParseTerminal "false" !<(IntLiteral 0)
     let lt_null = ParseTerminal "null" !<(IntLiteral 0)
-    // TODO : let lt_asm = ParseTerminal @"[\w\s\.:]+" InlineAssemblyStatement
+    // TODO : let lt_asm = ParseTerminal @"[\w\s\.:]+" 
+    let lt_string = ParseTerminal "\"([^\"]*)\"" (fun s -> if s.Length < 2 then
+                                                               Piglet.Lexer.LexerException "Unable to parse string"
+                                                               |> raise
+                                                           else
+                                                               s.Substring(1, s.Length - 2))
     
     // IDENTIFIER
     let identifier = ParseTerminal @"[a-zA-Z_]\w*" id
 
     // SYMBOLS
+    let sy_quote = Terminal "\""
     let sy_semicolon = Terminal ";"
     let sy_comma = Terminal ","
     let sy_point = Terminal @"\."
@@ -192,11 +199,12 @@ module Lexer =
     reduce1 nt_statement nt_while WhileStatement
     reduce1 nt_statement nt_return ReturnStatement
     reduce1 nt_statement nt_break !<BreakStatement
-    // TODO : reduce1 nt_statement nt_asm InlineAsmStatement
-    
-    // asm -> \__asm  \{ .... \} semicolon
-    // TODO : reduce5 nt_asm kw_asm sy_ocurly lt_asm sy_ccurly sy_semicolon (fun _ _ c _ _ -> c)
-
+    reduce1 nt_statement nt_asm InlineAsmStatement
+    // asm -> \__asm  ( string | \( string \) ) semicolon
+    reduce3 nt_asm kw_asm nt_string sy_semicolon (fun _ b _ -> InlineAssemblyStatement b)
+    reduce5 nt_asm kw_asm sy_oparen nt_string sy_cparen sy_semicolon (fun _ _ c _ _ -> InlineAssemblyStatement c)
+    // string -> \" .... \"
+    reduce1 nt_string lt_string id
     // exprstatement -> (| expr ) semicolon
     reduce2 nt_exprstatement nt_expr sy_semicolon (fun a _ -> Expression a)
     reduce1 nt_exprstatement sy_semicolon !<Nop
