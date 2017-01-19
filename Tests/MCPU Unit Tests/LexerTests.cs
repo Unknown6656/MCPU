@@ -24,13 +24,12 @@ namespace MCPU.Testing
     public class LexerTests
         : Commons
     {
-        
         internal static void ValidateTest((string code, FSharpList<Declaration> ast) data, bool outputdebug = false)
         {
             FSharpList<Declaration> generated = Lexer.parse(data.code);
 
             if (outputdebug)
-                Console.WriteLine($"expected: {data.ast.ToDebugString()}\ngot:{generated.ToDebugString()}");
+                ConsoleExtensions.Diff(data.ast.ToDebugString(), generated.ToDebugString());
 
             AreEqual(generated, data.ast);
         }
@@ -94,7 +93,7 @@ void main(void)
         public void Test_07() => ValidateTest(UnitTests.Test05);
 
         [TestMethod]
-        public void Test_08() => ValidateTest(UnitTests.Test06, true);
+        public void Test_08() => ValidateTest(UnitTests.Test06);
 
         [TestMethod]
         public void Test_09() => ValidateTest(UnitTests.Test07, true);
@@ -104,5 +103,8 @@ void main(void)
 
         [TestMethod]
         public void Test_11() => ValidateTest(UnitTests.Test09, true);
+
+        [TestMethod]
+        public void Test_12() => ValidateTest(UnitTests.Test10, true);
     }
 }

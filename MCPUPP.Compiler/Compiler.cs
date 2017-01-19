@@ -286,28 +286,36 @@ end func
 
             List<object> values = new List<object>();
             Type t = val.GetType();
-            int i = 0;
+            PropertyInfo prop = t.GetProperty("Item");
+            int i = 1;
 
-            while (true)
-                try
+            if (prop == null)
+                while (true)
                 {
-                    values.Add(t.GetProperty(i == 0 ? "Item" : $"Item{i}").GetValue(val));
+                    prop = t.GetProperty($"Item{i}");
 
-                    ++i;
-                }
-                catch
-                {
-                    break;
-                }
+                    if (prop != null)
+                    {
+                        values.Add(prop.GetValue(val));
 
-            if (i == 0)
-                return null;
-            else if (i == 1)
-                return val;
+                        ++i;
+                    }
+                    else
+                        break;
+                }
             else
-                return typeof(Tuple).GetMethod(nameof(Tuple.Create))
-                                    .MakeGenericMethod((from v in values select v?.GetType() ?? typeof(object)).ToArray())
-                                    .Invoke(null, values.ToArray());
+                return prop.GetValue(val);
+
+            MethodInfo meth = (from m in typeof(Tuple).GetMethods()
+                               where m.Name == nameof(Tuple.Create)
+                               where m.IsGenericMethodDefinition
+                               let gen = m.GetParameters()
+                               where gen.Length == i - 1
+                               select m).FirstOrDefault();
+
+            return meth?.MakeGenericMethod((from v in values
+                                            select v?.GetType() ?? typeof(object)).ToArray())
+                       ?.Invoke(null, values.ToArray());
         }
         
         /// <summary>
@@ -358,32 +366,11 @@ end func
                     else
                         switch (val)
                         {
-                            case Statement.IfStatement _:
-                            case Statement.WhileStatement _:
-                            case Statement.BlockStatement _:
-                            case Statement.InlineAsmStatement _:
-                            case Statement.ExpressionStatement _:
-                            case Statement.ReturnStatement _:
-                            case ExpressionStatement.Expression _:
-                            case Expression.ArrayDeletionExpression _:
-                            case Expression.IdentifierExpression _:
-                            case Expression.ArraySizeExpression _:
-                            case Expression.LiteralExpression _:
-                            case Expression.PointerValueIdentifierExpression _:
-                            case Expression.RawAddressOfExpression _:
+                            case Statement _:
+                            case Expression _:
                             case Declaration _:
-                                return tstritem(val); 
-                            case Expression.ArrayAllocationExpression _:
-                            case Expression.ArrayAssignmentExpression _:
-                            case Expression.ArrayIdentifierExpression _:
-                            case Expression.BinaryExpression _:
-                            case Expression.FunctionCallExpression _:
-                            case Expression.PointerAddressIdentifierExpression _:
-                            case Expression.PointerAssignmentExpression _:
-                            case Expression.PointerValueAssignmentExpression _:
-                            case Expression.ScalarAssignmentExpression _:
-                            case Expression.UnaryExpression _:
-                                return tstritem(GenerateTuple(val));
+                            case ExpressionStatement.Expression _:
+                                return tstr(GenerateTuple(val), indent, false);
                             default:
                                 return $"{type.Name} : {val}";
                         }

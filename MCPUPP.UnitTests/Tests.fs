@@ -71,22 +71,48 @@ module UnitTests =
         !~<(@"
         void main(void)
         {
-            if (false)
+            if (true)
                 return;
         }", [
             FunctionDeclaration(Unit, "main", [||], (
                     [], [
-                        WhileStatement(
+                        IfStatement(
                             LiteralExpression(
-                                IntLiteral(0)
+                                IntLiteral(1)
                             ),
-                            ReturnStatement(None)
+                            ReturnStatement(None),
+                            None
                         )
                     ]
                 )
             )
         ])
     let Test07 =
+        !~<(@"
+        int main(void)
+        {
+            while (false)
+                return -42;
+        }", [
+            FunctionDeclaration(Int, "main", [||], (
+                    [], [
+                        WhileStatement(
+                            LiteralExpression(
+                                IntLiteral(0)
+                            ),
+                            ReturnStatement(
+                                Some(
+                                    LiteralExpression(
+                                        IntLiteral(-42)
+                                    )
+                                )
+                            )
+                        )
+                    ]
+                )
+            )
+        ])
+    let Test08 =
         !~<(@"
         void main(void)
         {
@@ -116,7 +142,7 @@ module UnitTests =
                 )
             )
         ])
-    let Test08 =
+    let Test09 =
         !~<(@"
         void main(void)
         {
@@ -140,7 +166,7 @@ module UnitTests =
                 )
             )
         ])
-    let Test09 =
+    let Test10 =
         !~<(@"
         void main(void)
         {
