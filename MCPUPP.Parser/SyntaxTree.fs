@@ -108,6 +108,8 @@ and InlineAssemblyStatement (code : string) =
     member x.Code = code
     override x.ToString() =
         x.Code
+    override x.GetHashCode() = x.Code.GetHashCode()
+    override x.Equals obj = x.Code.Equals (obj :?> InlineAssemblyStatement).Code
 and BlockStatement = LocalVarDecl * Statement list
 and Statement =
     | ExpressionStatement of ExpressionStatement
@@ -125,7 +127,7 @@ and Declaration =
     | GlobalVarDecl of VariableDeclaration
     | FunctionDeclaration of FunctionDeclaration
 and Program = Declaration list
-
+    
 
 module Builder =
     let UnitString =
