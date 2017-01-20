@@ -168,8 +168,8 @@ module Lexer =
     reduce0 nt_vartype kw_float
     // globaldecl -> vartype (| pointer | array ) identifier semicolon
     reduce3 nt_globalvardecl nt_vartype identifier sy_semicolon (fun a b _ -> ScalarDeclaration(a, b))
-    reduce4 nt_globalvardecl nt_vartype op_multiply identifier sy_semicolon (fun a b _ _ -> PointerDeclaration(a, b))
-    reduce5 nt_globalvardecl nt_vartype sy_osquare sy_csquare identifier sy_semicolon (fun a b _ _ _ -> ArrayDeclaration(a, b))
+    reduce4 nt_globalvardecl nt_vartype op_multiply identifier sy_semicolon (fun a _ b _ -> PointerDeclaration(a, b))
+    reduce5 nt_globalvardecl nt_vartype sy_osquare sy_csquare identifier sy_semicolon (fun a _ _ b _ -> ArrayDeclaration(a, b))
     // funcdecl -> type name \( params \) block
     reduce6 nt_funcdecl nt_vartype identifier sy_oparen nt_params sy_cparen nt_blockstatement (fun a b _ d _ f -> (a, b, d, f))
     // params -> unit | paramlist
@@ -217,8 +217,8 @@ module Lexer =
     reduce1 nt_localvardecllist nt_localvardecl elem
     // var -> vartype (| pointer | array ) identifier semicolon
     reduce3 nt_localvardecl nt_vartype identifier sy_semicolon (fun a b _ -> ScalarDeclaration(a, b))
-    reduce4 nt_localvardecl nt_vartype op_multiply identifier sy_semicolon (fun a b _ _ -> PointerDeclaration(a, b))
-    reduce5 nt_localvardecl nt_vartype sy_osquare sy_csquare identifier sy_semicolon (fun a b _ _ _ -> ArrayDeclaration(a, b))
+    reduce4 nt_localvardecl nt_vartype op_multiply identifier sy_semicolon (fun a _ b _ -> PointerDeclaration(a, b))
+    reduce5 nt_localvardecl nt_vartype sy_osquare sy_csquare identifier sy_semicolon (fun a _ _ b _ -> ArrayDeclaration(a, b))
     // if -> \if \( expr \) statement opt_else
     reduce6 nt_if kw_if sy_oparen nt_expr sy_cparen nt_statement nt_optelse (fun _ _ c _ e f -> (c, e, f))
     // opt_else -> \else statement |
@@ -281,7 +281,7 @@ module Lexer =
     reduce1 nt_expr lt_hex LiteralExpression
     reduce1 nt_expr lt_float LiteralExpression
     reduce5 nt_expr kw_new nt_vartype sy_osquare nt_expr sy_csquare (fun _ b _ d _ -> ArrayAllocationExpression(b, d))
-    reduce2 nt_expr kw_delete identifier ((!.) >> ArrayDeletionExpression >> (!<))
+    reduce2 nt_expr kw_delete identifier (fun _ a -> ArrayDeletionExpression !.a)
     reduce1 nt_uop op_not !<Negate
     reduce1 nt_uop op_subtract !<LogicalNegate
     reduce1 nt_uop op_add !<Identity

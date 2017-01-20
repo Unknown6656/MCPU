@@ -106,5 +106,11 @@ void main(void)
 
         [TestMethod]
         public void Test_12() => ValidateTest(UnitTests.Test10, true);
+
+        [TestMethod]
+        public void Test_13() => ValidateTest(UnitTests.Test11, true);
+
+        [TestMethod]
+        public void Test_14() => ValidateTest(UnitTests.Test12);
     }
 }

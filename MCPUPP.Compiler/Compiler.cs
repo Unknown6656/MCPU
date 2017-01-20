@@ -328,18 +328,19 @@ end func
             // this is a C#-port from the F#-function:
             // https://github.com/Unknown6656/MCPU/blob/ae1240f405a09b56e6f37fd1fc5575b32e55bd3b/MCPUPP.Parser/SyntaxTree.fs#L239..L257
 
-            string tstr(object val, int indent, bool padstart = true)
+            string tstr(object val, int indent, bool padstart = true, Type overridetype = null)
             {
                 string tab = new string(' ', 4 * indent);
 
                 string inner()
                 {
                     if (val == null)
-                        return $"(null)";
+                        return "(null)";
                     else if (val is string str)
                         return $"\"{str}\"";
 
                     Type type = val.GetType();
+                    string tstring = (overridetype ?? type).Name;
 
                     try
                     {
@@ -370,14 +371,13 @@ end func
                             case Expression _:
                             case Declaration _:
                             case ExpressionStatement.Expression _:
-                                return tstr(GenerateTuple(val), indent, false);
+                                return tstr(GenerateTuple(val), indent, false, type);
                             default:
-                                return $"{type.Name} : {val}";
+                                return $"{tstring} : {val}";
                         }
 
                     string printl(IEnumerable l) => string.Join(",\n", from object e in l select tstr(e, indent + 1));
-                    string prints(string p, IEnumerable l, string s) => $"{type.Name} : {p}\n{printl(l)}\n{tab}{s}";
-                    string tstritem(object obj) => tstr(obj.GetType().GetProperty("Item").GetValue(obj), indent + 1, false);
+                    string prints(string p, IEnumerable l, string s) => $"{tstring} : {p}\n{printl(l)}\n{tab}{s}";
                 }
 
                 return (padstart ? tab : "") + inner();
