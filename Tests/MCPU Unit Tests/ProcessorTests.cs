@@ -50,7 +50,7 @@ namespace MCPU.Testing
             foreach ((int, dynamic) cond in conditions)
                 IsValue(cond.Item1, cond.Item2);
         }
-        
+
         [TestInitialize]
         public override void Test_Init()
         {

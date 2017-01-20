@@ -27,6 +27,14 @@ namespace MCPU.Testing
     public class LexerTests
         : Commons
     {
+        public LexerTests()
+        {
+            // THE FOLLOWING LINES FORCE TO INITIALIZE THE LAZY PARSER PROPERTY
+            int j = Lexer.Parser.GetHashCode();
+
+            AreEqual<int>(j, j);
+        }
+
         internal static void AreEqual(Program prog1, Program prog2)
         {
             bool innerequal(object obj1, object obj2)
@@ -191,5 +199,19 @@ void main(void)
 
         [TestMethod]
         public void Test_14() => ValidateTest(UnitTests.Test12);
+
+        [TestMethod]
+        public void Test_15() => ValidateTest(UnitTests.Test13);
+
+        [TestMethod]
+        public void Test_16() => ValidateTest(UnitTests.Test14);
+
+        [TestMethod]
+        public void Test_17() => ValidateTest(UnitTests.Test15);
+
+
+
+        [TestMethod]
+        public void Test_22() => ValidateTest(UnitTests.Test20);
     }
 }

@@ -57,6 +57,14 @@ namespace MCPU
 
         public static void Main(string[] args)
         {
+            if (args.Contains("-inner"))
+                InnerMain(args);
+            else // if (args.Contains("-unittests"))
+                UnitTestWrapper.Main(args);
+        }
+
+        private static void InnerMain(string[] args)
+        {
             var mcppp = @"
 int* test;
 
