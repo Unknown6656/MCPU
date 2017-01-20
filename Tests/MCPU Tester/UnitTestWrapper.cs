@@ -156,9 +156,14 @@ namespace MCPU
             printcolordesc(ConsoleColor.DarkCyan, "Time used for the test initialization and cleanup method (@before and @after)");
             printcolordesc(ConsoleColor.Cyan, "Time used for the test method (@test)");
             Console.WriteLine(new string('=', wdh));
-            Console.ReadKey(true);
 
-            return 0;
+            if (Debugger.IsAttached)
+            {
+                Console.WriteLine("\nPress any key to exit ....");
+                Console.ReadKey(true);
+            }
+
+            return failed; // NO FAILED TEST --> EXITCODE = 0
 
             void printcolordesc(ConsoleColor col, string desc)
             {

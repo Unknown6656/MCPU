@@ -365,7 +365,7 @@ namespace MCPU.Compiler
                                             }
                                             else if (CheckGroup("name", out val))
                                             {
-                                                if (val.Contains('[') || val.Contains(']'))
+                                                if (arg.Contains('[') || arg.Contains(']'))
                                                     return Error(GetString("INVALID_ARG", arg));
 
                                                 var dic = functions.ToDictionary(_ => _.Name.ToLower(), _ => _.ID);

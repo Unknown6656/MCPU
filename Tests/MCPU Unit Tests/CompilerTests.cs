@@ -162,7 +162,7 @@ end func
         public void Test_18() => CompileExpectError(@"
     .main
     mov 5 kk[0]   §### ERROR
-", MCPUCompiler.GetString("LABEL_FUNC_NFOUND"));
+", MCPUCompiler.GetString("INVALID_ARG"));
 
         [TestMethod]
         public void Test_19() => CompileExpectError(@"
