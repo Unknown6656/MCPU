@@ -1,6 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Diagnostics;
 using System.Reflection;
 using System.Linq;
 using System.Text;
@@ -14,7 +15,8 @@ namespace MCPU
         {
             Console.ForegroundColor = ConsoleColor.White;
 
-            List<(string, int, int)> partial_results = new List<(string, int, int)>();
+            List<(string, int, int, long)> partial_results = new List<(string, int, int, long)>();
+            Stopwatch sw = new Stopwatch();
             int passed = 0, failed = 0;
 
             foreach (Type t in from t in typeof(Testing.Commons).Assembly.GetTypes()
@@ -23,10 +25,12 @@ namespace MCPU
                                orderby t.Name ascending
                                select t)
             {
+                sw.Restart();
+
                 dynamic container = Activator.CreateInstance(t);
                 MethodInfo init = t.GetMethod("Test_Init");
                 int tp = 0, tf = 0;
-                
+
                 Console.WriteLine($"Testing class '{t.FullName}' ...");
 
                 foreach (MethodInfo nfo in t.GetMethods().OrderBy(_ => _.Name))
@@ -62,11 +66,14 @@ namespace MCPU
                         }
                     }
 
-                partial_results.Add((t.FullName, tp, tf));
+                sw.Stop();
+
+                partial_results.Add((t.FullName, tp, tf, sw.ElapsedMilliseconds));
             }
 
             const int wdh = 100;
-            double pr = passed / (double)(passed + failed);
+            double time = (from r in partial_results select r.Item4).Sum();
+            double pr = passed / (double)(passed + failed), tr;
             int i_wdh = wdh - 25;
             int prw = 0;
 
@@ -80,28 +87,38 @@ namespace MCPU
             Console.ForegroundColor = ConsoleColor.White;
             Console.Write($@"]
     MODULES: {partial_results.Count}
-    TOTAL: {passed + failed}
-    PASSED: {passed} ({pr * 100:F3} %)
-    FAILED: {failed} ({(1 - pr) * 100:F3} %)
+    TOTAL:   {passed + failed}
+    PASSED:  {passed} ({pr * 100:F3} %)
+    FAILED:  {failed} ({(1 - pr) * 100:F3} %)
+    TIME:    {time / 1000:F3} s
     DETAILS:");
 
-            foreach ((string, int, int) res in partial_results)
+            foreach ((string, int, int, long) res in partial_results)
             {
                 double tot = res.Item2 + res.Item3;
 
                 pr = res.Item2 / tot;
+                tr = res.Item4 / time;
 
                 Console.Write($@"
         MODULE: {res.Item1}
         PASSED: {res.Item2} ({pr * 100:F3} %)
         FAILED: {res.Item3} ({(1 - pr) * 100:F3} %)
+        TIME:   {res.Item4 / 1000d:F3} s ({tr * 100d:F3} %)
+        [");
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.Write(new string('#', prw = (int)(i_wdh * tr)));
+                Console.ForegroundColor = ConsoleColor.DarkGray;
+                Console.Write(new string('#', i_wdh - prw));
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.Write(@"] TIME/TOTAL
         [");
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.Write(new string('#', prw = (int)(i_wdh * pr)));
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.Write(new string('#', i_wdh - prw));
                 Console.ForegroundColor = ConsoleColor.White;
-                Console.WriteLine(']');
+                Console.WriteLine("] PASS/FAIL");
             }
 
             Console.WriteLine(new string('=', wdh));
