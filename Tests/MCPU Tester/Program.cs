@@ -10,7 +10,9 @@ using Piglet.Lexer;
 using Piglet.Parser;
 
 using MCPU.MCPUPP.Parser.SyntaxTree;
+using MCPU.MCPUPP.Compiler;
 using MCPU.MCPUPP.Parser;
+using MCPU.MCPUPP.Tests;
 using MCPU.Compiler;
 
 namespace MCPU
@@ -56,25 +58,28 @@ namespace MCPU
         public static void Main(string[] args)
         {
             var mcppp = @"
-int i;
+int* test;
 
-int bar(void)
+void main(int[] arr)
 {
+    int f;
     float* ptr;
-}
 
-void foo(int a)
-{}
-
-float topkek (int lulz)
-{
-    return 42.0;
+    __asm ""
+        .kernel
+        NOP
+        MOV k[44]  [[$0]] __test
+__test:
+        HALT
+    "";
 }
 ".Trim();
+
             try
             {
                 var ast = Lexer.parse(mcppp);
-                string repr = Builder.ToString(ast);
+
+                WriteLine(SyntaxTreeExtensions.ToDebugString(ast));
             }
             catch (Exception ex)
             {
@@ -139,13 +144,13 @@ end func
 
             foreach (var i in instr)
                 WriteLine($"{line++:d3}: {i}");
-            
+
             proc.ProcessWithoutReset(instr);
 
             WriteLine($"SBP: {proc.StackBaseAddress:x8}");
             WriteLine($"SP:  {proc.StackPointerAddress:x8}");
             WriteLine($"SSZ: {proc.StackSize * 4}");
-            
+
             ReadKey(true);
         }
     }

@@ -40,6 +40,8 @@ module Lexer =
     let nt_uop = NonTerminal<UnaryOperator>
     let nt_optargs = NonTerminal<Arguments>
     let nt_args = NonTerminal<Arguments>
+    let nt_asm = NonTerminal<InlineAssemblyStatement>
+    let nt_string = NonTerminal<string>
 
     let ParseTerminal regex (f : string -> 'a) = new TerminalWrapper<'a>(Configurator.CreateTerminal(regex, (fun s -> (f >> box) s)))
     let Terminal regex = new TerminalWrapper<string>(Configurator.CreateTerminal(regex))
@@ -53,6 +55,7 @@ module Lexer =
     let kw_new = Terminal "new"
     let kw_length = Terminal "length"
     let kw_delete = Terminal "delete"
+    let kw_asm = Terminal "__asm"
     let kw_unit = Terminal Builder.UnitString
     let kw_int = ParseTerminal "int" !<Int
     let kw_float = ParseTerminal "float" !<Float
@@ -91,6 +94,10 @@ module Lexer =
     let lt_true = ParseTerminal "true" !<(IntLiteral 1)
     let lt_false = ParseTerminal "false" !<(IntLiteral 0)
     let lt_null = ParseTerminal "null" !<(IntLiteral 0)
+    let lt_string = ParseTerminal "\"([^\"]*)\"" (fun s -> if s.Length < 2 then
+                                                               Errors.UnableParseInlineAsm; ""
+                                                           else
+                                                               s.Substring(1, s.Length - 2))
     
     // IDENTIFIER
     let identifier = ParseTerminal @"[a-zA-Z_]\w*" id
@@ -161,8 +168,8 @@ module Lexer =
     reduce0 nt_vartype kw_float
     // globaldecl -> vartype (| pointer | array ) identifier semicolon
     reduce3 nt_globalvardecl nt_vartype identifier sy_semicolon (fun a b _ -> ScalarDeclaration(a, b))
-    reduce4 nt_globalvardecl nt_vartype op_multiply identifier sy_semicolon (fun a b _ _ -> PointerDeclaration(a, b))
-    reduce5 nt_globalvardecl nt_vartype sy_osquare sy_csquare identifier sy_semicolon (fun a b _ _ _ -> ArrayDeclaration(a, b))
+    reduce4 nt_globalvardecl nt_vartype op_multiply identifier sy_semicolon (fun a _ b _ -> PointerDeclaration(a, b))
+    reduce5 nt_globalvardecl nt_vartype sy_osquare sy_csquare identifier sy_semicolon (fun a _ _ b _ -> ArrayDeclaration(a, b))
     // funcdecl -> type name \( params \) block
     reduce6 nt_funcdecl nt_vartype identifier sy_oparen nt_params sy_cparen nt_blockstatement (fun a b _ d _ f -> (a, b, d, f))
     // params -> unit | paramlist
@@ -182,13 +189,19 @@ module Lexer =
     // statements -> statements statement | statement
     reduce2 nt_statementlist nt_statementlist nt_statement (fun a b -> a @ elem b)
     reduce1 nt_statementlist nt_statement elem
-    // statement -> exprstatement | block | if | while | return | break
+    // statement -> exprstatement | block | if | while | return | break | asm
     reduce1 nt_statement nt_exprstatement ExpressionStatement
     reduce1 nt_statement nt_blockstatement BlockStatement
     reduce1 nt_statement nt_if IfStatement
     reduce1 nt_statement nt_while WhileStatement
     reduce1 nt_statement nt_return ReturnStatement
     reduce1 nt_statement nt_break !<BreakStatement
+    reduce1 nt_statement nt_asm InlineAsmStatement
+    // asm -> \__asm  ( string | \( string \) ) semicolon
+    reduce3 nt_asm kw_asm nt_string sy_semicolon (fun _ b _ -> InlineAssemblyStatement b)
+    reduce5 nt_asm kw_asm sy_oparen nt_string sy_cparen sy_semicolon (fun _ _ c _ _ -> InlineAssemblyStatement c)
+    // string -> \" .... \"
+    reduce1 nt_string lt_string id
     // exprstatement -> (| expr ) semicolon
     reduce2 nt_exprstatement nt_expr sy_semicolon (fun a _ -> Expression a)
     reduce1 nt_exprstatement sy_semicolon !<Nop
@@ -204,14 +217,14 @@ module Lexer =
     reduce1 nt_localvardecllist nt_localvardecl elem
     // var -> vartype (| pointer | array ) identifier semicolon
     reduce3 nt_localvardecl nt_vartype identifier sy_semicolon (fun a b _ -> ScalarDeclaration(a, b))
-    reduce4 nt_localvardecl nt_vartype op_multiply identifier sy_semicolon (fun a b _ _ -> PointerDeclaration(a, b))
-    reduce5 nt_localvardecl nt_vartype sy_osquare sy_csquare identifier sy_semicolon (fun a b _ _ _ -> ArrayDeclaration(a, b))
+    reduce4 nt_localvardecl nt_vartype op_multiply identifier sy_semicolon (fun a _ b _ -> PointerDeclaration(a, b))
+    reduce5 nt_localvardecl nt_vartype sy_osquare sy_csquare identifier sy_semicolon (fun a _ _ b _ -> ArrayDeclaration(a, b))
     // if -> \if \( expr \) statement opt_else
     reduce6 nt_if kw_if sy_oparen nt_expr sy_cparen nt_statement nt_optelse (fun _ _ c _ e f -> (c, e, f))
     // opt_else -> \else statement |
     let prod_else = nt_optelse.AddProduction(kw_else, nt_statement)
 
-    prod_else.SetReduceFunction (fun _ b -> Some b)
+    prod_else.SetReduceFunction !<Some
     prod_else.SetPrecedence prec_optelse
 
     let prod_else_epsilon = nt_optelse.AddProduction()
@@ -260,7 +273,7 @@ module Lexer =
     reduce1 nt_expr identifier ((!.) >> IdentifierExpression)
     reduce4 nt_expr identifier sy_osquare nt_expr sy_csquare (fun a _ c _ -> ArrayIdentifierExpression(!.a, c))
     reduce4 nt_expr identifier sy_oparen nt_optargs sy_cparen (fun a _ c _ -> FunctionCallExpression(a, c))
-    reduce3 nt_expr identifier sy_point kw_length (fun a _ _ -> ArraySizeExpression(!.a))
+    reduce3 nt_expr identifier sy_point kw_length (fun a _ _ -> ArraySizeExpression !.a)
     reduce1 nt_expr lt_true LiteralExpression
     reduce1 nt_expr lt_false LiteralExpression
     reduce1 nt_expr lt_null LiteralExpression
@@ -268,7 +281,7 @@ module Lexer =
     reduce1 nt_expr lt_hex LiteralExpression
     reduce1 nt_expr lt_float LiteralExpression
     reduce5 nt_expr kw_new nt_vartype sy_osquare nt_expr sy_csquare (fun _ b _ d _ -> ArrayAllocationExpression(b, d))
-    reduce2 nt_expr kw_delete identifier ((!.) >> ArrayDeletionExpression >> (!<))
+    reduce2 nt_expr kw_delete identifier (fun _ a -> ArrayDeletionExpression !.a)
     reduce1 nt_uop op_not !<Negate
     reduce1 nt_uop op_subtract !<LogicalNegate
     reduce1 nt_uop op_add !<Identity

@@ -1,18 +1,26 @@
 ﻿namespace MCPU.MCPUPP.Parser.SyntaxTree
 
-open Microsoft.FSharp.Reflection
-
 type VariableType =
     | Unit
     | Int
     | Float
+    override x.ToString() = match x with
+                            | Unit -> "void"
+                            | Int -> "int"
+                            | Float -> "float"
 and Identifier = string
 type IdentifierRef (name : string) =
     member x.Identifier = name
+    override x.ToString() =
+        x.Identifier
 type VariableDeclaration =
     | ArrayDeclaration of VariableType * Identifier
     | ScalarDeclaration of VariableType * Identifier
     | PointerDeclaration of VariableType * Identifier
+    override x.ToString() = match x with
+                            | ArrayDeclaration(t, i)
+                            | ScalarDeclaration(t, i)
+                            | PointerDeclaration(t, i) -> sprintf "%s %s" (t.ToString()) i
 and LocalVarDecl = VariableDeclaration list
 and Parameters = VariableDeclaration[]
 and Literal =
@@ -96,7 +104,12 @@ and Expression =
     // TODO
 and WhileStatement = Expression * Statement
 and IfStatement = Expression * Statement * Statement option
-and InlineAssemblyStatement = { Lines : string list; }
+and InlineAssemblyStatement (code : string) =
+    member x.Code = code
+    override x.ToString() =
+        x.Code
+    override x.GetHashCode() = x.Code.GetHashCode()
+    override x.Equals obj = x.Code.Equals (obj :?> InlineAssemblyStatement).Code
 and BlockStatement = LocalVarDecl * Statement list
 and Statement =
     | ExpressionStatement of ExpressionStatement
@@ -105,7 +118,7 @@ and Statement =
     | WhileStatement of WhileStatement
     | ReturnStatement of Expression option
     | BreakStatement
-    | InlineAssemblyStatement of InlineAssemblyStatement
+    | InlineAsmStatement of InlineAssemblyStatement
 and ExpressionStatement =
     | Expression of Expression
     | Nop
@@ -114,10 +127,12 @@ and Declaration =
     | GlobalVarDecl of VariableDeclaration
     | FunctionDeclaration of FunctionDeclaration
 and Program = Declaration list
-
+    
 
 module Builder =
-    let UnitString = "void"
+    let UnitString =
+        let unit = Unit
+        unit.ToString()
 
     let rec BuildString (indent : int) (ast : obj) =
         let inline (</) f = BuildString indent >> f
@@ -217,9 +232,8 @@ module Builder =
             | None -> res
         | :? InlineAssemblyStatement as a ->
             sprintf "__asm\n%s{\n%s\n%s}" <| tab indent
-                                          <| (a.Lines
-                                              |> List.map (fun f -> tab(indent + 1) + f)
-                                              |> List.toArray
+                                          <| (a.Code.Split('\n')
+                                              |> Array.map (fun f -> tab(indent + 1) + f)
                                               |> String.concat "\n")
                                           <| tab indent
         | :? Statement as s -> sprintf "%s%s" <| tab indent
@@ -228,7 +242,7 @@ module Builder =
                                                  | ReturnStatement e -> match e with
                                                                          | Some e -> sprintf "return %s;" </ e
                                                                          | None -> "return;"
-                                                 | InlineAssemblyStatement a -> BuildString indent a
+                                                 | InlineAsmStatement a -> BuildString indent a
                                                  | ExpressionStatement e -> BuildString indent e
                                                  | IfStatement i -> BuildString indent i
                                                  | WhileStatement w -> BuildString indent w
@@ -236,22 +250,27 @@ module Builder =
         | _ -> "The type " + ast.GetType().ToString() + " could not be matched."
                |> failwith
 
-    let ToString (program : Program) = // TODO : fix!
-        let rec tstr obj indent =
-            let tab = new string(' ', indent * 4)
-            let inner =
-                let tp = obj.GetType().Name
-                let printl = List.map (fun e -> tstr e (indent + 1))
-                          >> List.fold (+) ",\n"
-                let prints p l s = sprintf "%s : %s\n%s\n%s%s" tp p (printl l) tab s
-                
-                match box obj with
-                | :? list<_> as l -> prints "[" l "]"
-                | :? (_[]) as arr -> prints "[|" (Array.toList arr) "|]"
-                | _ -> let tupleToList = FSharpValue.GetTupleFields >> Array.toList
-                       if FSharpType.IsTuple(obj.GetType()) then
-                           prints "(" (tupleToList obj) ")"
-                       else
-                           sprintf "%s : %s" tp <| obj.ToString()
-            tab + inner
-        tstr program 0
+    //let ToDebugString (program : Program) = // TODO : fix!
+    //    let rec tstr obj indent =
+    //        let tab = new string(' ', indent * 4)
+    //        let tp = obj.GetType().Name
+    //        let inner =
+    //            let printl = List.map (fun (e : 'a) -> tstr (box e) (indent + 1))
+    //                      >> List.fold (+) ",\n"
+    //            let prints p l s = sprintf "%s\n%s\n%s%s" p (printl l) tab s
+    //    
+    //            match box obj with
+    //            | :? Parameters as p -> prints "[|" (Array.toList p) "|]"
+    //            | :? Arguments as a -> prints "[" a "]"
+    //            | :? Program as l -> prints "[" l "]"
+    //            | :? Declaration as d -> ""
+    //            | :? IdentifierRef as i -> i.Identifier
+    //            | :? VariableDeclaration as v -> match v with
+    //                                             | ScalarDeclaration (t, i)
+    //                                             | ArrayDeclaration (t, i)
+    //                                             | PointerDeclaration (t, i) -> prints "(" [t;i] ")"
+    //            | :? LocalVarDecl as l -> prints "[" l "]"
+    //            | _ -> obj.ToString()
+    //
+    //        sprintf "%s%s : %s" tp tab inner
+    //    tstr program 0

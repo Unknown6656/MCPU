@@ -1,12 +1,22 @@
-﻿using System.Runtime.Serialization;
+﻿using Microsoft.FSharp.Collections;
+using Microsoft.FSharp.Reflection;
+using Microsoft.FSharp.Core;
+
+using System.Runtime.Serialization;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Collections;
+using System.Reflection;
 using System.Linq;
 using System.Text;
 using System;
 
+using MCPU.MCPUPP.Parser.SyntaxTree;
+using MCPU.MCPUPP.Parser;
 using MCPU.Compiler;
 using MCPU;
+
+using Program = Microsoft.FSharp.Collections.FSharpList<MCPU.MCPUPP.Parser.SyntaxTree.Declaration>;
 
 namespace MCPU.MCPUPP.Compiler
 {
@@ -258,6 +268,122 @@ end func
     call {MAIN_FUNCTION_NAME}
     halt
 ";
+        }
+    }
+
+    /// <summary>
+    /// Contains a number of extension methods concerning the MCPU++ Abstract Syntax Tree (AST)
+    /// </summary>
+    public static class SyntaxTreeExtensions
+    {
+        internal static readonly Type ITupleType = typeof(Tuple).Assembly.GetType("System.ITuple");
+
+
+        internal static dynamic GenerateTuple(object val)
+        {
+            if (val == null)
+                return null;
+
+            List<object> values = new List<object>();
+            Type t = val.GetType();
+            PropertyInfo prop = t.GetProperty("Item");
+            int i = 1;
+
+            if (prop == null)
+                while (true)
+                {
+                    prop = t.GetProperty($"Item{i}");
+
+                    if (prop != null)
+                    {
+                        values.Add(prop.GetValue(val));
+
+                        ++i;
+                    }
+                    else
+                        break;
+                }
+            else
+                return prop.GetValue(val);
+
+            MethodInfo meth = (from m in typeof(Tuple).GetMethods()
+                               where m.Name == nameof(Tuple.Create)
+                               where m.IsGenericMethodDefinition
+                               let gen = m.GetParameters()
+                               where gen.Length == i - 1
+                               select m).FirstOrDefault();
+
+            return meth?.MakeGenericMethod((from v in values
+                                            select v?.GetType() ?? typeof(object)).ToArray())
+                       ?.Invoke(null, values.ToArray());
+        }
+        
+        /// <summary>
+        /// Returns the debugging-string representation of the MCPU++ program represented by the given AST
+        /// </summary>
+        /// <param name="prog">MCPU++ program AST</param>
+        /// <returns>String representation</returns>
+        public static string ToDebugString(this Program prog)
+        {
+            // this is a C#-port from the F#-function:
+            // https://github.com/Unknown6656/MCPU/blob/ae1240f405a09b56e6f37fd1fc5575b32e55bd3b/MCPUPP.Parser/SyntaxTree.fs#L239..L257
+
+            string tstr(object val, int indent, bool padstart = true, Type overridetype = null)
+            {
+                string tab = new string(' ', 4 * indent);
+
+                string inner()
+                {
+                    if (val == null)
+                        return "(null)";
+                    else if (val is string str)
+                        return $"\"{str}\"";
+
+                    Type type = val.GetType();
+                    string tstring = (overridetype ?? type).Name;
+
+                    try
+                    {
+                        if (type?.GetGenericTypeDefinition() == typeof(FSharpOption<>))
+                            return tstr(type.GetProperty("Value").GetValue(val), 0);
+                    }
+                    catch { }
+
+                    if (FSharpType.IsTuple(type))
+                        return prints("(", FSharpValue.GetTupleFields(val), ")");
+                    else if (ITupleType.IsAssignableFrom(type))
+                    {
+                        PropertyInfo prop = ITupleType.GetProperty("Size", BindingFlags.Instance | BindingFlags.NonPublic);
+                        int sz = (int)prop.GetValue(val, new object[0]);
+
+                        return prints("(", from i in Enumerable.Range(1, sz) select ITupleType.GetProperty($"Item{i}").GetValue(val), ")");
+                    }
+                    else if (val is ValueTuple vtuple)
+                    {
+                        throw null; // TODO
+                    }
+                    else if (val is IEnumerable @enum)
+                        return prints("[", @enum, "]");
+                    else
+                        switch (val)
+                        {
+                            case Statement _:
+                            case Expression _:
+                            case Declaration _:
+                            case ExpressionStatement.Expression _:
+                                return tstr(GenerateTuple(val), indent, false, type);
+                            default:
+                                return $"{tstring} : {val}";
+                        }
+
+                    string printl(IEnumerable l) => string.Join(",\n", from object e in l select tstr(e, indent + 1));
+                    string prints(string p, IEnumerable l, string s) => $"{tstring} : {p}\n{printl(l)}\n{tab}{s}";
+                }
+
+                return (padstart ? tab : "") + inner();
+            }
+
+            return tstr(prog, 0);
         }
     }
 

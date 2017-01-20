@@ -89,6 +89,10 @@
       <Project>{56bda770-be2b-4e83-b363-7c3e385deda5}</Project>
       <Name>MCPUPP.UnitTests</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\ObjectDumper\ObjectDumper.csproj">
+      <Project>{08a40eeb-232f-42d0-a02d-2e6e303c063e}</Project>
+      <Name>ObjectDumper</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Piglet\Piglet\Piglet.csproj">
       <Project>{1e23f251-94e1-4504-81e8-2618f5c9fea3}</Project>
       <Name>Piglet</Name>
