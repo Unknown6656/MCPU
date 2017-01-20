@@ -283,9 +283,8 @@ namespace MCPU.Compiler
                             if (FindFirst(name) != null)
                                 return Error(GetString("FUNC_ALREADY_EXISTS", name));
 
-                            if (um.Item2 != name)
-                                if (labels.ContainsKey(name))
-                                    return Error(GetString("LABEL_ALREADY_EXISTS", name));
+                            if ((um.Item2 != name) && labels.ContainsKey(name))
+                                return Error(GetString("LABEL_ALREADY_EXISTS", name));
 
                             if (um.Item2 == name)
                             {
@@ -353,7 +352,7 @@ namespace MCPU.Compiler
                                             }
                                             else if (CheckGroup("float", out val))
                                             {
-                                                if (val.Contains('[') || val.Contains(']'))
+                                                if (arg.Contains('[') || arg.Contains(']'))
                                                     return Error(GetString("INVALID_ARG", arg));
 
                                                 iarg.Type = ArgumentType.Constant;
@@ -531,7 +530,7 @@ namespace MCPU.Compiler
 
                         if (f.IsInlined)
                         {
-                            bool caninline = (f.Instructions.Count <= 30) && f.Instructions.All(_ => !_.OPCode.SpecialIPHandling);
+                            bool caninline = (f.Instructions.Count <= 30) && f.Instructions.All(_ => (_.OPCode == RET) | !_.OPCode.SpecialIPHandling);
 
                             if (caninline && OptimizationEnabled)
                             {
