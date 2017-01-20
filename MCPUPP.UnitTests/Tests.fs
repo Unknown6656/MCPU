@@ -287,8 +287,144 @@ module UnitTests =
                 )
             )
         ])
-    
-    let TestNN =
+    let Test13 =
+        !~<(@"
+        void func(int a, float* b, int[] c) { }
+
+        void main(void)
+        {
+            float* ptr;
+            int[] arr;
+
+            func(315, ptr, arr);
+        }", [
+                FunctionDeclaration(Unit, "func", [|
+                    ScalarDeclaration(Int, "a")
+                    PointerDeclaration(Float, "b")
+                    ArrayDeclaration(Int, "c")
+                |], (
+                    [], []
+                ))
+                FunctionDeclaration(Unit, "main", [||], (
+                    [
+                        PointerDeclaration(Float, "ptr")
+                        ArrayDeclaration(Int, "arr")
+                    ], [
+                        ExpressionStatement(
+                            Expression(
+                                FunctionCallExpression("func", [
+                                    LiteralExpression(
+                                        IntLiteral(315)
+                                    )
+                                    IdentifierExpression(
+                                        IdentifierRef "ptr"
+                                    )
+                                    IdentifierExpression(
+                                        IdentifierRef "arr"
+                                    )
+                                ])
+                            )
+                        )
+                    ]
+                )
+            )
+        ])
+    let Test14 =
+        !~<(@"
+        void main(void)
+        {
+            int i;
+
+            i = -9;
+            i = +42;
+            i = ~315;
+        }", [
+                FunctionDeclaration(Unit, "main", [||], (
+                    [
+                        ScalarDeclaration(Int, "i")
+                    ], [
+                        ExpressionStatement(
+                            Expression(
+                                ScalarAssignmentExpression(
+                                    IdentifierRef "i",
+                                    UnaryExpression(
+                                        LogicalNegate,
+                                        LiteralExpression(
+                                            IntLiteral(9)
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                        ExpressionStatement(
+                            Expression(
+                                ScalarAssignmentExpression(
+                                    IdentifierRef "i",
+                                    UnaryExpression(
+                                        Identity,
+                                        LiteralExpression(
+                                            IntLiteral(42)
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                        ExpressionStatement(
+                            Expression(
+                                ScalarAssignmentExpression(
+                                    IdentifierRef "i",
+                                    UnaryExpression(
+                                        Negate,
+                                        LiteralExpression(
+                                            IntLiteral(315)
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    ]
+                )
+            )
+        ])
+    let Test15 =
+        !~<(@"
+        void main(void)
+        {
+            float f;
+            int i;
+
+            i = int$(bool$(float$ f));
+        }", [
+                FunctionDeclaration(Unit, "main", [||], (
+                    [
+                        ScalarDeclaration(Float, "f")
+                        ScalarDeclaration(Int, "i")
+                    ], [
+                        ExpressionStatement(
+                            Expression(
+                                ScalarAssignmentExpression(
+                                    IdentifierRef "i",
+                                    UnaryExpression(
+                                        IntConvert,
+                                        UnaryExpression(
+                                            BooleanConvert,
+                                            UnaryExpression(
+                                                FloatConvert,
+                                                IdentifierExpression(
+                                                    IdentifierRef "f"
+                                                )
+                                            )
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    ]
+                )
+            )
+        ])
+
+    let Test20 =
         !~<(@"
 int i;
 
@@ -331,7 +467,7 @@ float topkek (int lulz)
             )
             FunctionDeclaration(
                 Unit,
-                "main",
+                "foo",
                 [|
                     ScalarDeclaration(Int, "a")
                 |],
@@ -360,7 +496,7 @@ float topkek (int lulz)
                                     ),
                                     ShiftLeft,
                                     LiteralExpression(
-                                        IntLiteral(0)
+                                        IntLiteral(8)
                                     )
                                 ),
                                 GreaterEqual,
@@ -380,6 +516,5 @@ float topkek (int lulz)
                 )
             )
         ])
-
     do
         ()
