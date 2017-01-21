@@ -2,6 +2,7 @@
 
 open MCPU.MCPUPP.Parser.SyntaxTree
 open System.Collections.Generic
+open System.Linq
 open System
 
 type SymbolScope(parent : SymbolScope option) =
@@ -140,7 +141,10 @@ type SymbolTable(program) as self =
         |> List.iter ScanDeclaration
 
     member x.GetIdentifierType idref = TypeOfDeclaration self.[idref]
-   
+    member x.Table =
+        let res = Enumerable.Select(self, fun x -> (x.Key, x.Value))
+        Enumerable.ToArray(res)
+       
 type FunctionTableEntry =
     {
         ReturnType     : VariableType;
@@ -240,7 +244,7 @@ type ExpressionTypeDictionary(program, ftable : FunctionTable, stable : SymbolTa
                     elif not e2.IsScalar then
                         raise <| Errors.InvalidConversion e2 i
                     else
-                        CheckTypes i e2
+                        CheckTypes (ScalarType i.Type) e2
                     ScalarType i.Type
                 | BinaryExpression (e1, op, e2) ->
                     let t1 = ScanExpression e1
@@ -329,7 +333,6 @@ type AnalyzerResult =
         SymbolTable : SymbolTable
         ExpressionTypes : ExpressionTypeDictionary
     }
-
 
 let Analyze program =
     let stable = SymbolTable program

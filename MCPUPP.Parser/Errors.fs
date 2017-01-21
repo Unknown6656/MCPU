@@ -8,7 +8,7 @@ type CompilerException(message : string) =
     inherit Exception(message)
 
 module Errors =
-    let internal DefaultStrings : Dictionary<string, string> =
+    let DefaultStrings : Dictionary<string, string> =
         Enumerable.ToDictionary([|
                                     "ERR_LEXER", "Lexer error: {0}."
                                     "ERR_PARSER", "Parser error: {0}."
@@ -22,7 +22,6 @@ module Errors =
                                     "IVAL_BOP", "The operator {0} cannot be applied to arguments of the types {1} and {2}."
                                     "ARRAY_EXPECTED", "An array type has been expected as argument."
                                     "FUNC_EXPECTED_ARGC", "The function %s expects %d arguments."
-                                    "ARRAY_EXPECTED", "An array type has been expected as argument."
                                     "IVAL_ARG", "Invalid argument №{0} for function {1} given: Expected a value of the type {2}, but recived an argument of the type {3}."
                                     "MISSING_MAIN", "The program's entry-point function 'void main()' could not be found."
                                     "IVAL_MCPUASM", "Unable to parse the inline-MCPU assembly code."
@@ -32,9 +31,11 @@ module Errors =
     let UpdateLanguage (lang) =
         if lang = null then
             LanguageStrings <- DefaultStrings
-        // TODO : verify that each index exists
-        LanguageStrings <- lang
-        
+        else
+            // TODO : verify that each index exists
+            LanguageStrings <- lang
+       
+    let GetFormatString name = LanguageStrings.[name]
     let format s ([<ParamArray>]a) = String.Format(LanguageStrings.[s], a)
     let inline (==>) s a = format s a |> CompilerException
 

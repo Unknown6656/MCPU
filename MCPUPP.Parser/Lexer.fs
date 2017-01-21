@@ -171,6 +171,7 @@ module Lexer =
     reduce4 nt_globalvardecl nt_vartype op_multiply identifier sy_semicolon (fun a _ b _ -> PointerDeclaration(a, b))
     reduce5 nt_globalvardecl nt_vartype sy_osquare sy_csquare identifier sy_semicolon (fun a _ _ b _ -> ArrayDeclaration(a, b))
     // funcdecl -> type name \( params \) block
+    reduce5 nt_funcdecl nt_vartype identifier sy_oparen sy_cparen nt_blockstatement (fun a b _ _ f -> (a, b, [||], f))
     reduce6 nt_funcdecl nt_vartype identifier sy_oparen nt_params sy_cparen nt_blockstatement (fun a b _ d _ f -> (a, b, d, f))
     // params -> unit | paramlist
     reduce1 nt_params kw_unit !<[||]

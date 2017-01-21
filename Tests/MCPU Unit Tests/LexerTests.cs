@@ -2,6 +2,7 @@
 using Microsoft.FSharp.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Collections;
 using System.Diagnostics;
 using System.Reflection;
 using System.Linq;
@@ -19,7 +20,6 @@ using Program = Microsoft.FSharp.Collections.FSharpList<MCPU.MCPUPP.Parser.Synta
 
 namespace MCPU.Testing
 {
-    using System.Collections;
     using static Microsoft.VisualStudio.TestTools.UnitTesting.Assert;
     using static ObjectDumper.Dumper;
 
@@ -214,25 +214,5 @@ void main(void)
 
         [TestMethod]
         public void Test_19() => ValidateTest(UnitTests.Test17);
-
-        [TestMethod]
-        public void Test_20()
-        {
-            Program prog = Lexer.parse(@"
-void main(void)
-{
-    float[] arr;
-
-    arr = new float[42];
-    arr[7] = fscan();
-    arr[8] = fscan();
-
-    fprint(arr[7] ^^ arr[8]);
-
-    delete arr;
-}
-");
-            Analyzer.AnalyzerResult res = Analyzer.Analyze(prog);
-        }
     }
 }
