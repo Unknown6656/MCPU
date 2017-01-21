@@ -55,15 +55,15 @@ namespace MCPU
             }
         }
 
-        public static void Main(string[] args)
+        public static int Main(string[] args)
         {
             if (args.Contains("-inner"))
-                InnerMain(args);
+                return InnerMain(args);
             else // if (args.Contains("-unittests"))
-                UnitTestWrapper.Main(args);
+                return UnitTestWrapper.Main(args);
         }
 
-        private static void InnerMain(string[] args)
+        private static int InnerMain(string[] args)
         {
             var mcppp = @"
 int* test;
@@ -117,7 +117,7 @@ __test:
             }
 
             ReadKey(false);
-            return;
+            return 0;
 
             Processor proc = new Processor(64, 64, -559038737);
 
@@ -160,6 +160,8 @@ end func
             WriteLine($"SSZ: {proc.StackSize * 4}");
 
             ReadKey(true);
+
+            return 0;
         }
     }
 }

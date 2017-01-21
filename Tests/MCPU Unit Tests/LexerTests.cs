@@ -209,9 +209,30 @@ void main(void)
         [TestMethod]
         public void Test_17() => ValidateTest(UnitTests.Test15);
 
-
+        [TestMethod]
+        public void Test_18() => ValidateTest(UnitTests.Test16);
 
         [TestMethod]
-        public void Test_22() => ValidateTest(UnitTests.Test20);
+        public void Test_19() => ValidateTest(UnitTests.Test17);
+
+        [TestMethod]
+        public void Test_20()
+        {
+            Program prog = Lexer.parse(@"
+void main(void)
+{
+    float[] arr;
+
+    arr = new float[42];
+    arr[7] = fscan();
+    arr[8] = fscan();
+
+    fprint(arr[7] ^^ arr[8]);
+
+    delete arr;
+}
+");
+            Analyzer.AnalyzerResult res = Analyzer.Analyze(prog);
+        }
     }
 }

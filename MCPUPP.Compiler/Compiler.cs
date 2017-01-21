@@ -18,6 +18,8 @@ using MCPU;
 
 using Program = Microsoft.FSharp.Collections.FSharpList<MCPU.MCPUPP.Parser.SyntaxTree.Declaration>;
 
+using static MCPU.MCPUPP.Parser.Analyzer;
+
 namespace MCPU.MCPUPP.Compiler
 {
     /// <summary>
@@ -317,74 +319,77 @@ end func
                                             select v?.GetType() ?? typeof(object)).ToArray())
                        ?.Invoke(null, values.ToArray());
         }
-        
+
+        // this is a C#-port from the F#-function:
+        // https://github.com/Unknown6656/MCPU/blob/ae1240f405a09b56e6f37fd1fc5575b32e55bd3b/MCPUPP.Parser/SyntaxTree.fs#L239..L257
+        internal static string tstr(object val, int indent, bool padstart = true, Type overridetype = null)
+        {
+            string tab = new string(' ', 4 * indent);
+
+            string inner()
+            {
+                if (val == null)
+                    return "(null)";
+                else if (val is string str)
+                    return $"\"{str}\"";
+
+                Type type = val.GetType();
+                string tstring = (overridetype ?? type).Name;
+
+                try
+                {
+                    if (type?.GetGenericTypeDefinition() == typeof(FSharpOption<>))
+                        return tstr(type.GetProperty("Value").GetValue(val), 0);
+                }
+                catch { }
+
+                if (FSharpType.IsTuple(type))
+                    return prints("(", FSharpValue.GetTupleFields(val), ")");
+                else if (ITupleType.IsAssignableFrom(type))
+                {
+                    PropertyInfo prop = ITupleType.GetProperty("Size", BindingFlags.Instance | BindingFlags.NonPublic);
+                    int sz = (int)prop.GetValue(val, new object[0]);
+
+                    return prints("(", from i in Enumerable.Range(1, sz) select ITupleType.GetProperty($"Item{i}").GetValue(val), ")");
+                }
+                else if (val is ValueTuple vtuple)
+                {
+                    throw null; // TODO
+                }
+                else if (val is IEnumerable @enum)
+                    return prints("[", @enum, "]");
+                else
+                    switch (val)
+                    {
+                        case Statement _:
+                        case Expression _:
+                        case Declaration _:
+                        case ExpressionStatement.Expression _:
+                            return tstr(GenerateTuple(val), indent, false, type);
+                        default:
+                            return $"{tstring} : {val}";
+                    }
+
+                string printl(IEnumerable l) => string.Join(",\n", from object e in l select tstr(e, indent + 1));
+                string prints(string p, IEnumerable l, string s) => $"{tstring} : {p}\n{printl(l)}\n{tab}{s}";
+            }
+
+            return (padstart ? tab : "") + inner();
+        }
+
         /// <summary>
         /// Returns the debugging-string representation of the MCPU++ program represented by the given AST
         /// </summary>
         /// <param name="prog">MCPU++ program AST</param>
         /// <returns>String representation</returns>
-        public static string ToDebugString(this Program prog)
-        {
-            // this is a C#-port from the F#-function:
-            // https://github.com/Unknown6656/MCPU/blob/ae1240f405a09b56e6f37fd1fc5575b32e55bd3b/MCPUPP.Parser/SyntaxTree.fs#L239..L257
+        public static string ToDebugString(this Program prog) => tstr(prog, 0);
 
-            string tstr(object val, int indent, bool padstart = true, Type overridetype = null)
-            {
-                string tab = new string(' ', 4 * indent);
-
-                string inner()
-                {
-                    if (val == null)
-                        return "(null)";
-                    else if (val is string str)
-                        return $"\"{str}\"";
-
-                    Type type = val.GetType();
-                    string tstring = (overridetype ?? type).Name;
-
-                    try
-                    {
-                        if (type?.GetGenericTypeDefinition() == typeof(FSharpOption<>))
-                            return tstr(type.GetProperty("Value").GetValue(val), 0);
-                    }
-                    catch { }
-
-                    if (FSharpType.IsTuple(type))
-                        return prints("(", FSharpValue.GetTupleFields(val), ")");
-                    else if (ITupleType.IsAssignableFrom(type))
-                    {
-                        PropertyInfo prop = ITupleType.GetProperty("Size", BindingFlags.Instance | BindingFlags.NonPublic);
-                        int sz = (int)prop.GetValue(val, new object[0]);
-
-                        return prints("(", from i in Enumerable.Range(1, sz) select ITupleType.GetProperty($"Item{i}").GetValue(val), ")");
-                    }
-                    else if (val is ValueTuple vtuple)
-                    {
-                        throw null; // TODO
-                    }
-                    else if (val is IEnumerable @enum)
-                        return prints("[", @enum, "]");
-                    else
-                        switch (val)
-                        {
-                            case Statement _:
-                            case Expression _:
-                            case Declaration _:
-                            case ExpressionStatement.Expression _:
-                                return tstr(GenerateTuple(val), indent, false, type);
-                            default:
-                                return $"{tstring} : {val}";
-                        }
-
-                    string printl(IEnumerable l) => string.Join(",\n", from object e in l select tstr(e, indent + 1));
-                    string prints(string p, IEnumerable l, string s) => $"{tstring} : {p}\n{printl(l)}\n{tab}{s}";
-                }
-
-                return (padstart ? tab : "") + inner();
-            }
-
-            return tstr(prog, 0);
-        }
+        /// <summary>
+        /// Returns the debugging-string representation of the given MCPU++ program analyzer result
+        /// </summary>
+        /// <param name="res">MCPU++ program analyzer result</param>
+        /// <returns>String representation</returns>
+        public static string ToDebugString(this AnalyzerResult res) => tstr(res, 0);
     }
 
     [Serializable]

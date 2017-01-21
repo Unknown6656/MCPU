@@ -1,23 +1,55 @@
 ﻿namespace MCPU.MCPUPP.Parser
 
+open System.Collections.Generic
+open System.Linq
+open System
+
 type CompilerException(message : string) =
-    inherit System.Exception(message)
+    inherit Exception(message)
 
 module Errors =
-    let (!!) x = CompilerException x
-                 |> raise
-    let LexerError a = !!(sprintf "Lexer error: %s." a)
-    let ParserError a = !!(sprintf "Parser error: %s." a)
-    let VariableAlreadyDefined a = !!(sprintf "The variable %s has already been defined." a)
-    let FunctionAlreadyDefined a = !!(sprintf "The function %s has already been defined." a)
-    let NameNotFound a = !!(sprintf "The variable or function %s could not be found." a)
-    let InvalidConversion s t = !!(sprintf "An instance of the type %s cannot be converted to the type %s." <| s.ToString() <| t.ToString())
-    let InvalidBreak = ignore !!"The break statement must be used inside a loop."
-    let CannotIndex a = !!(sprintf "An expression of the type %s cannot be indexed." a)
-    let CannotApplyUnaryOperator o t = !!(sprintf "The operator %s cannot be applied to a value of the type %s." <| o.ToString() <| t.ToString())
-    let CannotApplyBinaryOperator o t1 t2 = !!(sprintf "The operator %s cannot be applied to arguments of the types %s and %s." <| o.ToString() <| t1.ToString() <| t2.ToString())
-    let ArrayExpected = ignore !!"An array type has been expected as argument"
-    let InvalidArgumentCount f p = !!(sprintf "The function %s expects %d arguments" f p)
-    let InvalidArgument f i g e = !!(sprintf "Invalid argument №%d for function %s given: Expected a value of the type %s, but recived an argument of the type %s." i f <| e.ToString() <| g.ToString())
-    let MissingEntryPoint = ignore !!"The program's entry-point function 'void main()' could not be found"
-    let UnableParseInlineAsm = (Piglet.Lexer.LexerException >> raise >> ignore) "Unable to parse the inline-MCPU assembly code"
+    let internal DefaultStrings : Dictionary<string, string> =
+        Enumerable.ToDictionary([|
+                                    "ERR_LEXER", "Lexer error: {0}."
+                                    "ERR_PARSER", "Parser error: {0}."
+                                    "VARIABLE_EXISTS", "The variable {0} has already been defined."
+                                    "FUNCTION_EXISTS", "The function {0} has already been defined."
+                                    "NOT_FOUND", "The variable or function {0} could not be found."
+                                    "IVAL_CAST", "An instance of the type {0} cannot be converted to the type {1}."
+                                    "IVAL_BREAK", "The break statement must be used inside a loop."
+                                    "IVAL_INDEX", "An expression of the type {0} cannot be indexed."
+                                    "IVAL_UOP", "The operator {0} cannot be applied to a value of the type {1}."
+                                    "IVAL_BOP", "The operator {0} cannot be applied to arguments of the types {1} and {2}."
+                                    "ARRAY_EXPECTED", "An array type has been expected as argument."
+                                    "FUNC_EXPECTED_ARGC", "The function %s expects %d arguments."
+                                    "ARRAY_EXPECTED", "An array type has been expected as argument."
+                                    "IVAL_ARG", "Invalid argument №{0} for function {1} given: Expected a value of the type {2}, but recived an argument of the type {3}."
+                                    "MISSING_MAIN", "The program's entry-point function 'void main()' could not be found."
+                                    "IVAL_MCPUASM", "Unable to parse the inline-MCPU assembly code."
+                                |], (fun (k, _) -> k), (fun (_, v) -> v))
+    let mutable (* BUUH ! *) internal LanguageStrings : Dictionary<string, string> = DefaultStrings
+
+    let UpdateLanguage (lang) =
+        if lang = null then
+            LanguageStrings <- DefaultStrings
+        // TODO : verify that each index exists
+        LanguageStrings <- lang
+        
+    let format s ([<ParamArray>]a) = String.Format(LanguageStrings.[s], a)
+    let inline (==>) s a = format s a |> CompilerException
+
+    let LexerError a = "ERR_LEXER" ==> [|box a|]
+    let ParserError a = "ERR_PARSER" ==> [|box a|]
+    let VariableAlreadyDefined a = "VARIABLE_EXISTS" ==> [|box a|]
+    let FunctionAlreadyDefined a = "FUNCTION_EXISTS" ==> [|box a|]
+    let NameNotFound a = "NOT_FOUND" ==> [|box a|]
+    let InvalidConversion s t = "IVAL_CAST"  ==> [|box s; box t|]
+    let InvalidBreak () = "IVAL_BREAK" ==> [||]
+    let CannotIndex a = "IVAL_INDEX" ==> [|box a|]
+    let CannotApplyUnaryOperator o t = "IVAL_UOP" ==> [|box o; box t|]
+    let CannotApplyBinaryOperator o t1 t2 = "IVAL_BOP" ==> [|box o; box t1; box t2|]
+    let ArrayExpected () = "ARRAY_EXPECTED" ==> [||]
+    let InvalidArgumentCount f p = "FUNC_EXPECTED_ARGC" ==> [|box f; box p|]
+    let InvalidArgument f i g e = "IVAL_ARG" ==> [|box i; box f; box e; box g|]
+    let MissingEntryPoint () = "MISSING_MAIN" ==> [||]
+    let UnableParseInlineAsm () = Piglet.Lexer.LexerException LanguageStrings.["IVAL_MCPUASM"]

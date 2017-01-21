@@ -95,7 +95,7 @@ module Lexer =
     let lt_false = ParseTerminal "false" !<(IntLiteral 0)
     let lt_null = ParseTerminal "null" !<(IntLiteral 0)
     let lt_string = ParseTerminal "\"([^\"]*)\"" (fun s -> if s.Length < 2 then
-                                                               Errors.UnableParseInlineAsm; ""
+                                                               raise <| Errors.UnableParseInlineAsm()
                                                            else
                                                                s.Substring(1, s.Length - 2))
     

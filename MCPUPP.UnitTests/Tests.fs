@@ -423,8 +423,42 @@ module UnitTests =
                 )
             )
         ])
+    let Test16 =
+        !~<(@"
+        void main(void)
+        {
+            int j;
 
-    let Test20 =
+            {
+                float* ptr;
+
+                {
+                    ;
+                }
+            }
+        }", [
+                FunctionDeclaration(Unit, "main", [||], (
+                    [
+                        ScalarDeclaration(Int, "j")
+                    ], [
+                        BlockStatement(
+                            [
+                                PointerDeclaration(Float, "ptr")
+                            ], [
+                                BlockStatement(
+                                    [], [
+                                        ExpressionStatement(
+                                            Nop
+                                        )
+                                    ]
+                                )
+                            ]
+                        )
+                    ]
+                )
+            )
+        ])
+    let Test17 =
         !~<(@"
 int i;
 
