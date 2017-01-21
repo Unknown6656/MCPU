@@ -9,7 +9,9 @@ The name **MCPU** stands for **M**inimalistic **C**entral **P**rocessing **U**ni
 [<img src="https://ci.appveyor.com/api/projects/status/k9t9jqap2iemau3c/branch/mcpu%2B%2B?svg=true&pendingText=mcpu%2B%2B%20-%20pending&failingText=mcpu%2B%2B%20-%20failed&passingText=mcpu%2B%2B%20-%20passed" height="30"/>](https://ci.appveyor.com/project/Unknown6656/mcpu/branch/mcpu%2B%2B)
 #### Testing status (Windows 64Bit)
 [<img src="https://ci.appveyor.com/api/projects/status/fyvayfc9e82xh6eg/branch/master?svg=true&pendingText=master%20-%20pending&failingText=master%20-%20failed&passingText=master%20-%20passed" height="30"/>](https://ci.appveyor.com/project/Unknown6656/mcpu-he9wv/branch/master)<br/>
-[<img src="https://ci.appveyor.com/api/projects/status/fyvayfc9e82xh6eg/branch/dev?svg=true&pendingText=dev%20-%20pending&failingText=dev%20-%20failed&passingText=dev%20-%20passed" height="30"/>](https://ci.appveyor.com/project/Unknown6656/mcpu-he9wv/branch/dev)
+[<img src="https://ci.appveyor.com/api/projects/status/fyvayfc9e82xh6eg/branch/dev?svg=true&pendingText=dev%20-%20pending&failingText=dev%20-%20failed&passingText=dev%20-%20passed" height="30"/>](https://ci.appveyor.com/project/Unknown6656/mcpu-he9wv/branch/dev)<br/>
+[<img src="https://ci.appveyor.com/api/projects/status/fyvayfc9e82xh6eg/branch/mcpu%2B%2B?svg=true&pendingText=mcpu%2B%2B%20-%20pending&failingText=mcpu%2B%2B%20-%20failed&passingText=mcpu%2B%2B%20-%20passed" height="30"/>](https://ci.appveyor.com/project/Unknown6656/mcpu-he9wv/branch/mcpu%2B%2B)
+
 
 #### Issue/PR stats
 
