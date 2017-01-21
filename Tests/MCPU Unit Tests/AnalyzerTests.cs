@@ -107,16 +107,84 @@ int main(void)
 }
 ", "NOT_FOUND");
 
+        [TestMethod]
+        public void Test_06() => ExpectAnalyzerFailure(@"
+void main(void)
+{
+    int i;
+
+    i = 42.0;
+}
+", "IVAL_CAST");
+
+        [TestMethod]
+        public void Test_07() => ExpectAnalyzerFailure(@"
+void main(void)
+{
+    int* i;
+
+    i = new float[6];
+}
+", "IVAL_CAST");
+
+        [TestMethod]
+        public void Test_08() => ExpectAnalyzerFailure(@"
+void main(void)
+{
+    float[] arr;
+
+    arr = new float[42.0];
+}
+", "IVAL_CAST");
+
+        [TestMethod]
+        public void Test_09() => ExpectAnalyzerFailure(@"
+void main(void)
+{
+    if (true)
+    {
+        break;
+    }
+}
+", "IVAL_BREAK");
+
+        [TestMethod]
+        public void Test_10() => ExpectAnalyzerFailure(@"
+void main(void)
+{
+    int j;
+
+    j[6] = 315;
+}
+", "IVAL_INDEX");
+
+        [TestMethod]
+        public void Test_11() => ExpectAnalyzerFailure(@"
+void main(void)
+{
+    int* ptr;
+
+    ptr[6] = 315;
+}
+", "IVAL_INDEX");
+
+        [TestMethod]
+        public void Test_12() => ExpectAnalyzerFailure(@"
+int main(void)
+{
+    int[] arr;
+
+    return 44 + arr;
+}
+", "IVAL_INDEX");
+
 
         /*
          * TO TEST:
 
             "ERR_LEXER"
             "ERR_PARSER"
-            "NOT_FOUND"
-            "IVAL_CAST"
-            "IVAL_BREAK"
-            "IVAL_INDEX"
+            
             "IVAL_UOP"
             "IVAL_BOP"
             "ARRAY_EXPECTED"

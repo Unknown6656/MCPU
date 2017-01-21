@@ -64,7 +64,7 @@ let TypeOfDeclaration = function
                         | PointerDeclaration (t, _)  -> { Type = t; Cover = Pointer }
 
 type SymbolTable(program) as self =
-    inherit Dictionary<IdentifierRef, VariableDeclaration>(HashIdentity.Reference)
+    inherit Dictionary<IdentifierRef, VariableDeclaration>(HashIdentity.Structural)
 
     let WhileStatementStack = Stack<WhileStatement>()
     let SymbolScopeStack = SymbolScopeStack()
@@ -140,7 +140,11 @@ type SymbolTable(program) as self =
         program
         |> List.iter ScanDeclaration
 
-    member x.GetIdentifierType idref = TypeOfDeclaration self.[idref]
+    member x.GetIdentifierType idref =
+        if self.ContainsKey idref then
+            TypeOfDeclaration self.[idref]
+        else
+            raise <| Errors.NameNotFound idref.Identifier
     member x.Table =
         let res = Enumerable.Select(self, fun x -> (x.Key, x.Value))
         Enumerable.ToArray(res)
