@@ -228,9 +228,9 @@ namespace MCPU
                 PrintGraph(8, i_wdh, "TIME DISTR", (res.Item5, ConsoleColor.DarkGray),
                                                    (res.Item6, ConsoleColor.DarkCyan),
                                                    (res.Item7, ConsoleColor.Cyan));
-                PrintGraph(8, i_wdh, "PASS/FAIL", (res.Item2, ConsoleColor.Green),
-                                                  (res.Item3, ConsoleColor.Yellow),
-                                                  (res.Item4, ConsoleColor.Red));
+                PrintGraph(8, i_wdh, "PASS/SKIP/FAIL", (res.Item2, ConsoleColor.Green),
+                                                       (res.Item3, ConsoleColor.Yellow),
+                                                       (res.Item4, ConsoleColor.Red));
             }
 
             WriteLine("\n    GRAPH COLORS:");

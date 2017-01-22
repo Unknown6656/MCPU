@@ -34,14 +34,11 @@ namespace MCPU.Testing
             AreEqual<int>(j, j);
         }
 
+        public static void ExpectNoFailure(string code) => Analyzer.Analyze(Lexer.parse(code));
+
         public static void ExpectAnalyzerFailure(string code, string errname)
         {
-            string errmsg = Throws<Exception>(() =>
-            {
-                Program prog = Lexer.parse(code);
-
-                Analyzer.Analyze(prog);
-            }).Message;
+            string errmsg = Throws<Exception>(() => ExpectNoFailure(code)).Message;
             string errexp = Errors.GetFormatString(errname);
 
             IsTrue(ApproximateFormatStringEqual(errmsg, errexp));
@@ -51,9 +48,7 @@ namespace MCPU.Testing
         public override void Test_Init() => Errors.UpdateLanguage<Dictionary<string, string>>(null); // RESET LANGUAGE TO DEFAULT
 
         [TestMethod]
-        public void Test_01()
-        {
-            Program prog = Lexer.parse(@"
+        public void Test_01() => ExpectNoFailure(@"
 void main(void)
 {
     float[] arr;
@@ -67,10 +62,6 @@ void main(void)
     delete arr;
 }
 ");
-            Analyzer.AnalyzerResult res = Analyzer.Analyze(prog);
-            
-            //TODO ?
-        }
 
         [TestMethod]
         public void Test_02() => ExpectAnalyzerFailure(@"
@@ -224,10 +215,63 @@ int main(void)
 }
 ", "IVAL_UOP");
 
+        [TestMethod]
+        public void Test_17() => ExpectAnalyzerFailure(@"
+int main(void)
+{
+    {
+        int i;
+
+        i = 42;
+    }
+
+    return i;
+}
+", "NOT_FOUND");
+
+        [TestMethod]
+        public void Test_18() => ExpectNoFailure(@"
+int foo()
+{
+    int i;
+    i = -1;
+    return i;
+}
+
+int main(void)
+{
+    int i;
+
+    i = 42;
+            
+    while (true)
+        if (i > 7)
+            break;
+        else
+            i = i / 5;
+
+    return i;
+}
+");
+
+        [TestMethod]
+        public void Test_19() => ExpectNoFailure(@"
+void main(void)
+{
+    int i;
+
+    i += 9;
+    i *= (i >>>= 4);
+    i %= (i -= 315);
+}
+");
+
 
         /*
          * TO TEST:
 
+            assignment operators
+                
             "ERR_LEXER"
             "ERR_PARSER"
             

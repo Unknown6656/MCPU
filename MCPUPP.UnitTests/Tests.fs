@@ -550,5 +550,60 @@ float topkek (int lulz)
                 )
             )
         ])
+    let Test18 =
+        !~<(@"
+void main()
+{
+    int i;
+
+    i >>>= 9;
+    i -= 42;
+}
+        ", [
+            FunctionDeclaration(
+                Unit,
+                "main",
+                [||],
+                (
+                    [
+                        ScalarDeclaration(Int, "i")
+                    ],
+                    [
+                        ExpressionStatement(
+                            Expression(
+                                ScalarAssignmentExpression(
+                                    IdentifierRef "i",
+                                    BinaryExpression(
+                                        IdentifierExpression(
+                                            IdentifierRef "i"
+                                        ),
+                                        RotateRight,
+                                        LiteralExpression(
+                                            IntLiteral(9)
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                        ExpressionStatement(
+                            Expression(
+                                ScalarAssignmentExpression(
+                                    IdentifierRef "i",
+                                    BinaryExpression(
+                                        IdentifierExpression(
+                                            IdentifierRef "i"
+                                        ),
+                                        Subtract,
+                                        LiteralExpression(
+                                            IntLiteral(42)
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    ]
+                )
+            )
+        ])
     do
         ()

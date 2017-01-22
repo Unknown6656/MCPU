@@ -55,11 +55,13 @@ namespace MCPU.Testing
         {
             Random rand = new Random();
 
-            for (int i = 0; i < 0x40; i++)
+            for (int i = 0; i < 0x10; i++)
             {
                 float f = (float)(rand.NextDouble() / short.MaxValue * rand.Next());
                 FloatIntUnion un = f;
                 int val = *((int*)&f);
+
+                // this test has to be done because of the endianess of some machines
 
                 if (val != un)
                     Skip(); // skip this test case

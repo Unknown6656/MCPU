@@ -16,6 +16,9 @@ using MCPU.MCPUPP.Parser;
 using MCPU.MCPUPP.Tests;
 using MCPU.Compiler;
 
+using Piglet.Parser;
+using Piglet.Lexer;
+
 using Program = Microsoft.FSharp.Collections.FSharpList<MCPU.MCPUPP.Parser.SyntaxTree.Declaration>;
 
 namespace MCPU.Testing
@@ -214,5 +217,16 @@ void main(void)
 
         [TestMethod]
         public void Test_19() => ValidateTest(UnitTests.Test17);
+
+        [TestMethod]
+        public void Test_20() => ValidateTest(UnitTests.Test18);
+
+        [TestMethod]
+        public void Test_21() => Throws<Exception>(() => Lexer.parse(@"
+void main(void)
+{
+    42.0 /= 315;
+}
+"));
     }
 }
