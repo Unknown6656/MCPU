@@ -30,14 +30,8 @@ The name **MCPU** stands for **M**inimalistic **C**entral **P**rocessing **U**ni
 ### TODO-List
 
 - [ ] IDE Documentation (!)
-- [x] Floating-point arithmetic
-- [x] Unit Tests
-- [x] Push releases (used [name generator](http://www.codenamegenerator.com/))
-- [x] Instruction serialization
-- [x] Instruction-space management
-- [x] Instruction optimization (NOP, empty statements etc.)
+- [ ] MCPU++ Documentation (!)
 - [ ] Function inlining
-- [x] Kernel-space memory addressing
 - [ ] Asynchronous processor execution
 - [ ] Virtual Device support
 - [ ] String processing and support
@@ -49,3 +43,4 @@ The name **MCPU** stands for **M**inimalistic **C**entral **P**rocessing **U**ni
     - [x] auto-completition **(Nearly finished)**
     - [x] debugger **(currently in progress)**
     - [ ] refractoring
+    - [ ] MCPU++ editor
