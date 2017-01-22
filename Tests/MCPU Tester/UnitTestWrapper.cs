@@ -89,7 +89,7 @@ namespace MCPU
             Stopwatch sw = new Stopwatch();
             long swc, swi, swm;
 
-            foreach (Type t in from t in typeof(Testing.Commons).Assembly.GetTypes()
+            foreach (Type t in from t in typeof(Commons).Assembly.GetTypes()
                                let attr = t.GetCustomAttributes<TestClassAttribute>(true).FirstOrDefault()
                                where attr != null
                                orderby t.Name ascending
@@ -123,6 +123,9 @@ namespace MCPU
 
                         try
                         {
+                            if ((nfo.GetCustomAttributes<AppVeyorSkipAttribute>().FirstOrDefault() != null) && appveyor)
+                                Commons.Skip();
+
                             init.Invoke(container, new object[0]);
 
                             AddTime(&swi, sw);

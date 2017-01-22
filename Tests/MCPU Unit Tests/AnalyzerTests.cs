@@ -303,6 +303,53 @@ void main(void)
 }
 ", "ARRAY_EXPECTED");
 
+        [TestMethod]
+        public void Test_23() => ExpectAnalyzerFailure(@"
+void func1(int i) { }
+
+void main(void)
+{
+    func1();
+}
+", "FUNC_EXPECTED_ARGC");
+
+        [TestMethod]
+        public void Test_24() => ExpectAnalyzerFailure(@"
+void func1(int i) { }
+
+void main(void)
+{
+    func1(315, 42);
+}
+", "FUNC_EXPECTED_ARGC");
+
+        [TestMethod]
+        public void Test_25() => ExpectNoFailure(@"
+void func1(int i) { }
+
+void main(void)
+{
+    func1(-88 << 7);
+}
+");
+
+        [TestMethod]
+        public void Test_26() => ExpectAnalyzerFailure(@"
+void func1(int i) { }
+
+void main(void)
+{
+    func1(42.0);
+}
+", "IVAL_ARG");
+
+        [TestMethod]
+        public void Test_27() => ExpectAnalyzerFailure(@"
+void not_a_main_function(void)
+{
+}
+", "MISSING_MAIN");
+
 
         /*
          * TO TEST:
@@ -313,10 +360,7 @@ void main(void)
             "ERR_PARSER"
             
             
-            "FUNC_EXPECTED_ARGC"
             "ARRAY_EXPECTED"
-            "IVAL_ARG"
-            "MISSING_MAIN"
             "IVAL_MCPUASM"
          */
 

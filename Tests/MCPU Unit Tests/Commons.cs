@@ -117,4 +117,9 @@ namespace MCPU.Testing
         : Exception
     {
     }
+
+    public sealed class AppVeyorSkipAttribute
+        : Attribute
+    {
+    }
 }
