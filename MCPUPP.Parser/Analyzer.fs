@@ -144,7 +144,16 @@ type SymbolTable(program) as self =
         if self.ContainsKey idref then
             TypeOfDeclaration self.[idref]
         else
-            raise <| Errors.NameNotFound idref.Identifier
+            let keys = self.Keys
+                       |> Enumerable.ToList
+                       |> Enumerable.Reverse
+            let keys = Enumerable.Where(keys, fun x -> x = idref)
+                       |> Enumerable.ToArray
+
+            if keys.Length > 0 then
+                TypeOfDeclaration self.[keys.[0]]
+            else
+                raise <| Errors.NameNotFound idref.Identifier
     member x.Table =
         let res = Enumerable.Select(self, fun x -> (x.Key, x.Value))
         Enumerable.ToArray(res)
@@ -253,26 +262,25 @@ type ExpressionTypeDictionary(program, ftable : FunctionTable, stable : SymbolTa
                 | BinaryExpression (e1, op, e2) ->
                     let t1 = ScanExpression e1
                     let t2 = ScanExpression e2
-                    let fail = raise <| Errors.CannotApplyBinaryOperator op t1 t2
-                               
-                     
-                    if t1.IsArray <> t2.IsArray then fail
-                    elif t1.IsUnit || t2.IsUnit then fail 
+                    let fail() = raise <| Errors.CannotApplyBinaryOperator op t1 t2
+
+                    if t1.IsArray <> t2.IsArray then fail()
+                    elif t1.IsUnit || t2.IsUnit then fail()
                     else match op with
                          | Or | And | Xor ->
                              CheckIndexType e1
                              CheckIndexType e2
                              ScalarType Int
                          | Equal | NotEqual ->
-                             if t1 <> t2 then fail
+                             if t1 <> t2 then fail()
                              else ScalarType Int
                          | LessEqual | Less | GreaterEqual | Greater ->
-                             if t1.IsArray then fail
+                             if t1.IsArray then fail()
                              else ScalarType Int
                          | Add | Subtract ->
-                             if t1.IsPointer && t2.IsPointer then fail
-                             elif t1.IsPointer && t2 <> ScalarType Int then fail
-                             elif t2.IsPointer && t1 <> ScalarType Int then fail
+                             if t1.IsPointer && t2.IsPointer then fail()
+                             elif t1.IsPointer && t2 <> ScalarType Int then fail()
+                             elif t2.IsPointer && t1 <> ScalarType Int then fail()
                              elif t1.IsPointer then t1
                              elif t2.IsPointer then t2
                              elif (t1 = ScalarType Float) || (t2 = ScalarType Float) then ScalarType Float
@@ -280,14 +288,17 @@ type ExpressionTypeDictionary(program, ftable : FunctionTable, stable : SymbolTa
                          | Multiply | Divide | Modulus | Power ->
                              if (t1 = ScalarType Float) || (t2 = ScalarType Float) then ScalarType Float
                              else t2
+                         | RotateLeft | RotateRight | ShiftLeft | ShiftRight ->
+                             if (t2 <> ScalarType Int) || (t1 <> ScalarType Int) then fail()
+                             else ScalarType Int
                 | UnaryExpression (op, e) ->
                     let e = ScanExpression e
-                    let fail = raise <| Errors.CannotApplyUnaryOperator op e
+                    let fail() = raise <| Errors.CannotApplyUnaryOperator op e
                 
-                    if not e.IsScalar then fail
-                    elif e.IsUnit then fail
+                    if not e.IsScalar then fail()
+                    elif e.IsUnit then fail()
                     else match op with
-                         | Negate -> if e.IsFloat then fail else e
+                         | Negate -> if e.IsFloat then fail() else e
                          | LogicalNegate | Identity -> e
                          | FloatConvert -> ScalarType Float
                          | IntConvert | BooleanConvert -> ScalarType Int

@@ -68,6 +68,8 @@ void main(void)
 }
 ");
             Analyzer.AnalyzerResult res = Analyzer.Analyze(prog);
+            
+            //TODO ?
         }
 
         [TestMethod]
@@ -172,9 +174,9 @@ void main(void)
         public void Test_12() => ExpectAnalyzerFailure(@"
 int main(void)
 {
-    int* arr;
+    int* val;
 
-    return arr >> 42.0;
+    return val >> 42.0;
 }
 ", "IVAL_BOP");
 
@@ -201,6 +203,26 @@ int main(void)
     return 44 + arr;
 }
 ", "IVAL_BOP");
+
+        [TestMethod]
+        public void Test_15() => ExpectAnalyzerFailure(@"
+int main(void)
+{
+    int[] arr;
+
+    return -arr;
+}
+", "IVAL_UOP");
+
+        [TestMethod]
+        public void Test_16() => ExpectAnalyzerFailure(@"
+int main(void)
+{
+    int* ptr;
+
+    return +ptr;
+}
+", "IVAL_UOP");
 
 
         /*
