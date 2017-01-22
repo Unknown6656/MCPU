@@ -15,6 +15,8 @@ namespace MCPU
 {
     public static unsafe class UnitTestWrapper
     {
+        internal static readonly bool appveyor = (Environment.GetEnvironmentVariable("APPVEYOR") ?? "") == "True";
+
         internal static void AddTime(long* target, Stopwatch sw)
         {
             sw.Stop();
@@ -40,12 +42,18 @@ namespace MCPU
 
         internal static void PrintColorDescription(ConsoleColor col, string desc)
         {
+            if (appveyor)
+                return;
+
             Print("       ### ", col);
             PrintLine(desc, ConsoleColor.White);
         }
 
         internal static void PrintGraph(int padding, int width, string descr, params (double, ConsoleColor)[] values)
         {
+            if (appveyor)
+                return;
+
             double sum = (from v in values select v.Item1).Sum();
 
             width -= 2;
@@ -92,7 +100,7 @@ namespace MCPU
 
                 dynamic container = Activator.CreateInstance(t);
                 MethodInfo init = t.GetMethod("Test_Init");
-                int tp = 0, tf = 0, ts = 0;
+                int tp = 0, tf = 0, ts = 0, pleft = 0;
 
                 WriteLine($"Testing class '{t.FullName}'");
 
@@ -103,9 +111,13 @@ namespace MCPU
                     {
                         Write("\t[");
 
-                        int pleft = CursorLeft;
+                        if (!appveyor)
+                            pleft = CursorLeft;
 
                         Write($"    ] Testing '{t.FullName}.{nfo.Name}'");
+
+                        if (appveyor)
+                            Write(" ...\n\t\t");
 
                         try
                         {
@@ -116,7 +128,10 @@ namespace MCPU
                             nfo.Invoke(container, new object[0]);
 
                             ForegroundColor = ConsoleColor.Green;
-                            CursorLeft = pleft;
+
+                            if (!appveyor)
+                                CursorLeft = pleft;
+
                             WriteLine("PASS");
                             ForegroundColor = ConsoleColor.White;
 
@@ -130,7 +145,10 @@ namespace MCPU
                             ++ts;
 
                             ForegroundColor = ConsoleColor.Yellow;
-                            CursorLeft = pleft;
+
+                            if (!appveyor)
+                                CursorLeft = pleft;
+
                             WriteLine("SKIP");
                             ForegroundColor = ConsoleColor.White;
                         }
@@ -140,7 +158,10 @@ namespace MCPU
                             ++tf;
 
                             ForegroundColor = ConsoleColor.Red;
-                            CursorLeft = pleft;
+
+                            if (!appveyor)
+                                CursorLeft = pleft;
+
                             WriteLine("FAIL");
 
                             while (ex != null)
