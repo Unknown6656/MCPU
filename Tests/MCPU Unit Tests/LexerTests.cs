@@ -38,6 +38,8 @@ namespace MCPU.Testing
             AreEqual<int>(j, j);
         }
 
+        internal static void ExpectParserFailure(string code) => Throws<ParseException>(() => Lexer.parse(code));
+
         internal static void AreEqual(Program prog1, Program prog2)
         {
             bool innerequal(object obj1, object obj2)
@@ -114,14 +116,21 @@ namespace MCPU.Testing
             }
         }
 
-        internal static void ValidateTest((string code, Program ast) data, bool outputdebug = false)
+        internal static void ValidateTest((string code, Program ast) data)
         {
             Program generated = Lexer.parse(data.code);
 
-            if (outputdebug)
+            try
+            {
+                AreEqual(generated, data.ast);
+            }
+            catch
+            {
+                Console.WriteLine();
                 ConsoleExtensions.Diff(data.ast.ToDebugString(), generated.ToDebugString());
 
-            AreEqual(generated, data.ast);
+                throw;
+            }
         }
 
         [TestInitialize]
@@ -222,11 +231,19 @@ void main(void)
         public void Test_20() => ValidateTest(UnitTests.Test18);
 
         [TestMethod]
-        public void Test_21() => Throws<Exception>(() => Lexer.parse(@"
+        public void Test_21() => ExpectParserFailure(@"
 void main(void)
 {
     42.0 /= 315;
 }
-"));
+");
+
+        [TestMethod]
+        public void Test_22() => ExpectParserFailure(@"
+void main(void)
+{
+    delete 88;
+}
+");
     }
 }

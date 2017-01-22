@@ -305,7 +305,11 @@ type ExpressionTypeDictionary(program, ftable : FunctionTable, stable : SymbolTa
                 | IdentifierExpression i -> stable.GetIdentifierType i
                 | ArrayIdentifierExpression (i, e) ->
                     CheckIndexType e
-                    ScalarType (stable.GetIdentifierType i).Type
+                    let var = stable.GetIdentifierType i
+
+                    if not var.IsArray then
+                        raise <| Errors.CannotIndex var
+                    ScalarType var.Type
                 | PointerValueIdentifierExpression i -> ScalarType (stable.GetIdentifierType i).Type
                 | PointerAddressIdentifierExpression _ -> ScalarType Int
                 | FunctionCallExpression (i, args) ->
@@ -335,7 +339,13 @@ type ExpressionTypeDictionary(program, ftable : FunctionTable, stable : SymbolTa
                     if not i.IsArray then
                         raise <| Errors.ArrayExpected()
                     ScalarType Unit
-                | _ -> ScalarType Unit
+                | ArraySizeExpression i ->
+                    let i = stable.GetIdentifierType i
+                    
+                    if not i.IsArray then
+                        raise <| Errors.ArrayExpected()
+                    ScalarType Int
+                | RawAddressOfExpression _ -> ScalarType Int
             self.Add (expr, ExpressionType)
             ExpressionType
         ScanBlockStatement blockstat

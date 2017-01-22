@@ -40,8 +40,15 @@ namespace MCPU.Testing
         {
             string errmsg = Throws<Exception>(() => ExpectNoFailure(code)).Message;
             string errexp = Errors.GetFormatString(errname);
+            bool comp = ApproximateFormatStringEqual(errmsg, errexp);
 
-            IsTrue(ApproximateFormatStringEqual(errmsg, errexp));
+            if (!comp)
+            {
+                Console.WriteLine();
+                ConsoleExtensions.Diff(errexp, errmsg);
+            }
+
+            IsTrue(comp);
         }
 
         [TestInitialize]
@@ -266,6 +273,36 @@ void main(void)
 }
 ");
 
+        [TestMethod]
+        public void Test_20() => ExpectAnalyzerFailure(@"
+float main(void)
+{
+    float f;
+
+    return f[315];
+}
+", "IVAL_INDEX");
+
+        [TestMethod]
+        public void Test_21() => ExpectAnalyzerFailure(@"
+void main(void)
+{
+    int* ptr;
+
+    ptr[5] = 8;
+}
+", "IVAL_INDEX");
+
+        [TestMethod]
+        public void Test_22() => ExpectAnalyzerFailure(@"
+int ptr;
+
+void main(void)
+{
+    delete ptr;
+}
+", "ARRAY_EXPECTED");
+
 
         /*
          * TO TEST:
@@ -275,9 +312,7 @@ void main(void)
             "ERR_LEXER"
             "ERR_PARSER"
             
-            "IVAL_UOP"
-            "IVAL_BOP"
-            "ARRAY_EXPECTED"
+            
             "FUNC_EXPECTED_ARGC"
             "ARRAY_EXPECTED"
             "IVAL_ARG"

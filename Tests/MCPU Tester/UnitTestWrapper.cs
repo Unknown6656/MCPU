@@ -109,12 +109,14 @@ namespace MCPU
                 foreach (MethodInfo nfo in t.GetMethods().OrderBy(_ => _.Name))
                     if (nfo.GetCustomAttributes<TestMethodAttribute>().FirstOrDefault() != null)
                     {
-                        Write("\t[");
-
                         if (!appveyor)
+                        {
+                            Write("\t[");
                             pleft = CursorLeft;
+                            Write("    ]");
+                        }
 
-                        Write($"    ] Testing '{t.FullName}.{nfo.Name}'");
+                        Write($"Testing '{t.FullName}.{nfo.Name}'");
 
                         if (appveyor)
                             Write(" ...\n\t\t");
