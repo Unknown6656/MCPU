@@ -172,11 +172,35 @@ void main(void)
         public void Test_12() => ExpectAnalyzerFailure(@"
 int main(void)
 {
+    int* arr;
+
+    return arr >> 42.0;
+}
+", "IVAL_BOP");
+
+        [TestMethod]
+        public void Test_13() => ExpectAnalyzerFailure(@"
+int main(void)
+{
+    int i;
+    float f;
+
+    i = 315;
+    f = -42.0;
+
+    return i & f;
+}
+", "IVAL_BOP");
+
+        [TestMethod]
+        public void Test_14() => ExpectAnalyzerFailure(@"
+int main(void)
+{
     int[] arr;
 
     return 44 + arr;
 }
-", "IVAL_INDEX");
+", "IVAL_BOP");
 
 
         /*

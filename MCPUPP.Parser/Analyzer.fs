@@ -64,7 +64,7 @@ let TypeOfDeclaration = function
                         | PointerDeclaration (t, _)  -> { Type = t; Cover = Pointer }
 
 type SymbolTable(program) as self =
-    inherit Dictionary<IdentifierRef, VariableDeclaration>(HashIdentity.Structural)
+    inherit Dictionary<IdentifierRef, VariableDeclaration>(HashIdentity.Reference)
 
     let WhileStatementStack = Stack<WhileStatement>()
     let SymbolScopeStack = SymbolScopeStack()
@@ -342,7 +342,7 @@ let Analyze program =
     let stable = SymbolTable program
     let ftable = FunctionTable program
     if not (ftable.ContainsKey "main") then
-        ignore Errors.MissingEntryPoint
+        raise <| Errors.MissingEntryPoint()
     let exprt = ExpressionTypeDictionary(program, ftable, stable)
     {
         SymbolTable = stable
