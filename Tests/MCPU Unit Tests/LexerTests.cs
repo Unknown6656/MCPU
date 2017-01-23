@@ -40,6 +40,8 @@ namespace MCPU.Testing
 
         internal static void ExpectParserFailure(string code) => Throws<ParseException>(() => Lexer.parse(code));
 
+        internal static void ExpectLexerFailure(string code) => Throws<LexerException>(() => Lexer.parse(code));
+
         internal static void AreEqual(Program prog1, Program prog2)
         {
             bool innerequal(object obj1, object obj2)
@@ -255,7 +257,7 @@ void main(void)
 ");
 
         [TestMethod]
-        public void Test_24() => ExpectParserFailure(@"
+        public void Test_24() => ExpectLexerFailure(@"
 void main(void)
 {
     __asm "";

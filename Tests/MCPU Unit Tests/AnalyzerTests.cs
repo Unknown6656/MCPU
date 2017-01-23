@@ -407,19 +407,58 @@ void main(void)
     __asm ""call main"";
 }
 ", "IVAL_MCPUASM");
-        
+
+        [TestMethod]
+        public void Test_35() => ExpectNoFailure(@"
+void main(void)
+{
+    float f;
+    int i;
+
+    f += i;
+    f -= 315;
+    f *= 42.0;
+    f /= i;
+    f %= -1;
+    i <<= i;
+    i >>= i;
+    i <<<= -2;
+    i >>>= 42;
+    i &= 315;
+    i |= i;
+    i %= 7;
+    i ^= 41;
+    f ^^= -2.5;
+}
+");
+
+        [TestMethod]
+        public void Test_36() => ExpectAnalyzerFailure(@"
+void main(void)
+{
+    float f;
+    int i;
+
+    f &= i;
+}
+", "IVAL_BOP");
+
+        [TestMethod]
+        public void Test_37() => ExpectAnalyzerFailure(@"
+void main(void)
+{
+    float f;
+
+    f ^= -42.0;
+}
+", "IVAL_BOP");
+
         /*
          * TO TEST:
-
-            assignment operators
-                
+         
             "ERR_LEXER"
             "ERR_PARSER"
-            
-            
             "ARRAY_EXPECTED"
-            "IVAL_MCPUASM"
          */
-
     }
 }
