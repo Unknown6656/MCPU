@@ -245,5 +245,21 @@ void main(void)
     delete 88;
 }
 ");
+
+        [TestMethod]
+        public void Test_23() => Lexer.parse(@"
+void main(void)
+{
+    __asm "" // hurr durr, comment in a string "";
+}
+");
+
+        [TestMethod]
+        public void Test_24() => ExpectParserFailure(@"
+void main(void)
+{
+    __asm "";
+}
+");
     }
 }

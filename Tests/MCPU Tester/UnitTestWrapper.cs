@@ -109,7 +109,9 @@ namespace MCPU
                 foreach (MethodInfo nfo in t.GetMethods().OrderBy(_ => _.Name))
                     if (nfo.GetCustomAttributes<TestMethodAttribute>().FirstOrDefault() != null)
                     {
-                        if (!appveyor)
+                        if (appveyor)
+                            Write('\t');
+                        else
                         {
                             Write("\t[");
                             pleft = CursorLeft;

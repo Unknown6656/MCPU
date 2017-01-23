@@ -1,8 +1,9 @@
 ﻿namespace MCPU.MCPUPP.Parser
 
+open System.Text.RegularExpressions;
 open System
-open MCPU
 open MCPU.Compiler
+open MCPU
 
 //type _curry<'a> =
 //    | C of ('a -> 'a)
@@ -12,6 +13,7 @@ open MCPU.Compiler
 module Helper =
     let inline (!~<) (x, y) = ValueTuple<'a, 'b>(x, y)
     let inline (!~>) (t : ValueTuple<'a, 'b>) = (t.Item1, t.Item2)
+    let ismatch str pattern = Regex.IsMatch(str, pattern)
     (* TODO:
     
     let rec uncurry (func : _curry<'a>) (arr : 'a list) : _curry<'a> =

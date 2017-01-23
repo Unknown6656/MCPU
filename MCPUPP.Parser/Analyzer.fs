@@ -1,6 +1,7 @@
 ﻿module MCPU.MCPUPP.Parser.Analyzer
 
 open MCPU.MCPUPP.Parser.SyntaxTree
+open MCPU.Compiler
 open System.Collections.Generic
 open System.Linq
 open System
@@ -103,7 +104,7 @@ type SymbolTable(program) as self =
                             | BreakStatement ->
                                 if WhileStatementStack.Count = 0 then
                                     raise <| Errors.InvalidBreak()
-                            |_ -> ()
+                            | _ -> ()
         and AddIdentifierMapping idref =
             let decl = SymbolScopeStack.CurrentScope.FindDeclaration idref
             self.Add(idref, decl)
@@ -223,6 +224,22 @@ type ExpressionTypeDictionary(program, ftable : FunctionTable, stable : SymbolTa
                                 let type' = ScanExpression e
                                 if type' <> ScalarType rettype then
                                     raise <| Errors.InvalidConversion type' rettype
+                            | InlineAsmStatement asm ->
+                                let fail = Errors.UnableParseInlineAsm >> raise
+                                let lines = (".main\n.kernel\n" + asm.Code).Split '\n'
+                                            |> Array.map (fun (l : string) -> (if l.Contains ';' then
+                                                                                   l.Remove(l.IndexOf ';')
+                                                                               else
+                                                                                   l).Trim().ToLower())
+                                            |> Array.filter (fun l -> l.Length > 0)
+                                Array.iter (fun (l : string) ->
+                                                if l.StartsWith "." then fail()
+                                                if ismatch l @"\b(ret|call)\b" then fail()
+                                                // TODO : other checks
+                                                ) lines
+                                let comp = MCPUCompiler.Compile lines
+                                if comp.IsB then fail()
+                                else Console.WriteLine(String.Join("\n", comp.AsA.Instructions));
                             |_ -> ()
         and ScanExpression expr =
             let CheckTypes s t = if s <> t then raise <| Errors.InvalidConversion s t

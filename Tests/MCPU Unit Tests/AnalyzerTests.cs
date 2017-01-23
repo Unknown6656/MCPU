@@ -350,7 +350,64 @@ void not_a_main_function(void)
 }
 ", "MISSING_MAIN");
 
+        [TestMethod]
+        public void Test_28() => ExpectAnalyzerFailure(@"
+void main(void)
+{
+    __asm "" ]\¦[√№θσ ""; // random string
+}
+", "IVAL_MCPUASM");
 
+        [TestMethod]
+        public void Test_29() => ExpectAnalyzerFailure(@"
+void main(void)
+{
+    __asm ""func test"";
+    __asm ""    nop"";
+    __asm ""end func"";
+}
+", "IVAL_MCPUASM");
+
+        [TestMethod]
+        public void Test_30() => ExpectAnalyzerFailure(@"
+void main(void)
+{
+    __asm "".kernel"";
+}
+", "IVAL_MCPUASM");
+
+        [TestMethod]
+        public void Test_31() => ExpectAnalyzerFailure(@"
+void main(void)
+{
+    __asm "".user"";
+}
+", "IVAL_MCPUASM");
+
+        [TestMethod]
+        public void Test_32() => ExpectAnalyzerFailure(@"
+void main(void)
+{
+    __asm "".main"";
+}
+", "IVAL_MCPUASM");
+
+        [TestMethod]
+        public void Test_33() => ExpectAnalyzerFailure(@"
+void main(void)
+{
+    __asm ""ret"";
+}
+", "IVAL_MCPUASM");
+
+        [TestMethod]
+        public void Test_34() => ExpectAnalyzerFailure(@"
+void main(void)
+{
+    __asm ""call main"";
+}
+", "IVAL_MCPUASM");
+        
         /*
          * TO TEST:
 
