@@ -61,6 +61,19 @@ module Lexer =
     let kw_float = ParseTerminal "float" !<Float
     
     // OPERATORS
+    let op_assign_add = Terminal "\+="
+    let op_assign_subtract = Terminal "-="
+    let op_assign_multiply = Terminal "\*="
+    let op_assign_divide = Terminal "/="
+    let op_assign_modulus = Terminal "%="
+    let op_assign_power = Terminal "^^="
+    let op_assign_xor = Terminal "^="
+    let op_assign_and = Terminal "&="
+    let op_assign_or = Terminal "\|="
+    let op_assign_ror = Terminal ">>>="
+    let op_assign_rol = Terminal "<<<="
+    let op_assign_shr = Terminal ">>="
+    let op_assign_shl = Terminal "<<="
     let op_not = Terminal "~"
     let op_int = Terminal @"int$"
     let op_bool = Terminal @"bool$"
@@ -95,7 +108,7 @@ module Lexer =
     let lt_false = ParseTerminal "false" !<(IntLiteral 0)
     let lt_null = ParseTerminal "null" !<(IntLiteral 0)
     let lt_string = ParseTerminal "\"([^\"]*)\"" (fun s -> if s.Length < 2 then
-                                                               Errors.UnableParseInlineAsm; ""
+                                                               raise <| Errors.UnableParseInlineAsm()
                                                            else
                                                                s.Substring(1, s.Length - 2))
     
@@ -125,6 +138,9 @@ module Lexer =
             
     // PRECEDENCE LIST
     assoc Left [ kw_else ]
+    assoc Right [ op_assign_add; op_assign_subtract; op_assign_multiply; op_assign_divide;
+                  op_assign_modulus; op_assign_power; op_assign_xor; op_assign_and; op_assign_or;
+                  op_assign_ror; op_assign_rol; op_assign_shr; op_assign_shl ]
     assoc Left [ op_assign ]
     assoc Left [ op_xor ]
     assoc Left [ op_or ]
@@ -171,6 +187,7 @@ module Lexer =
     reduce4 nt_globalvardecl nt_vartype op_multiply identifier sy_semicolon (fun a _ b _ -> PointerDeclaration(a, b))
     reduce5 nt_globalvardecl nt_vartype sy_osquare sy_csquare identifier sy_semicolon (fun a _ _ b _ -> ArrayDeclaration(a, b))
     // funcdecl -> type name \( params \) block
+    reduce5 nt_funcdecl nt_vartype identifier sy_oparen sy_cparen nt_blockstatement (fun a b _ _ f -> (a, b, [||], f))
     reduce6 nt_funcdecl nt_vartype identifier sy_oparen nt_params sy_cparen nt_blockstatement (fun a b _ d _ f -> (a, b, d, f))
     // params -> unit | paramlist
     reduce1 nt_params kw_unit !<[||]
@@ -244,7 +261,22 @@ module Lexer =
     reduce2 nt_expr op_raw identifier ((!.) >> RawAddressOfExpression >> (!<))
     
     let reduce_bop token op = reduce3 nt_expr nt_expr token nt_expr (fun a _ c -> BinaryExpression(a, op, c))
-    
+    let reduce_bop_assign token op = reduce3 nt_expr identifier token nt_expr (fun a _ c -> ScalarAssignmentExpression(IdentifierRef a, BinaryExpression(IdentifierExpression(IdentifierRef a), op, c)))
+
+    reduce_bop_assign op_assign_add Add
+    reduce_bop_assign op_assign_subtract Subtract
+    reduce_bop_assign op_assign_multiply Multiply
+    reduce_bop_assign op_assign_divide Divide
+    reduce_bop_assign op_assign_modulus Modulus
+    reduce_bop_assign op_assign_power Power
+    reduce_bop_assign op_assign_xor Xor
+    reduce_bop_assign op_assign_and And
+    reduce_bop_assign op_assign_or Or
+    reduce_bop_assign op_assign_ror RotateRight
+    reduce_bop_assign op_assign_rol RotateLeft
+    reduce_bop_assign op_assign_shr ShiftRight
+    reduce_bop_assign op_assign_shl ShiftLeft
+
     reduce_bop op_equal Equal
     reduce_bop op_notequal NotEqual
     reduce_bop op_xor Xor
@@ -264,7 +296,7 @@ module Lexer =
     reduce_bop op_divide Divide
     reduce_bop op_modulus Modulus
     reduce_bop op_power Power
-    
+
     let uprod = nt_expr.AddProduction(nt_uop, nt_expr)
     uprod.SetReduceFunction (fun a b -> UnaryExpression(a, b))
     uprod.SetPrecedence prec_unnop

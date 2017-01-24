@@ -2,6 +2,7 @@
 using Microsoft.FSharp.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Collections;
 using System.Diagnostics;
 using System.Reflection;
 using System.Linq;
@@ -15,11 +16,13 @@ using MCPU.MCPUPP.Parser;
 using MCPU.MCPUPP.Tests;
 using MCPU.Compiler;
 
+using Piglet.Parser;
+using Piglet.Lexer;
+
 using Program = Microsoft.FSharp.Collections.FSharpList<MCPU.MCPUPP.Parser.SyntaxTree.Declaration>;
 
 namespace MCPU.Testing
 {
-    using System.Collections;
     using static Microsoft.VisualStudio.TestTools.UnitTesting.Assert;
     using static ObjectDumper.Dumper;
 
@@ -34,6 +37,10 @@ namespace MCPU.Testing
 
             AreEqual<int>(j, j);
         }
+
+        internal static void ExpectParserFailure(string code) => Throws<ParseException>(() => Lexer.parse(code));
+
+        internal static void ExpectLexerFailure(string code) => Throws<LexerException>(() => Lexer.parse(code));
 
         internal static void AreEqual(Program prog1, Program prog2)
         {
@@ -111,14 +118,21 @@ namespace MCPU.Testing
             }
         }
 
-        internal static void ValidateTest((string code, Program ast) data, bool outputdebug = false)
+        internal static void ValidateTest((string code, Program ast) data)
         {
             Program generated = Lexer.parse(data.code);
 
-            if (outputdebug)
+            try
+            {
+                AreEqual(generated, data.ast);
+            }
+            catch
+            {
+                Console.WriteLine();
                 ConsoleExtensions.Diff(data.ast.ToDebugString(), generated.ToDebugString());
 
-            AreEqual(generated, data.ast);
+                throw;
+            }
         }
 
         [TestInitialize]
@@ -209,9 +223,45 @@ void main(void)
         [TestMethod]
         public void Test_17() => ValidateTest(UnitTests.Test15);
 
-
+        [TestMethod]
+        public void Test_18() => ValidateTest(UnitTests.Test16);
 
         [TestMethod]
-        public void Test_22() => ValidateTest(UnitTests.Test20);
+        public void Test_19() => ValidateTest(UnitTests.Test17);
+
+        [TestMethod]
+        public void Test_20() => ValidateTest(UnitTests.Test18);
+
+        [TestMethod]
+        public void Test_21() => ExpectParserFailure(@"
+void main(void)
+{
+    42.0 /= 315;
+}
+");
+
+        [TestMethod]
+        public void Test_22() => ExpectParserFailure(@"
+void main(void)
+{
+    delete 88;
+}
+");
+
+        [TestMethod]
+        public void Test_23() => Lexer.parse(@"
+void main(void)
+{
+    __asm "" // hurr durr, comment in a string "";
+}
+");
+
+        [TestMethod]
+        public void Test_24() => ExpectLexerFailure(@"
+void main(void)
+{
+    __asm "";
+}
+");
     }
 }

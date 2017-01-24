@@ -50,6 +50,10 @@ namespace MCPU.Testing
             {
                 func.Invoke();
             }
+            catch (SkippedException)
+            {
+                throw;
+            }
             catch (T ex)
             when (!(ex is UnitTestAssertException))
             {
@@ -98,9 +102,24 @@ namespace MCPU.Testing
 
         public static bool Contains(Instruction[] instr, OPCode opc) => instr?.Any(i => i.OPCode.Number == opc.Number) ?? false;
 
+        public static void Skip()
+        {
+            throw new SkippedException();
+        }
+
         [TestInitialize]
         public virtual void Test_Init()
         {
         }
+    }
+
+    public sealed class SkippedException
+        : Exception
+    {
+    }
+
+    public sealed class AppVeyorSkipAttribute
+        : Attribute
+    {
     }
 }

@@ -423,8 +423,42 @@ module UnitTests =
                 )
             )
         ])
+    let Test16 =
+        !~<(@"
+        void main(void)
+        {
+            int j;
 
-    let Test20 =
+            {
+                float* ptr;
+
+                {
+                    ;
+                }
+            }
+        }", [
+                FunctionDeclaration(Unit, "main", [||], (
+                    [
+                        ScalarDeclaration(Int, "j")
+                    ], [
+                        BlockStatement(
+                            [
+                                PointerDeclaration(Float, "ptr")
+                            ], [
+                                BlockStatement(
+                                    [], [
+                                        ExpressionStatement(
+                                            Nop
+                                        )
+                                    ]
+                                )
+                            ]
+                        )
+                    ]
+                )
+            )
+        ])
+    let Test17 =
         !~<(@"
 int i;
 
@@ -508,6 +542,61 @@ float topkek (int lulz)
                                 Some(
                                     LiteralExpression(
                                         FloatLiteral(42.0)
+                                    )
+                                )
+                            )
+                        )
+                    ]
+                )
+            )
+        ])
+    let Test18 =
+        !~<(@"
+void main()
+{
+    int i;
+
+    i >>>= 9;
+    i -= 42;
+}
+        ", [
+            FunctionDeclaration(
+                Unit,
+                "main",
+                [||],
+                (
+                    [
+                        ScalarDeclaration(Int, "i")
+                    ],
+                    [
+                        ExpressionStatement(
+                            Expression(
+                                ScalarAssignmentExpression(
+                                    IdentifierRef "i",
+                                    BinaryExpression(
+                                        IdentifierExpression(
+                                            IdentifierRef "i"
+                                        ),
+                                        RotateRight,
+                                        LiteralExpression(
+                                            IntLiteral(9)
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                        ExpressionStatement(
+                            Expression(
+                                ScalarAssignmentExpression(
+                                    IdentifierRef "i",
+                                    BinaryExpression(
+                                        IdentifierExpression(
+                                            IdentifierRef "i"
+                                        ),
+                                        Subtract,
+                                        LiteralExpression(
+                                            IntLiteral(42)
+                                        )
                                     )
                                 )
                             )

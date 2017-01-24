@@ -51,6 +51,23 @@ namespace MCPU.Testing
                 IsValue(cond.Item1, cond.Item2);
         }
 
+        public unsafe void RequireFloatUnion()
+        {
+            Random rand = new Random();
+
+            for (int i = 0; i < 0x10; i++)
+            {
+                float f = (float)(rand.NextDouble() / short.MaxValue * rand.Next());
+                FloatIntUnion un = f;
+                int val = *((int*)&f);
+
+                // this test has to be done because of the endianess of some machines
+
+                if (val != un)
+                    Skip(); // skip this test case
+            }
+        }
+
         [TestInitialize]
         public override void Test_Init()
         {
@@ -406,10 +423,11 @@ end func
             IsTrue(proc[3] != 0);
         }
 
-        [TestMethod]
+        [TestMethod, AppVeyorSkip]
         public void Test_21()
         {
-            Execute($@"
+            RequireFloatUnion();
+            Execute(@"
     .main
     MOV [2] 42.0
     MOV [3] 315
@@ -424,9 +442,10 @@ end func
             );
         }
 
-        [TestMethod]
+        [TestMethod, AppVeyorSkip]
         public void Test_22()
         {
+            RequireFloatUnion();
             Execute($@"
     .main
     MOV [2] 42.0
@@ -477,8 +496,8 @@ end func
             for (int i = 0; i < 0xff; i++)
                 proc[i] = i + 1;
 
-            int offs = 5;
-            int size = 42;
+            const int offs = 5;
+            const int size = 42;
 
             Execute($@"
     .main

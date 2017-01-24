@@ -55,6 +55,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AnalyzerTests.cs" />
     <Compile Include="Commons.cs" />
     <Compile Include="CompilerTests.cs" />
     <Compile Include="ProcessorTests.cs" />

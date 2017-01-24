@@ -1,7 +1,9 @@
 ﻿module MCPU.MCPUPP.Parser.Analyzer
 
 open MCPU.MCPUPP.Parser.SyntaxTree
+open MCPU.Compiler
 open System.Collections.Generic
+open System.Linq
 open System
 
 type SymbolScope(parent : SymbolScope option) =
@@ -14,14 +16,14 @@ type SymbolScope(parent : SymbolScope option) =
     member x.AddDeclaration decl =
         let ifd = IdentifierFromDecl
         if List.exists (fun x -> ifd x = ifd decl) list then
-            Errors.VariableAlreadyDefined (ifd decl)
+            raise <| Errors.VariableAlreadyDefined (ifd decl)
         list <- decl::list
     member x.FindDeclaration idref =
         match List.tryFind (fun x -> DeclaresIdentifier idref x) list with
         | Some d -> d
         | None -> match parent with
                   | Some ss -> ss.FindDeclaration idref
-                  | None -> Errors.NameNotFound idref.Identifier
+                  | None -> raise <| Errors.NameNotFound idref.Identifier
 
 type SymbolScopeStack() =
     let stack = Stack<SymbolScope>()
@@ -98,11 +100,11 @@ type SymbolTable(program) as self =
                             | ReturnStatement (Some e) -> ScanExpression e
                             | ReturnStatement None ->
                                 if rettype <> Unit then
-                                    Errors.InvalidConversion (rettype.ToString()) Builder.UnitString
+                                    raise <| Errors.InvalidConversion (rettype.ToString()) Builder.UnitString
                             | BreakStatement ->
                                 if WhileStatementStack.Count = 0 then
-                                    Errors.InvalidBreak
-                            |_ -> ()
+                                    raise <| Errors.InvalidBreak()
+                            | _ -> ()
         and AddIdentifierMapping idref =
             let decl = SymbolScopeStack.CurrentScope.FindDeclaration idref
             self.Add(idref, decl)
@@ -139,8 +141,24 @@ type SymbolTable(program) as self =
         program
         |> List.iter ScanDeclaration
 
-    member x.GetIdentifierType idref = TypeOfDeclaration self.[idref]
-   
+    member x.GetIdentifierType idref =
+        if self.ContainsKey idref then
+            TypeOfDeclaration self.[idref]
+        else
+            let keys = self.Keys
+                       |> Enumerable.ToList
+                       |> Enumerable.Reverse
+            let keys = Enumerable.Where(keys, fun x -> x = idref)
+                       |> Enumerable.ToArray
+
+            if keys.Length > 0 then
+                TypeOfDeclaration self.[keys.[0]]
+            else
+                raise <| Errors.NameNotFound idref.Identifier
+    member x.Table =
+        let res = Enumerable.Select(self, fun x -> (x.Key, x.Value))
+        Enumerable.ToArray(res)
+       
 type FunctionTableEntry =
     {
         ReturnType     : VariableType;
@@ -168,7 +186,7 @@ type FunctionTable(program) as self =
                               | GlobalVarDecl _ -> ()
                               | FunctionDeclaration (t, i, p, _) ->
                                   if self.ContainsKey i then
-                                      Errors.FunctionAlreadyDefined i
+                                      raise <| Errors.FunctionAlreadyDefined i
                                   self.Add(i, {
                                       ReturnType = t
                                       ParameterTypes = p
@@ -205,10 +223,26 @@ type ExpressionTypeDictionary(program, ftable : FunctionTable, stable : SymbolTa
                             | ReturnStatement (Some e) ->
                                 let type' = ScanExpression e
                                 if type' <> ScalarType rettype then
-                                    Errors.InvalidConversion type' rettype
+                                    raise <| Errors.InvalidConversion type' rettype
+                            | InlineAsmStatement asm ->
+                                let fail = Errors.UnableParseInlineAsm >> raise
+                                let lines = (".main\n.kernel\n" + asm.Code).Split '\n'
+                                            |> Array.map (fun (l : string) -> (if l.Contains ';' then
+                                                                                   l.Remove(l.IndexOf ';')
+                                                                               else
+                                                                                   l).Trim().ToLower())
+                                            |> Array.filter (fun l -> l.Length > 0)
+                                Array.iter (fun (l : string) ->
+                                                if l.StartsWith "." then fail()
+                                                if ismatch l @"\b(ret|call)\b" then fail()
+                                                // TODO : other checks
+                                                ) lines
+                                let comp = MCPUCompiler.Compile lines
+                                if comp.IsB then fail()
+                                else Console.WriteLine(String.Join("\n", comp.AsA.Instructions));
                             |_ -> ()
         and ScanExpression expr =
-            let CheckTypes s t = if s <> t then Errors.InvalidConversion s t
+            let CheckTypes s t = if s <> t then raise <| Errors.InvalidConversion s t
             let CheckIndexType e = CheckTypes (ScanExpression e) (ScalarType Int)
             let ExpressionType =
                 let ttransform (i, e) = (stable.GetIdentifierType i, ScanExpression e)
@@ -224,9 +258,9 @@ type ExpressionTypeDictionary(program, ftable : FunctionTable, stable : SymbolTa
                     let i, e = ttransform(i, e)
 
                     if not i.IsPointer then
-                        Errors.CannotIndex (i.ToString())
+                        raise <| Errors.CannotIndex (i.ToString())
                     elif not e.IsScalar then
-                        Errors.InvalidConversion e i
+                        raise <| Errors.InvalidConversion e i
                     else
                         CheckTypes i e
                     ScalarType i.Type
@@ -236,34 +270,34 @@ type ExpressionTypeDictionary(program, ftable : FunctionTable, stable : SymbolTa
                     let i = stable.GetIdentifierType i
 
                     if not i.IsArray then
-                        Errors.CannotIndex (i.ToString())
+                        raise <| Errors.CannotIndex (i.ToString())
                     elif not e2.IsScalar then
-                        Errors.InvalidConversion e2 i
+                        raise <| Errors.InvalidConversion e2 i
                     else
-                        CheckTypes i e2
+                        CheckTypes (ScalarType i.Type) e2
                     ScalarType i.Type
                 | BinaryExpression (e1, op, e2) ->
                     let t1 = ScanExpression e1
                     let t2 = ScanExpression e2
-                    let fail = Errors.CannotApplyBinaryOperator op t1 t2
-                     
-                    if t1.IsArray <> t2.IsArray then fail
-                    elif t1.IsUnit || t2.IsUnit then fail 
+                    let fail() = raise <| Errors.CannotApplyBinaryOperator op t1 t2
+
+                    if t1.IsArray <> t2.IsArray then fail()
+                    elif t1.IsUnit || t2.IsUnit then fail()
                     else match op with
                          | Or | And | Xor ->
                              CheckIndexType e1
                              CheckIndexType e2
                              ScalarType Int
                          | Equal | NotEqual ->
-                             if t1 <> t2 then fail
+                             if t1 <> t2 then fail()
                              else ScalarType Int
                          | LessEqual | Less | GreaterEqual | Greater ->
-                             if t1.IsArray then fail
+                             if t1.IsArray then fail()
                              else ScalarType Int
                          | Add | Subtract ->
-                             if t1.IsPointer && t2.IsPointer then fail
-                             elif t1.IsPointer && t2 <> ScalarType Int then fail
-                             elif t2.IsPointer && t1 <> ScalarType Int then fail
+                             if t1.IsPointer && t2.IsPointer then fail()
+                             elif t1.IsPointer && t2 <> ScalarType Int then fail()
+                             elif t2.IsPointer && t1 <> ScalarType Int then fail()
                              elif t1.IsPointer then t1
                              elif t2.IsPointer then t2
                              elif (t1 = ScalarType Float) || (t2 = ScalarType Float) then ScalarType Float
@@ -271,35 +305,42 @@ type ExpressionTypeDictionary(program, ftable : FunctionTable, stable : SymbolTa
                          | Multiply | Divide | Modulus | Power ->
                              if (t1 = ScalarType Float) || (t2 = ScalarType Float) then ScalarType Float
                              else t2
+                         | RotateLeft | RotateRight | ShiftLeft | ShiftRight ->
+                             if (t2 <> ScalarType Int) || (t1 <> ScalarType Int) then fail()
+                             else ScalarType Int
                 | UnaryExpression (op, e) ->
                     let e = ScanExpression e
-                    let fail = Errors.CannotApplyUnaryOperator op e
+                    let fail() = raise <| Errors.CannotApplyUnaryOperator op e
                 
-                    if not e.IsScalar then fail
-                    elif e.IsUnit then fail
+                    if not e.IsScalar then fail()
+                    elif e.IsUnit then fail()
                     else match op with
-                         | Negate -> if e.IsFloat then fail else e
+                         | Negate -> if e.IsFloat then fail() else e
                          | LogicalNegate | Identity -> e
                          | FloatConvert -> ScalarType Float
                          | IntConvert | BooleanConvert -> ScalarType Int
                 | IdentifierExpression i -> stable.GetIdentifierType i
                 | ArrayIdentifierExpression (i, e) ->
                     CheckIndexType e
-                    ScalarType (stable.GetIdentifierType i).Type
+                    let var = stable.GetIdentifierType i
+
+                    if not var.IsArray then
+                        raise <| Errors.CannotIndex var
+                    ScalarType var.Type
                 | PointerValueIdentifierExpression i -> ScalarType (stable.GetIdentifierType i).Type
                 | PointerAddressIdentifierExpression _ -> ScalarType Int
                 | FunctionCallExpression (i, args) ->
                     if not (ftable.ContainsKey i) then
-                        Errors.NameNotFound i
+                        raise <| Errors.NameNotFound i
                     let func = ftable.[i]
                     let paramt = func.ParameterTypes
                     
                     if List.length args <> List.length paramt then
-                        Errors.InvalidArgumentCount i (List.length paramt)
+                        raise <| Errors.InvalidArgumentCount i (List.length paramt)
                    
                     let atype = List.map ScanExpression args
                     let tmatch n l r =
-                        if l <> r then Errors.InvalidArgument i (n + 1) l r
+                        if l <> r then raise <| Errors.InvalidArgument i (n + 1) l r
                     
                     List.iteri2 tmatch atype paramt
                     ScalarType func.ReturnType
@@ -313,9 +354,15 @@ type ExpressionTypeDictionary(program, ftable : FunctionTable, stable : SymbolTa
                     let i = stable.GetIdentifierType i
                     
                     if not i.IsArray then
-                        Errors.ArrayExpected
+                        raise <| Errors.ArrayExpected()
                     ScalarType Unit
-                | _ -> ScalarType Unit
+                | ArraySizeExpression i ->
+                    let i = stable.GetIdentifierType i
+                    
+                    if not i.IsArray then
+                        raise <| Errors.ArrayExpected()
+                    ScalarType Int
+                | RawAddressOfExpression _ -> ScalarType Int
             self.Add (expr, ExpressionType)
             ExpressionType
         ScanBlockStatement blockstat
@@ -329,12 +376,11 @@ type AnalyzerResult =
         ExpressionTypes : ExpressionTypeDictionary
     }
 
-
 let Analyze program =
     let stable = SymbolTable program
     let ftable = FunctionTable program
     if not (ftable.ContainsKey "main") then
-        Errors.MissingEntryPoint
+        raise <| Errors.MissingEntryPoint()
     let exprt = ExpressionTypeDictionary(program, ftable, stable)
     {
         SymbolTable = stable
