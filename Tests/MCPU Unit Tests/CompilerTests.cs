@@ -224,8 +224,10 @@ loop:
 pool:
     JMP loop
 ");
-            Instruction[] optimized = MCPUCompiler.Optimize(res.Instructions);
-            
+            int ln = 0;
+            (Instruction[], int[]) optimized = MCPUCompiler.Optimize((from i in res.Instructions
+                                                                      select (i, ln++)).ToArray());
+
             // TODO : Assertions ?
         }
 

@@ -101,6 +101,7 @@ namespace MCPU.Compiler
             ["NEED_MORE_ARGS"] = "The OP-code '{0}' requires at least '{1}' arguments.",
             ["COULDNT_TRANSLATE_EXEC"] = "The 'exec'-expression could not be translated.",
             ["INVALID_RET"] = "The 'ret'-instruction cannot be used after the '.main'-token due to a stackunderflow during runtime. Consider the usage of 'halt'.",
+            ["INVALID_MAIN_TOKEN"] = "The '.main'-token cannot be used inside a method or after an other '.main'-token.",
         };
         internal static Dictionary<string, string> __strtable;
 
@@ -145,12 +146,13 @@ namespace MCPU.Compiler
         /// <returns>Formatted string value</returns>
         public static string GetString(string key, params object[] args) => string.Format(GetString(key), args);
 
-        internal static unsafe (MCPUFunction[], MCPULabelMetadata[], int, string) Precompile(params string[] lines)
+        internal static unsafe (MCPUFunction[], MCPULabelMetadata[], int[], int, string) Precompile(params string[] lines)
         {
             List<(int, string, int)> unmapped = new List<(int, string, int)>();
             List<MCPULabelMetadata> labelmeta = new List<MCPULabelMetadata>();
             Dictionary<string, int> labels = new Dictionary<string, int>();
             List<MCPUFunction> functions = new List<MCPUFunction>();
+            List<int> ignore = new List<int>();
             int is_func = 0, linenr = 0, id = 0;
             MCPUFunction curr_func = null;
             Match match;
@@ -212,7 +214,11 @@ namespace MCPU.Compiler
                 line = line.Trim();
 
                 if (line.Length == 0)
+                {
+                    ignore.Add(linenr);
+
                     continue; // we need this condition to be consistent with the original line numbers
+                }
 
                 if ((match = LABEL_REGEX.Match(line)).Success)
                     if (is_func == 0)
@@ -251,6 +257,9 @@ namespace MCPU.Compiler
                         switch (line = line.Remove(0, 1).Trim().ToLower())
                         {
                             case "main":
+                                if (is_func != 0)
+                                    return Error(GetString("INVALID_MAIN_TOKEN"));
+
                                 curr_func = new MCPUFunction(MAIN_FUNCTION_NAME) { ID = 0, DefinedLine = linenr };
                                 curr_func.Instructions.Add((NOP, linenr));
                                 is_func = -1;
@@ -308,6 +317,8 @@ namespace MCPU.Compiler
                     else if ((match = END_FUNC_REGEX.Match(line)).Success)
                         if (is_func != 0)
                         {
+                            ignore.Add(linenr);
+
                             curr_func.Instructions.Add((is_func == -1 ? HALT : RET as OPCode, linenr));
                             curr_func = (from f in functions where f.Name == MAIN_FUNCTION_NAME select f).FirstOrDefault();
                             is_func = 0;
@@ -439,10 +450,9 @@ namespace MCPU.Compiler
                 return Error(GetString("LABEL_FUNC_NFOUND", unmapped.First().Item2));
             }
             else
-                return (functions.ToArray(), labelmeta.ToArray(), -1, "");
-
-
-            (MCPUFunction[], MCPULabelMetadata[], int, string) Error(string message) => (null, null, linenr + 1, message);
+                return (functions.ToArray(), labelmeta.ToArray(), ignore.ToArray(), -1, "");
+            
+            (MCPUFunction[], MCPULabelMetadata[], int[], int, string) Error(string message) => (null, null, null, linenr + 1, message);
 
             MCPUFunction FindFirst(string name) => (from f in functions where f.Name == name select f).FirstOrDefault();
 
@@ -502,7 +512,7 @@ namespace MCPU.Compiler
         {
             try
             {
-                (MCPUFunction[] func, MCPULabelMetadata[] labels, int errln, string errmsg) = Precompile(lines);
+                (MCPUFunction[] func, MCPULabelMetadata[] labels, int[] ignored, int errln, string errmsg) = Precompile(lines);
 
                 if ((errln != -1) || !string.IsNullOrEmpty(errmsg))
                     throw new MCPUCompilerException(errln, errmsg);
@@ -525,7 +535,7 @@ namespace MCPU.Compiler
                         throw new MCPUCompilerException(l.DefinedLine, GetString("LABEL_RESV_NAME", l.Name));
 
                 foreach (MCPUFunction f in func.Where(f => f != mainf).Concat(new MCPUFunction[] { mainf }))
-                    if (__reserved.Contains(f.Name.ToLower()))
+                    if (__reserved.Contains(f.Name.ToLower()) && (f != mainf))
                         throw new MCPUCompilerException(f.DefinedLine, GetString("FUNC_RESV_NAME", f.Name));
                     else
                     {
@@ -580,7 +590,7 @@ namespace MCPU.Compiler
 
                 (Instruction[] inst, int[] opt_lines) = OptimizationEnabled ? Optimize(cmp_instr) : (cmp_instr.Select(_ => _.Item1).ToArray(), new int[0]);
 
-                return (inst, (from o in opt_lines.Union(rm)
+                return (inst, (from o in opt_lines.Union(rm).Except(ignored)
                                where func.All(f => f.DefinedLine != o)
                                select o).ToArray(), metadata, labels);
             }
