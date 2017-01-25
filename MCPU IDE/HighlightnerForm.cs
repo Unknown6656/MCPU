@@ -26,6 +26,9 @@ namespace MCPU.IDE
         internal const string REGEX_ADDR = @"(\bk)?\[{1,2}(?:.+)\]{1,2}";
         internal const string REGEX_PARAM = @"\$[0-9]+\b";
         internal const string REGEX_COMMENT = @"\;.*$";
+        internal static readonly string REGEX_INT = $@"\b({MCPUCompiler.INTEGER_CORE})\b";
+        internal static readonly string REGEX_FLOAT = $@"\b({MCPUCompiler.FLOAT_CORE})\b";
+        internal static readonly string REGEX_KWORD = $@"({REGEX_FUNC}|{REGEX_END_FUNC}|\b({string.Join("|", MCPUCompiler.ReservedKeywords)}|{MCPUCompiler.MAIN_FUNCTION_NAME})\b)";
 
         internal static TextStyle CreateStyle(int rgb, FontStyle f) => new TextStyle(new SolidBrush(Color.FromArgb((int)(0xff000000u | rgb))), null, f);
 
@@ -45,10 +48,10 @@ namespace MCPU.IDE
             [style_comments] = REGEX_COMMENT,
             [style_stoken] = REGEX_STOKEN,
             [style_param] = REGEX_PARAM,
-            [style_kword] = $@"({REGEX_FUNC}|{REGEX_END_FUNC}|\b({string.Join("|", MCPUCompiler.ReservedKeywords)}|{MCPUCompiler.MAIN_FUNCTION_NAME})\b)",
+            [style_kword] = REGEX_KWORD,
             // { style_labels, @"(^(\s|\b)+\w+\:|(?:\bfunc\s+)\w+\s*$)" },
-            [style_float] = $@"\b({MCPUCompiler.FLOAT_CORE})\b",
-            [style_int] = $@"\b({MCPUCompiler.INTEGER_CORE})\b",
+            [style_float] = REGEX_FLOAT,
+            [style_int] = REGEX_INT,
             [style_addr] = REGEX_ADDR,
         };
         private static readonly Dictionary<string, Bitmap> autocomp_images = new Dictionary<string, Bitmap>
@@ -263,11 +266,29 @@ namespace MCPU.IDE
             else if (!string.IsNullOrEmpty(e.HoveredWord))
             {
                 string line = fctb.Lines[e.Place.iLine];
-                
+                Match m;
 
-                // TODO
+                if (line.Contains(';') && (line.IndexOf(';') < e.Place.iChar))
+                    return;
+                else
+                {
+                    bool reg(string pat) => (m = Regex.Match(e.HoveredWord, pat, RegexOptions.IgnoreCase)).Success;
 
-                e.ToolTipText = $"{e.HoveredWord}\nThis is the tooltip for '{e.HoveredWord}'";
+                    if (reg(REGEX_ADDR))
+                        e.ToolTipText = $"Address '{e.HoveredWord}'";
+                    else if (reg(REGEX_PARAM))
+                        e.ToolTipText = $"Parameter '{e.HoveredWord}'";
+                    else if (reg(REGEX_KWORD))
+                        e.ToolTipText = $"Keyword '{e.HoveredWord}'";
+                    else if (reg(REGEX_INT))
+                        e.ToolTipText = $"Constant integer '{e.HoveredWord}'";
+                    else if (reg(REGEX_FLOAT))
+                        e.ToolTipText = $"Constant floating-point number '{e.HoveredWord}'";
+                    else
+                        e.ToolTipText = $"{e.HoveredWord}";
+
+                    // TODO
+                }
             }
         }
 
