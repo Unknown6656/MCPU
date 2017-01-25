@@ -40,6 +40,7 @@
         <s:String x:Key="COULDNT_TRANSLATE_EXEC">'exec'-выражение не может быть переведено.</s:String>
         <!-- TODO -->
         <s:String x:Key="INVALID_RET">The 'ret'-instruction cannot be used after the '.main'-token due to a stackunderflow during runtime. Consider the usage of 'halt'.</s:String>
+        <s:String x:Key="INVALID_MAIN_TOKEN">The '.main'-token cannot be used inside a method or after an other '.main'-token.</s:String>
     </ResourceDictionary>
     <s:String x:Key="global_compiler_error">Oшибка компилятора</s:String>
     <s:String x:Key="autocomp_func">Функция {0}&#10;Функция {1}, который был определен на линии {2}</s:String>

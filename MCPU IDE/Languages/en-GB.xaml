@@ -19,7 +19,7 @@
     </ResourceDictionary>
     <s:String x:Key="global_hint">Hint</s:String>
     <s:String x:Key="global_opt">{0} optimizable lines found.</s:String>
-    <s:String x:Key="global_compiler_opt">This line can be removed, as it will be optimized away by the compiler.</s:String>
+    <s:String x:Key="global_compiler_opt">This line can be removed, as it will be optimized away by the compiler.&#10;Such behaviour can be prevented by changing the according settings inside the settings-window.</s:String>
     <s:String x:Key="global_compiler_error">Compiler error</s:String>
     <s:String x:Key="autocomp_func">Function {0}&#10;The function {1} which has been defined on line {2}</s:String>
     <s:String x:Key="autocomp_label">Label '{0}'&#10;The label {1} which has been defined on line {2}</s:String>

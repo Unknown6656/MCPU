@@ -523,12 +523,13 @@ namespace MCPU.Compiler
                     throw new MCPUCompilerException(0, GetString("MAIN_TOKEN_MISSING"));
 
                 MCPUFunctionMetadata[] metadata = new MCPUFunctionMetadata[func.Length];
-                Dictionary<int, int> jumptable = new Dictionary<int, int>();
                 List<(Instruction, int)> instr = new List<(Instruction, int)>();
+                Dictionary<int, int> unused_isl = new Dictionary<int, int>();
+                Dictionary<int, int> jumptable = new Dictionary<int, int>();
                 List<int> rm = new List<int>();
                 int linenr = 1, fnr = 0;
 
-                instr.Add(((OPCodes.JMP, new InstructionArgument[] { (0, ArgumentType.Label) }), -1));
+                instr.Add(((JMP, new InstructionArgument[] { (0, ArgumentType.Label) }), -1));
 
                 foreach (MCPULabelMetadata l in labels)
                     if (__reserved.Contains(l.Name.ToLower()))
@@ -539,6 +540,7 @@ namespace MCPU.Compiler
                         throw new MCPUCompilerException(f.DefinedLine, GetString("FUNC_RESV_NAME", f.Name));
                     else
                     {
+                        unused_isl[f.ID] = f.DefinedLine;
                         jumptable[f.ID] = linenr;
                         metadata[fnr++] = f;
 
@@ -558,11 +560,21 @@ namespace MCPU.Compiler
                         }
 
                         bool canoptimize = false;
+                        int tailopt = (from t in (f.Instructions as IEnumerable<(Instruction, int)>).Reverse()
+                                       select t.Item1).TakeWhile(_ => f == mainf ? _ == HALT : _ == RET).Count();
+                        int fdiff = f == mainf ? 0 : 1;
+
+                        tailopt -= fdiff;
+
+                        if (tailopt > 0)
+                            for (int i = 0, l = f.Instructions.Last().Item2 - fdiff; i < tailopt; i++)
+                                rm.Add(l - i);
 
                         foreach ((Instruction ins, int ol) in f.Instructions)
                             if (ins.OPCode is MCPUJumpLabel jmpl)
                             {
                                 jumptable[jmpl.Value] = linenr;
+                                unused_isl[jmpl.Value] = ol;
                                 canoptimize = false;
                             }
                             else
@@ -586,11 +598,19 @@ namespace MCPU.Compiler
                 for (int i = 0, l = cmp_instr.Length; i < l; i++)
                     for (int j = 0, k = cmp_instr[i].Item1.Arguments.Length; j < k; j++)
                         if (cmp_instr[i].Item1.Arguments[j].IsInstructionSpace)
-                            cmp_instr[i].Item1.Arguments[j].Value = jumptable[cmp_instr[i].Item1.Arguments[j].Value];
+                        {
+                            int val = cmp_instr[i].Item1.Arguments[j].Value;
+
+                            cmp_instr[i].Item1.Arguments[j].Value = jumptable[val];
+
+                            unused_isl.Remove(val);
+                        }
 
                 (Instruction[] inst, int[] opt_lines) = OptimizationEnabled ? Optimize(cmp_instr) : (cmp_instr.Select(_ => _.Item1).ToArray(), new int[0]);
 
-                return (inst, (from o in opt_lines.Union(rm).Except(ignored)
+                return (inst, (from o in opt_lines.Union(rm)
+                                                  .Union(unused_isl.Values)
+                                                  .Except(ignored)
                                where func.All(f => f.DefinedLine != o)
                                select o).ToArray(), metadata, labels);
             }
