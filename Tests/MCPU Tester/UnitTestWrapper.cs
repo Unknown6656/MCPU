@@ -230,8 +230,8 @@ namespace MCPU
         SKIPPED: {res.Item3} ({sr * 100:F3} %)
         FAILED:  {res.Item4} ({(1 - pr - sr) * 100:F3} %)
         TIME:    {mtime * 1000d / Stopwatch.Frequency:F3} ms ({tr * 100d:F3} %)");
-                PrintGraph(8, i_wdh, "TIME/TOTAL", (tr, ConsoleColor.Gray),
-                                                   (1 - tr, ConsoleColor.DarkGray));
+                PrintGraph(8, i_wdh, "TIME/TOTAL", (tr, ConsoleColor.Magenta),
+                                                   (1 - tr, ConsoleColor.DarkMagenta));
                 PrintGraph(8, i_wdh, "TIME DISTR", (res.Item5, ConsoleColor.Blue),
                                                    (res.Item6, ConsoleColor.DarkCyan),
                                                    (res.Item7, ConsoleColor.Cyan));

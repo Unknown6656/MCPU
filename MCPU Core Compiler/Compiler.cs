@@ -226,7 +226,7 @@ namespace MCPU.Compiler
                     else
                     {
                         string name = match.Groups["name"].ToString().ToLower();
-                        (int, string, int) um = unmapped.FirstOrDefault(_ => _.Item2 == name);
+                        (int, string, int) um = unmapped.Find(_ => _.Item2 == name);
                         int tid = 0;
 
                         if (FindFirst(name) != null)
@@ -445,9 +445,9 @@ namespace MCPU.Compiler
 
             if (unmapped.Count > 0)
             {
-                linenr = unmapped.First().Item1;
+                linenr = unmapped[0].Item1;
 
-                return Error(GetString("LABEL_FUNC_NFOUND", unmapped.First().Item2));
+                return Error(GetString("LABEL_FUNC_NFOUND", unmapped[0].Item2));
             }
             else
                 return (functions.ToArray(), labelmeta.ToArray(), ignore.ToArray(), -1, "");
@@ -533,11 +533,11 @@ namespace MCPU.Compiler
 
                 foreach (MCPULabelMetadata l in labels)
                     if (__reserved.Contains(l.Name.ToLower()))
-                        throw new MCPUCompilerException(l.DefinedLine, GetString("LABEL_RESV_NAME", l.Name));
+                        throw new MCPUCompilerException(l.DefinedLine + 1, GetString("LABEL_RESV_NAME", l.Name));
 
                 foreach (MCPUFunction f in func.Where(f => f != mainf).Concat(new MCPUFunction[] { mainf }))
                     if (__reserved.Contains(f.Name.ToLower()) && (f != mainf))
-                        throw new MCPUCompilerException(f.DefinedLine, GetString("FUNC_RESV_NAME", f.Name));
+                        throw new MCPUCompilerException(f.DefinedLine + 1, GetString("FUNC_RESV_NAME", f.Name));
                     else
                     {
                         unused_isl[f.ID] = f.DefinedLine;

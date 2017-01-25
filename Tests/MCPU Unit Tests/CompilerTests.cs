@@ -195,7 +195,7 @@ end:   §### ERROR
 
         [TestMethod]
         public void Test_22() => CompileExpectError(@"
-func ___main   §### ERROR
+func ____main   §### ERROR
 end func
     
     .main
