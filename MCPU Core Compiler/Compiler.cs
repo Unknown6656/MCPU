@@ -74,7 +74,7 @@ namespace MCPU.Compiler
 
         internal static readonly string[] __reserved = (from opc in OPCodes.CodesByID
                                                         where opc.Value.IsKeyword
-                                                        select opc.Value.Token.ToLower()).Concat(new string[] { "func", "end", "___main", "line", "epsilon", "tau", "phi", "e", "pi", "i_max", "f_max", "i_min", "f_min", "f_pinf", "f_ninf", "nan" }).ToArray();
+                                                        select opc.Value.Token.ToLower()).Concat(new string[] { "func", "end", MAIN_FUNCTION_NAME, "line", "epsilon", "tau", "phi", "e", "pi", "i_max", "f_max", "i_min", "f_min", "f_pinf", "f_ninf", "nan" }).ToArray();
         internal static readonly Dictionary<string, string> __defstrtable = new Dictionary<string, string>
         {
             ["JMP_INSIDE_FUNC"] = "A jump label may only be used inside a function or after the '.main'-token.",
@@ -624,16 +624,26 @@ namespace MCPU.Compiler
         {
             bool CanBeRemoved(Instruction i)
             {
-                bool In(params OPCode[] opc) => opc.Any(o => o == i);
+                try
+                {
+                    bool In(params OPCode[] opc) => opc.Any(o => o == i);
 
-                return (i == NOP)
-                    || (In(ADD, SUB, CLEAR, WAIT, OR, XOR, FSUB, FADD)  && i[1] == (0, ArgumentType.Constant))
-                    || (In(MUL, DIV)                                    && i[1] == (1, ArgumentType.Constant))
-                    || (In(AND, NXOR)                                   && i[1] == (unchecked((int)0xffffffffu), ArgumentType.Constant))
-                    || (In(MOV, SWAP, OR, AND)                          && i[0] == i[1])
-                    || (In(FMUL, FDIV, FPOW, FROOT)                     && i[1] == ((FloatIntUnion)1f, ArgumentType.Constant))
-                    || (In(COPY)                                        && i[2] == (0, ArgumentType.Constant))
-                    || (In(JMPREL)                                      && i[0] == (1, ArgumentType.Constant));
+                    if (i == EXEC)
+                        return CanBeRemoved((OPCodes.CodesByID[(ushort)i[0].Value], i.Arguments.Skip(1).ToArray()));
+                    else
+                        return (i == NOP)
+                            || (In(ADD, SUB, CLEAR, WAIT, OR, XOR, FSUB, FADD)  && i[1] == (0, ArgumentType.Constant))
+                            || (In(MUL, DIV)                                    && i[1] == (1, ArgumentType.Constant))
+                            || (In(AND, NXOR)                                   && i[1] == (unchecked((int)0xffffffffu), ArgumentType.Constant))
+                            || (In(MOV, SWAP, OR, AND)                          && i[0] == i[1])
+                            || (In(FMUL, FDIV, FPOW, FROOT)                     && i[1] == ((FloatIntUnion)1f, ArgumentType.Constant))
+                            || (In(COPY)                                        && i[2] == (0, ArgumentType.Constant))
+                            || (In(JMPREL)                                      && i[0] == (1, ArgumentType.Constant));
+                }
+                catch
+                {
+                    return false;
+                }
             }
 
             Dictionary<int, (int, bool)> offset_table = Enumerable.Range(0, instr.Length).ToDictionary(_ => _, _ => (0, false));

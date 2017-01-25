@@ -45,7 +45,7 @@ namespace MCPU.IDE
             [style_comments] = REGEX_COMMENT,
             [style_stoken] = REGEX_STOKEN,
             [style_param] = REGEX_PARAM,
-            [style_kword] = $@"({REGEX_FUNC}|{REGEX_END_FUNC}|\b({string.Join("|", MCPUCompiler.ReservedKeywords)}|___main)\b)",
+            [style_kword] = $@"({REGEX_FUNC}|{REGEX_END_FUNC}|\b({string.Join("|", MCPUCompiler.ReservedKeywords)}|{MCPUCompiler.MAIN_FUNCTION_NAME})\b)",
             // { style_labels, @"(^(\s|\b)+\w+\:|(?:\bfunc\s+)\w+\s*$)" },
             [style_float] = $@"\b({MCPUCompiler.FLOAT_CORE})\b",
             [style_int] = $@"\b({MCPUCompiler.INTEGER_CORE})\b",
@@ -258,10 +258,13 @@ namespace MCPU.IDE
                 e.ToolTipText = $"{"global_compiler_error".GetStr()}\n{err.Message}";
                 e.ToolTipIcon = ToolTipIcon.Error;
             }
-            else if (opt_range.Any(r => r.Contains(e.Place)))
+            else if (opt_range?.Any(r => r.Contains(e.Place)) ?? false)
                 e.ToolTipText = $"{"global_hint".GetStr()}\n{"global_compiler_opt".GetStr()}";
             else if (!string.IsNullOrEmpty(e.HoveredWord))
             {
+                string line = fctb.Lines[e.Place.iLine];
+                
+
                 // TODO
 
                 e.ToolTipText = $"{e.HoveredWord}\nThis is the tooltip for '{e.HoveredWord}'";
