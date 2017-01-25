@@ -241,7 +241,7 @@ namespace MCPU.Compiler
 
                         line = line.Remove(match.Index, match.Length);
 
-                        labelmeta.Add(new MCPULabelMetadata { Name = name, DefinedLine = linenr + 1, ParentFunction = curr_func });
+                        labelmeta.Add(new MCPULabelMetadata { Name = name, DefinedLine = linenr, ParentFunction = curr_func });
                         curr_func.Instructions.Add((new MCPUJumpLabel(tid), linenr));
                     }
 
@@ -251,7 +251,7 @@ namespace MCPU.Compiler
                         switch (line = line.Remove(0, 1).Trim().ToLower())
                         {
                             case "main":
-                                curr_func = new MCPUFunction(MAIN_FUNCTION_NAME) { ID = 0 };
+                                curr_func = new MCPUFunction(MAIN_FUNCTION_NAME) { ID = 0, DefinedLine = linenr };
                                 curr_func.Instructions.Add((NOP, linenr));
                                 is_func = -1;
 
@@ -299,7 +299,7 @@ namespace MCPU.Compiler
                             {
                                 ID = tid,
                                 IsInlined = inline,
-                                DefinedLine = linenr + 1
+                                DefinedLine = linenr
                             };
                             is_func = 1;
 
@@ -515,6 +515,7 @@ namespace MCPU.Compiler
                 MCPUFunctionMetadata[] metadata = new MCPUFunctionMetadata[func.Length];
                 Dictionary<int, int> jumptable = new Dictionary<int, int>();
                 List<(Instruction, int)> instr = new List<(Instruction, int)>();
+                List<int> rm = new List<int>();
                 int linenr = 1, fnr = 0;
 
                 instr.Add(((OPCodes.JMP, new InstructionArgument[] { (0, ArgumentType.Label) }), -1));
@@ -533,7 +534,7 @@ namespace MCPU.Compiler
 
                         if (f.IsInlined)
                         {
-                            bool caninline = (f.Instructions.Count <= 30) && f.Instructions.All(_ => (_.Item1.OPCode == RET) | !_.Item1.OPCode.SpecialIPHandling);
+                            bool caninline = (f.Instructions.Count <= 30) && f.Instructions.All(_ => (_.Item1.OPCode == RET) || !_.Item1.OPCode.SpecialIPHandling);
 
                             if (caninline && OptimizationEnabled)
                             {
@@ -546,14 +547,27 @@ namespace MCPU.Compiler
                             }
                         }
 
+                        bool canoptimize = false;
+
                         foreach ((Instruction ins, int ol) in f.Instructions)
                             if (ins.OPCode is MCPUJumpLabel jmpl)
+                            {
                                 jumptable[jmpl.Value] = linenr;
+                                canoptimize = false;
+                            }
                             else
                             {
+                                if (canoptimize)
+                                    rm.Add(ol);
+
                                 instr.Add((ins, ol));
 
                                 linenr++;
+
+                                if ((ins.OPCode == RET) ||
+                                    (ins.OPCode == HALT) ||
+                                    (ins.OPCode == RESET))
+                                    canoptimize = true;
                             }
                     }
 
@@ -566,7 +580,9 @@ namespace MCPU.Compiler
 
                 (Instruction[] inst, int[] opt_lines) = OptimizationEnabled ? Optimize(cmp_instr) : (cmp_instr.Select(_ => _.Item1).ToArray(), new int[0]);
 
-                return (inst, opt_lines, metadata, labels);
+                return (inst, (from o in opt_lines.Union(rm)
+                               where func.All(f => f.DefinedLine != o)
+                               select o).ToArray(), metadata, labels);
             }
             catch (Exception ex)
             when (!(ex is MCPUCompilerException))
@@ -612,11 +628,12 @@ namespace MCPU.Compiler
 
                 return (i == NOP)
                     || (In(ADD, SUB, CLEAR, WAIT, OR, XOR, FSUB, FADD)  && i[1] == (0, ArgumentType.Constant))
-                    || (In(MUL, DIV, JMPREL)                            && i[1] == (1, ArgumentType.Constant))
+                    || (In(MUL, DIV)                                    && i[1] == (1, ArgumentType.Constant))
                     || (In(AND, NXOR)                                   && i[1] == (unchecked((int)0xffffffffu), ArgumentType.Constant))
                     || (In(MOV, SWAP, OR, AND)                          && i[0] == i[1])
                     || (In(FMUL, FDIV, FPOW, FROOT)                     && i[1] == ((FloatIntUnion)1f, ArgumentType.Constant))
-                    || (In(COPY)                                        && i[2] == (0, ArgumentType.Constant));
+                    || (In(COPY)                                        && i[2] == (0, ArgumentType.Constant))
+                    || (In(JMPREL)                                      && i[0] == (1, ArgumentType.Constant));
             }
 
             Dictionary<int, (int, bool)> offset_table = Enumerable.Range(0, instr.Length).ToDictionary(_ => _, _ => (0, false));
@@ -646,7 +663,7 @@ namespace MCPU.Compiler
 
             return (outp.ToArray(), (from l in rm
                                      where l >= 0
-                                     select l + 1).ToArray());
+                                     select l).ToArray());
         }
 
         /// <summary>
@@ -828,7 +845,7 @@ namespace MCPU.Compiler
         /// </summary>
         public MCPUFunctionMetadata ParentFunction { set; get; }
         /// <summary>
-        /// The line, in which the label has been defined (The line number is one-based -- NOT zero-based)
+        /// The (0-based) line, in which the label has been defined (The line number is one-based -- NOT zero-based)
         /// </summary>
         public int DefinedLine { set; get; }
     }
@@ -847,7 +864,7 @@ namespace MCPU.Compiler
         /// </summary>
         public bool Inlined { set; get; }
         /// <summary>
-        /// The line, in which the function has been defined (The line number is one-based -- NOT zero-based)
+        /// The (0-based) line, in which the function has been defined (The line number is one-based -- NOT zero-based)
         /// </summary>
         public int DefinedLine { set; get; }
     }
@@ -889,7 +906,7 @@ namespace MCPU.Compiler
         /// </summary>
         public int ID { set; get; }
         /// <summary>
-        /// The line, in which the function has been defined
+        /// The (0-based) line, in which the function has been defined
         /// </summary>
         public int DefinedLine { set; get; }
         /// <summary>

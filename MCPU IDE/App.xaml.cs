@@ -13,6 +13,7 @@ using System.Threading;
 using System.Windows;
 using System.Data;
 using System.Linq;
+using System.Xml;
 using System.IO;
 using System;
 
@@ -21,7 +22,6 @@ using MCPU.Compiler;
 using static System.Math;
 
 using Settings = MCPU.IDE.Properties.Settings;
-using System.Xml;
 
 namespace MCPU.IDE
 {

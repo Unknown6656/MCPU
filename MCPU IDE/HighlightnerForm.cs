@@ -72,7 +72,7 @@ namespace MCPU.IDE
         private Range[] opt_range;
         private int[] opt_lines;
 
-        public MainWindow Parent { set; get; }
+        public new MainWindow Parent { set; get; }
 
 
         internal MCPUCompilerException Error
@@ -107,8 +107,9 @@ namespace MCPU.IDE
 
                 opt_range = (from l in value
                              where l > 0
+                             where l < fctb.LinesCount
                              select new Func<Range>(() => {
-                                 Range r = GetEffectiveLineRange(l - 1);
+                                 Range r = GetEffectiveLineRange(l);
 
                                  r.SetStyle(style_opt);
 
@@ -155,8 +156,7 @@ namespace MCPU.IDE
             fctb.BackColor;
             fctb.Select();
 
-            style_opt = new OptimizableStyle(fctb.BackColor, 1.0);
-
+            style_opt = new OptimizableStyle(fctb.BackColor, .35);
 
             autocomp = new AutocompleteMenu(fctb);
             autocomp.ToolTip = new DarkTooltip();
@@ -166,7 +166,7 @@ namespace MCPU.IDE
             autocomp.ForeColor = fctb.ForeColor;
             autocomp.ImageList = new ImageList();
             autocomp.AllowTabKey = true;
-            autocomp.AppearInterval = 100;
+            autocomp.AppearInterval = 50;
 
             foreach (var kvp in autocomp_images)
                 autocomp.ImageList.Images.Add(kvp.Key, kvp.Value);
@@ -181,30 +181,31 @@ namespace MCPU.IDE
                                      MenuText = nv,
                                      ToolTipText = "autocomp_instr".GetStr(nv, kvp.Value),
                                      ImageIndex = GetImageIndex(kv ? "keyword" : "opcode"),
-                                 }).Concat(new AutocompleteItem[]
-                                 {
-                                     new AutocompleteItem
+                                 })
+                                .Concat(new AutocompleteItem[]
+                                {
+                                    new AutocompleteItem
                                      {
                                          Text = ".main",
                                          MenuText = ".main",
                                          ToolTipText = "autocomp_main".GetStr(),
                                          ImageIndex = GetImageIndex("directive"),
                                      },
-                                     new AutocompleteItem
+                                    new AutocompleteItem
                                      {
                                          Text = ".kernel",
                                          MenuText = ".kernel",
                                          ToolTipText = "autocomp_kernel".GetStr(),
                                          ImageIndex = GetImageIndex("directive"),
                                      },
-                                     new AutocompleteItem
+                                    new AutocompleteItem
                                      {
                                          Text = ".user",
                                          MenuText = ".user",
                                          ToolTipText = "autocomp_user".GetStr(),
                                          ImageIndex = GetImageIndex("directive"),
                                      },
-                                 }).ToArray();
+                                }).ToArray();
 
             UpdateAutocomplete();
 
@@ -355,13 +356,13 @@ namespace MCPU.IDE
 
 
         public OptimizableStyle(Color c, double op)
-            : base(new SolidBrush(Color.FromArgb((int)(255 * op), c))) => wls = new WavyLineStyle(255, Color.FromArgb(0x7f69E1EF));
+            : base(new SolidBrush(Color.FromArgb((int)(255 * op), c))) => wls = new WavyLineStyle(255, Color.FromArgb(0x50808080));
 
         public override void Draw(Graphics gr, Point position, Range range)
         {
-            base.Draw(gr, position, range);
-
             wls.Draw(gr, position, range);
+
+            base.Draw(gr, position, range);
         }
     }
 }
