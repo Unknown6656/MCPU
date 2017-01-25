@@ -100,7 +100,7 @@ namespace MCPU.Compiler
             ["LABEL_RESV_NAME"] = "The name '{0}' is reserved and can therefore not be used as label name.",
             ["NEED_MORE_ARGS"] = "The OP-code '{0}' requires at least '{1}' arguments.",
             ["COULDNT_TRANSLATE_EXEC"] = "The 'exec'-expression could not be translated.",
-            ["INVALID_RET"] = "The 'ret'-instruction cannot be used after the '.main'-token due to a stackunderflow during runtime. Consider the usage of 'halt'.",
+            ["INVALID_RET"] = "The 'ret'-instruction cannot be used after the '.main'-token due to a StackUnderflow during runtime. Consider the usage of 'halt'.",
             ["INVALID_MAIN_TOKEN"] = "The '.main'-token cannot be used inside a method or after an other '.main'-token.",
         };
         internal static Dictionary<string, string> __strtable;

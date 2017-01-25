@@ -38,10 +38,12 @@
         <s:String x:Key="LABEL_RESV_NAME">Der Name '{0}' ist reserviert und kann daher nicht als Sprungmarkenname verwendet werden.</s:String>
         <s:String x:Key="NEED_MORE_ARGS">Die Instruktion '{0}' benötigt mindestens '{1}' Argumente.</s:String>
         <s:String x:Key="COULDNT_TRANSLATE_EXEC">Der 'exec'-Ausdruck konnte nicht kompiliert werden.</s:String>
-        <!-- TODO -->
-        <s:String x:Key="INVALID_RET">The 'ret'-instruction cannot be used after the '.main'-token due to a stackunderflow during runtime. Consider the usage of 'halt'.</s:String>
-        <s:String x:Key="INVALID_MAIN_TOKEN">The '.main'-token cannot be used inside a method or after an other '.main'-token.</s:String>
+        <s:String x:Key="INVALID_RET">Die 'ret'-Instruktion kann nicht nach der '.main'-Marke verwendet werden, da dies zur Laufzeit einen StackUnderflow-Fehler verursachen könnte. Ziehen Sie stattdessen die Verwendung der instruktion 'halt' in Erwägung.</s:String>
+        <s:String x:Key="INVALID_MAIN_TOKEN">Die '.main'-Marke kann nicht innerhalb einer Funktion oder nach einer anderen '.main'-Marke verwendet werden.</s:String>
     </ResourceDictionary>
+    <s:String x:Key="global_hint">Hinweis</s:String>
+    <s:String x:Key="global_opt">{0} optimierbare Zeilen gefunden.</s:String>
+    <s:String x:Key="global_compiler_opt">Diese Zeile kann entfernt werden, da sie durch den Compiler weg-optimiert wird.&#10;Ein solches Verhalten kann durch das Ändern der entspechenden Einstellung im Einstellungsfenster unterbunden werden.</s:String>
     <s:String x:Key="global_compiler_error">Compilerfehler</s:String>
     <s:String x:Key="autocomp_func">Funktion {0}&#10;Die Funktion {1}, welche in Zeile {2} definiert wurde</s:String>
     <s:String x:Key="autocomp_label">Sprungmarke '{0}'&#10;Die Sprungmarke {1}, welche in Zeile {2} definiert wurde</s:String>
@@ -111,6 +113,7 @@
     <s:String x:Key="sw_procsett">Prozessoreinstellungen:</s:String>
     <s:String x:Key="sw_memsz">Speichergröße:</s:String>
     <s:String x:Key="sw_stacksz">Aufrufstapelgröße:</s:String>
+    <s:String x:Key="sw_optcode">MCPU-Code optimieren</s:String>
     <s:String x:Key="pw_title">MCPU Entwicklungsumgebung - Prozessorüberwachung</s:String>
     <s:String x:Key="pw_gb_addr">Niedere<!-- TODO --> Adressen:  (.kernel)</s:String>
     <s:String x:Key="pw_gb_io">I/O Ports:  (.io)</s:String>

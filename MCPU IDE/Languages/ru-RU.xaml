@@ -38,10 +38,12 @@
         <s:String x:Key="LABEL_RESV_NAME">Имя '{0}' зарезервировано и поэтому не может быть использован в качестве имени метки.</s:String>
         <s:String x:Key="NEED_MORE_ARGS">Команда '{0}' требует, по крайней мере, '{1}' аргументы.</s:String>
         <s:String x:Key="COULDNT_TRANSLATE_EXEC">'exec'-выражение не может быть переведено.</s:String>
-        <!-- TODO -->
-        <s:String x:Key="INVALID_RET">The 'ret'-instruction cannot be used after the '.main'-token due to a stackunderflow during runtime. Consider the usage of 'halt'.</s:String>
-        <s:String x:Key="INVALID_MAIN_TOKEN">The '.main'-token cannot be used inside a method or after an other '.main'-token.</s:String>
+        <s:String x:Key="INVALID_RET">'ret'-инструкция не может быть использован после '.main'-маркера из-за StackUnderflow во время выполнения. Рассмотрим использование 'halt'.</s:String>
+        <s:String x:Key="INVALID_MAIN_TOKEN">'.main'-Маркер не может быть использован внутри метода или после другого' .main'-Маркер.</s:String>
     </ResourceDictionary>
+    <s:String x:Key="global_hint">намек</s:String>
+    <s:String x:Key="global_opt">{0} оптимизируемое линии найдено.</s:String>
+    <s:String x:Key="global_compiler_opt">Эта линия может быть удалена, так как он будет оптимизирован прочь компилятором.&#10;Такое поведение может быть предотвращено путем изменения согласно настройкам внутри настроек окна.</s:String>
     <s:String x:Key="global_compiler_error">Oшибка компилятора</s:String>
     <s:String x:Key="autocomp_func">Функция {0}&#10;Функция {1}, который был определен на линии {2}</s:String>
     <s:String x:Key="autocomp_label">Этикетка '{0}'&#10;Метка {1}, который был определен на линии {2}</s:String>
@@ -111,6 +113,7 @@
     <s:String x:Key="sw_procsett">Настройки процессора:</s:String>
     <s:String x:Key="sw_memsz">Размер памяти:</s:String>
     <s:String x:Key="sw_stacksz">Вызов размер стека:</s:String>
+    <s:String x:Key="sw_optcode">Оптимизация кода MCPU</s:String>
     <s:String x:Key="pw_title">MCPU ИСР - Процессор наблюдающий</s:String>
     <s:String x:Key="pw_gb_addr">Нижние Адреса:  (.kernel)</s:String>
     <s:String x:Key="pw_gb_io">I/O порты:  (.io)</s:String>
