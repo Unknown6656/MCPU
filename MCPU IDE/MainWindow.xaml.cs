@@ -16,16 +16,16 @@ using System.Text;
 using System.IO;
 using System;
 
+using MCPU.Compiler;
+using MCPU.IDE;
+using MCPU;
+
 using FastColoredTextBoxNS;
 
 using WinForms = System.Windows.Forms;
 
 namespace MCPU.IDE
 {
-    using MCPU.Compiler;
-    using MCPU.IDE;
-    using MCPU;
-
     public partial class MainWindow
         : Window
         , ILanguageSensitiveWindow
@@ -55,6 +55,16 @@ namespace MCPU.IDE
             }
         }
 
+        public int[] OptimizableLines
+        {
+            get => fctb_host.OptimizableLines;
+            set
+            {
+                lb_opt.Content = "global_opt".GetStr((value ?? new int[0]).Length);
+
+                statbar.InvalidateVisual();
+            }
+        }
 
         ~MainWindow() => DisposeProcessor();
 
@@ -102,6 +112,8 @@ namespace MCPU.IDE
             fctb_host.Focus();
             fctb.Select();
             fctb.Focus();
+
+            OptimizableLines = null;
 
             Compile(fctb.Text, true);
         }
@@ -291,12 +303,13 @@ namespace MCPU.IDE
 
                 fctb_host.labels = cmpres.Labels;
                 fctb_host.functions = cmpres.Functions;
+                fctb_host.OptimizableLines = cmpres.OptimizedLines;
                 fctb_host.UpdateAutocomplete();
 
                 if (!silent)
                 {
                     proc.Instructions = cmpres.Instructions;
-                    
+
                     watcher.Proc_InstructionExecuted(proc, null);
                 }
             }
@@ -511,4 +524,3 @@ namespace MCPU.IDE
         public static readonly RoutedUICommand ProcessorInfo = create(nameof(ProcessorInfo), Key.F8, ModifierKeys.None);
     }
 }
-

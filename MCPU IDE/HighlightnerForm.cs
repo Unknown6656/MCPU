@@ -29,6 +29,7 @@ namespace MCPU.IDE
 
         internal static TextStyle CreateStyle(int rgb, FontStyle f) => new TextStyle(new SolidBrush(Color.FromArgb((int)(0xff000000u | rgb))), null, f);
 
+        public static OptimizableStyle style_opt;
         public static readonly ErrorStyle style_error = new ErrorStyle();
         public static readonly TextStyle style_param = CreateStyle(0x92CAF4, FontStyle.Regular);
         public static readonly TextStyle style_addr = CreateStyle(0xEFF284, FontStyle.Regular);
@@ -68,6 +69,8 @@ namespace MCPU.IDE
         internal AutocompleteMenu autocomp;
         private MCPUCompilerException err;
         private Range err_range;
+        private Range[] opt_range;
+        private int[] opt_lines;
 
         public MainWindow Parent { set; get; }
 
@@ -86,17 +89,33 @@ namespace MCPU.IDE
                     int line = value.LineNr - 1;
 
                     if (line > 0)
-                    {
-                        string ln = fctb.Lines[line];
-                        int start = ln.Length - ln.TrimStart().Length;
-                        int end = (ln.Contains(MCPUCompiler.COMMENT_START) ? ln.Remove(ln.IndexOf(MCPUCompiler.COMMENT_START)) : ln).Trim().Length;
-
-                        err_range = new Range(fctb, start, line, start + end, line);
-                        err_range.SetStyle(style_error);
-                    }
+                        (err_range = GetEffectiveLineRange(line)).SetStyle(style_error);
                 }
 
                 Parent.Error = err = value;
+            }
+        }
+
+        internal int[] OptimizableLines
+        {
+            get => opt_lines;
+            set
+            {
+                fctb.Range.ClearStyle(style_opt);
+
+                value = value ?? new int[0];
+
+                opt_range = (from l in value
+                             where l > 0
+                             select new Func<Range>(() => {
+                                 Range r = GetEffectiveLineRange(l - 1);
+
+                                 r.SetStyle(style_opt);
+
+                                 return r;
+                             })()).ToArray();
+
+                Parent.OptimizableLines = opt_lines = value;
             }
         }
 
@@ -135,6 +154,9 @@ namespace MCPU.IDE
             fctb.BookmarkColor =
             fctb.BackColor;
             fctb.Select();
+
+            style_opt = new OptimizableStyle(fctb.BackColor, 1.0);
+
 
             autocomp = new AutocompleteMenu(fctb);
             autocomp.ToolTip = new DarkTooltip();
@@ -191,6 +213,15 @@ namespace MCPU.IDE
             autocomp.MinFragmentLength = 0;
         }
 
+        private Range GetEffectiveLineRange(int line)
+        {
+            string ln = fctb.Lines[line];
+            int start = ln.Length - ln.TrimStart().Length;
+            int end = (ln.Contains(MCPUCompiler.COMMENT_START) ? ln.Remove(ln.IndexOf(MCPUCompiler.COMMENT_START)) : ln).Trim().Length;
+
+            return new Range(fctb, start, line, start + end, line);
+        }
+
         private int GetImageIndex(string name) => autocomp.ImageList.Images.IndexOfKey(name);
 
         private void HighlightnerForm_SizeChanged(object sender, EventArgs e)
@@ -219,15 +250,17 @@ namespace MCPU.IDE
 
         private void Fctb_ToolTipNeeded(object sender, ToolTipNeededEventArgs e)
         {
+            e.ToolTipIcon = ToolTipIcon.None;
+
             if ((Error != null) && (err_range?.Contains(e.Place) ?? false))
             {
                 e.ToolTipText = $"{"global_compiler_error".GetStr()}\n{err.Message}";
                 e.ToolTipIcon = ToolTipIcon.Error;
             }
+            else if (opt_range.Any(r => r.Contains(e.Place)))
+                e.ToolTipText = $"{"global_hint".GetStr()}\n{"global_compiler_opt".GetStr()}";
             else if (!string.IsNullOrEmpty(e.HoveredWord))
             {
-                e.ToolTipIcon = ToolTipIcon.None;
-
                 // TODO
 
                 e.ToolTipText = $"{e.HoveredWord}\nThis is the tooltip for '{e.HoveredWord}'";
@@ -298,7 +331,7 @@ namespace MCPU.IDE
         }
     }
 
-    public class ErrorStyle
+    public sealed class ErrorStyle
         : MarkerStyle
     {
         internal WavyLineStyle wls;
@@ -306,6 +339,23 @@ namespace MCPU.IDE
 
         public ErrorStyle()
             : base(new SolidBrush(Color.FromArgb(0x60ff0000))) => wls = new WavyLineStyle(255, Color.Red);
+
+        public override void Draw(Graphics gr, Point position, Range range)
+        {
+            base.Draw(gr, position, range);
+
+            wls.Draw(gr, position, range);
+        }
+    }
+
+    public sealed class OptimizableStyle
+        : MarkerStyle
+    {
+        internal WavyLineStyle wls;
+
+
+        public OptimizableStyle(Color c, double op)
+            : base(new SolidBrush(Color.FromArgb((int)(255 * op), c))) => wls = new WavyLineStyle(255, Color.FromArgb(0x7f69E1EF));
 
         public override void Draw(Graphics gr, Point position, Range range)
         {

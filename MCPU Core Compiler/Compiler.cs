@@ -100,6 +100,7 @@ namespace MCPU.Compiler
             ["LABEL_RESV_NAME"] = "The name '{0}' is reserved and can therefore not be used as label name.",
             ["NEED_MORE_ARGS"] = "The OP-code '{0}' requires at least '{1}' arguments.",
             ["COULDNT_TRANSLATE_EXEC"] = "The 'exec'-expression could not be translated.",
+            ["INVALID_RET"] = "The 'ret'-instruction cannot be used after the '.main'-token due to a stackunderflow during runtime. Consider the usage of 'halt'.",
         };
         internal static Dictionary<string, string> __strtable;
 
@@ -241,7 +242,7 @@ namespace MCPU.Compiler
                         line = line.Remove(match.Index, match.Length);
 
                         labelmeta.Add(new MCPULabelMetadata { Name = name, DefinedLine = linenr + 1, ParentFunction = curr_func });
-                        curr_func.Instructions.Add(new MCPUJumpLabel(tid));
+                        curr_func.Instructions.Add((new MCPUJumpLabel(tid), linenr));
                     }
 
                 if ((line = line.Trim()).Length > 0)
@@ -251,16 +252,16 @@ namespace MCPU.Compiler
                         {
                             case "main":
                                 curr_func = new MCPUFunction(MAIN_FUNCTION_NAME) { ID = 0 };
-                                curr_func.Instructions.Add(NOP);
+                                curr_func.Instructions.Add((NOP, linenr));
                                 is_func = -1;
 
                                 continue;
                             case "kernel" when (is_func != 0):
-                                curr_func.Instructions.Add((KERNEL, new InstructionArgument[] { 1 }));
+                                curr_func.Instructions.Add(((KERNEL, new InstructionArgument[] { 1 }), linenr));
 
                                 continue;
                             case "user" when (is_func != 0):
-                                curr_func.Instructions.Add((KERNEL, new InstructionArgument[] { 0 }));
+                                curr_func.Instructions.Add(((KERNEL, new InstructionArgument[] { 0 }), linenr));
 
                                 continue;
                             default:
@@ -294,7 +295,7 @@ namespace MCPU.Compiler
                             else
                                 tid = ++id;
 
-                            curr_func = new MCPUFunction(name, NOP)
+                            curr_func = new MCPUFunction(name, (NOP, linenr))
                             {
                                 ID = tid,
                                 IsInlined = inline,
@@ -307,7 +308,7 @@ namespace MCPU.Compiler
                     else if ((match = END_FUNC_REGEX.Match(line)).Success)
                         if (is_func != 0)
                         {
-                            curr_func.Instructions.Add(is_func == -1 ? HALT : RET as OPCode);
+                            curr_func.Instructions.Add((is_func == -1 ? HALT : RET as OPCode, linenr));
                             curr_func = (from f in functions where f.Name == MAIN_FUNCTION_NAME select f).FirstOrDefault();
                             is_func = 0;
                         }
@@ -419,8 +420,10 @@ namespace MCPU.Compiler
                                 {
                                     return Error(GetString("COULDNT_TRANSLATE_EXEC"));
                                 }
+                            else if ((opc == RET) && (curr_func.Name == MAIN_FUNCTION_NAME))
+                                return Error(GetString("INVALID_RET"));
 
-                            curr_func.Instructions.Add(new Instruction(opc, args.ToArray()));
+                            curr_func.Instructions.Add((new Instruction(opc, args.ToArray()), linenr));
                         }
                     else
                         return Error(GetString("LINE_NPARSED", line));
@@ -511,10 +514,10 @@ namespace MCPU.Compiler
 
                 MCPUFunctionMetadata[] metadata = new MCPUFunctionMetadata[func.Length];
                 Dictionary<int, int> jumptable = new Dictionary<int, int>();
-                List<Instruction> instr = new List<Instruction>();
+                List<(Instruction, int)> instr = new List<(Instruction, int)>();
                 int linenr = 1, fnr = 0;
 
-                instr.Add((OPCodes.JMP, new InstructionArgument[] { (0, ArgumentType.Label) }));
+                instr.Add(((OPCodes.JMP, new InstructionArgument[] { (0, ArgumentType.Label) }), -1));
 
                 foreach (MCPULabelMetadata l in labels)
                     if (__reserved.Contains(l.Name.ToLower()))
@@ -530,7 +533,7 @@ namespace MCPU.Compiler
 
                         if (f.IsInlined)
                         {
-                            bool caninline = (f.Instructions.Count <= 30) && f.Instructions.All(_ => (_.OPCode == RET) | !_.OPCode.SpecialIPHandling);
+                            bool caninline = (f.Instructions.Count <= 30) && f.Instructions.All(_ => (_.Item1.OPCode == RET) | !_.Item1.OPCode.SpecialIPHandling);
 
                             if (caninline && OptimizationEnabled)
                             {
@@ -543,25 +546,27 @@ namespace MCPU.Compiler
                             }
                         }
 
-                        foreach (Instruction ins in f.Instructions)
+                        foreach ((Instruction ins, int ol) in f.Instructions)
                             if (ins.OPCode is MCPUJumpLabel jmpl)
                                 jumptable[jmpl.Value] = linenr;
                             else
                             {
-                                instr.Add(ins);
+                                instr.Add((ins, ol));
 
                                 linenr++;
                             }
                     }
 
-                Instruction[] cmp_instr = instr.ToArray();
+                (Instruction, int)[] cmp_instr = instr.ToArray();
 
                 for (int i = 0, l = cmp_instr.Length; i < l; i++)
-                    for (int j = 0, k = cmp_instr[i].Arguments.Length; j < k; j++)
-                        if (cmp_instr[i].Arguments[j].IsInstructionSpace)
-                            cmp_instr[i].Arguments[j].Value = jumptable[cmp_instr[i].Arguments[j].Value];
+                    for (int j = 0, k = cmp_instr[i].Item1.Arguments.Length; j < k; j++)
+                        if (cmp_instr[i].Item1.Arguments[j].IsInstructionSpace)
+                            cmp_instr[i].Item1.Arguments[j].Value = jumptable[cmp_instr[i].Item1.Arguments[j].Value];
 
-                return (OptimizationEnabled ? Optimize(cmp_instr) : cmp_instr, metadata, labels);
+                (Instruction[] inst, int[] opt_lines) = OptimizationEnabled ? Optimize(cmp_instr) : (cmp_instr.Select(_ => _.Item1).ToArray(), new int[0]);
+
+                return (inst, opt_lines, metadata, labels);
             }
             catch (Exception ex)
             when (!(ex is MCPUCompilerException))
@@ -599,7 +604,7 @@ namespace MCPU.Compiler
         /// </summary>
         /// <param name="instr">Instructions</param>
         /// <returns>Optimized instructions</returns>
-        public static Instruction[] Optimize(params Instruction[] instr)
+        public static (Instruction[], int[]) Optimize(params (Instruction, int)[] instr)
         {
             bool CanBeRemoved(Instruction i)
             {
@@ -616,14 +621,18 @@ namespace MCPU.Compiler
 
             Dictionary<int, (int, bool)> offset_table = Enumerable.Range(0, instr.Length).ToDictionary(_ => _, _ => (0, false));
             List<Instruction> outp = new List<Instruction>();
+            List<int> rm = new List<int>();
             int cnt = 0, line = 0;
 
-            foreach (Instruction i in instr)
+            foreach ((Instruction i, int l) in instr)
             {
                 bool rem = CanBeRemoved(i);
 
                 if (rem)
+                {
+                    rm.Add(l);
                     ++cnt;
+                }
 
                 offset_table[line++] = (cnt, rem);
             }
@@ -631,11 +640,13 @@ namespace MCPU.Compiler
             // two separate loops, or the look-ahead won't work
             for (int i = 0, l = instr.Length; i < l; i++)
                 if (!offset_table[i].Item2)
-                    outp.Add((instr[i].OPCode, (from arg in instr[i].Arguments
-                                                let na = arg.IsInstructionSpace ? (InstructionArgument)(arg.Value - offset_table[arg.Value].Item1, arg.Type) : arg
-                                                select na).ToArray()));
+                    outp.Add((instr[i].Item1.OPCode, (from arg in instr[i].Item1.Arguments
+                                                      let na = arg.IsInstructionSpace ? (InstructionArgument)(arg.Value - offset_table[arg.Value].Item1, arg.Type) : arg
+                                                      select na).ToArray()));
 
-            return outp.ToArray();
+            return (outp.ToArray(), (from l in rm
+                                     where l >= 0
+                                     select l + 1).ToArray());
         }
 
         /// <summary>
@@ -847,6 +858,10 @@ namespace MCPU.Compiler
     public struct MCPUCompilerResult
     {
         /// <summary>
+        /// The (1-based) line numbers, which can be optimized
+        /// </summary>
+        public int[] OptimizedLines { set; get; }
+        /// <summary>
         /// The generated instructions
         /// </summary>
         public Instruction[] Instructions { set; get; }
@@ -860,8 +875,8 @@ namespace MCPU.Compiler
         public MCPUFunctionMetadata[] Functions { set; get; }
 
 
-        public static implicit operator (Instruction[], MCPUFunctionMetadata[], MCPULabelMetadata[])(MCPUCompilerResult res) => (res.Instructions, res.Functions, res.Labels);
-        public static implicit operator MCPUCompilerResult((Instruction[], MCPUFunctionMetadata[], MCPULabelMetadata[])_) => new MCPUCompilerResult { Instructions = _.Item1, Labels = _.Item3, Functions = _.Item2 };
+        public static implicit operator (Instruction[], int[], MCPUFunctionMetadata[], MCPULabelMetadata[])(MCPUCompilerResult res) => (res.Instructions, res.OptimizedLines, res.Functions, res.Labels);
+        public static implicit operator MCPUCompilerResult((Instruction[], int[], MCPUFunctionMetadata[], MCPULabelMetadata[])_) => new MCPUCompilerResult { Instructions = _.Item1, OptimizedLines = _.Item2, Functions = _.Item3, Labels = _.Item4 };
     }
 
     /// <summary>
@@ -888,7 +903,7 @@ namespace MCPU.Compiler
         /// <summary>
         /// The function's instructions
         /// </summary>
-        public List<Instruction> Instructions { get; }
+        public List<(Instruction, int)> Instructions { get; }
 
 
         /// <summary>
@@ -905,8 +920,8 @@ namespace MCPU.Compiler
         /// </summary>
         /// <param name="name">Function name</param>
         /// <param name="instr">Function instructions</param>
-        public MCPUFunction(string name, params Instruction[] instr)
-            : this(name, instr as IEnumerable<Instruction>)
+        public MCPUFunction(string name, params (Instruction, int)[] instr)
+            : this(name, instr as IEnumerable<(Instruction, int)>)
         {
         }
 
@@ -915,10 +930,10 @@ namespace MCPU.Compiler
         /// </summary>
         /// <param name="name">Function name</param>
         /// <param name="instr">Function instructions</param>
-        public MCPUFunction(string name, IEnumerable<Instruction> instr)
+        public MCPUFunction(string name, IEnumerable<(Instruction, int)> instr)
         {
             Name = name;
-            Instructions = instr?.ToList() ?? new List<Instruction>();
+            Instructions = instr?.ToList() ?? new List<(Instruction, int)>();
         }
 
 
