@@ -1,5 +1,4 @@
 ﻿using System.Runtime.InteropServices;
-using System.Collections.Generic;
 using System.Threading;
 using System.Linq;
 using System.Text;
@@ -161,57 +160,6 @@ namespace MCPU
             Marshal.Copy((IntPtr)ptr, targ, 0, bytes);
 
             HexDump(targ);
-        }
-
-        /// <summary>
-        /// Prints the difference between the two given strings to the console
-        /// </summary>
-        /// <param name="s1">First string</param>
-        /// <param name="s2">Second string</param>
-        public static void Diff(string s1, string s2)
-        {
-            cmc fg = cmd.ForegroundColor;
-            DiffEngine diff = new DiffEngine();
-            CharacterDiffList src = new CharacterDiffList(s1);
-            CharacterDiffList dst = new CharacterDiffList(s2);
-
-            diff.ProcessDiff(src, dst);
-
-            List<(cmc, string, IEnumerable<string>)> res = new List<(cmc, string, IEnumerable<string>)>();
-
-            foreach (DiffResultSpan span in diff.DiffReport)
-                switch (span.Status)
-                {
-                    case DiffResultSpanStatus.AddDestination:
-                        res.Add((cmc.Green, ">>", from i in Enumerable.Range(span.DestinationIndex, span.Length) select dst.GetByIndex(i)));
-
-                        break;
-                    case DiffResultSpanStatus.DeleteSource:
-                        res.Add((cmc.Red, "<<", from i in Enumerable.Range(span.SourceIndex, span.Length) select src.GetByIndex(i)));
-
-                        break;
-                    case DiffResultSpanStatus.NoChange:
-                        res.Add((cmc.Gray, "--", from i in Enumerable.Range(span.SourceIndex, span.Length) select src.GetByIndex(i)));
-
-                        break;
-                    case DiffResultSpanStatus.Replace:
-                        res.Add((cmc.Yellow, "<<", from i in Enumerable.Range(span.SourceIndex, span.Length) select src.GetByIndex(i)));
-                        res.Add((cmc.Yellow, ">>", from i in Enumerable.Range(span.DestinationIndex, span.Length) select dst.GetByIndex(i)));
-
-                        break;
-                    default:
-                        throw new ArgumentException();
-                }
-
-            foreach ((cmc, string, IEnumerable<string>) span in res)
-            {
-                cmd.ForegroundColor = span.Item1;
-
-                foreach (string line in span.Item3)
-                    cmd.WriteLine($"{span.Item2} {line}");
-            }
-
-            cmd.ForegroundColor = fg;
         }
     }
 }

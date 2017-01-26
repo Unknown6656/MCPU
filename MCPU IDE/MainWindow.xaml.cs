@@ -9,7 +9,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Data;
 using System.Diagnostics;
-using System.Threading;
 using Microsoft.Win32;
 using System.Windows;
 using System.Linq;
@@ -17,16 +16,16 @@ using System.Text;
 using System.IO;
 using System;
 
-using MCPU.Compiler;
-using MCPU.IDE;
-using MCPU;
-
 using FastColoredTextBoxNS;
 
 using WinForms = System.Windows.Forms;
 
 namespace MCPU.IDE
 {
+    using MCPU.Compiler;
+    using MCPU.IDE;
+    using MCPU;
+
     public partial class MainWindow
         : Window
         , ILanguageSensitiveWindow
@@ -34,7 +33,6 @@ namespace MCPU.IDE
         internal FastColoredTextBox fctb => fctb_host.fctb;
         internal ProcessorWindow watcher;
         internal readonly Setter st_stat;
-        internal Thread bg_comp;
         internal Processor proc;
         internal IntPtr handle;
         internal bool changed;
@@ -57,16 +55,6 @@ namespace MCPU.IDE
             }
         }
 
-        public int[] OptimizableLines
-        {
-            get => fctb_host.OptimizableLines;
-            set
-            {
-                lb_opt.Content = "global_opt".GetStr((value ?? new int[0]).Length);
-
-                statbar.InvalidateVisual();
-            }
-        }
 
         ~MainWindow() => DisposeProcessor();
 
@@ -102,23 +90,6 @@ namespace MCPU.IDE
             // fctb.TextChanged += (o, a) => new Task(() => Compile(fctb.Text, true)).Start();
             fctb.SelectionChanged += Fctb_SelectionChanged;
             fctb.OnTextChanged(); // update control after loading
-            fctb_host.TextChanged += (o, a) =>
-            {
-                if (bg_comp?.IsAlive ?? false)
-                    bg_comp.Abort();
-
-                bg_comp = new Thread(() =>
-                {
-                    try
-                    {
-                        this.Dispatcher.Invoke(() => Compile(fctb.Text, true));
-                    }
-                    catch
-                    {
-                    }
-                });
-                bg_comp.Start();
-            };
 
             Fctb_SelectionChanged(null, null);
             global_insert(null, null);
@@ -131,8 +102,6 @@ namespace MCPU.IDE
             fctb_host.Focus();
             fctb.Select();
             fctb.Focus();
-
-            OptimizableLines = null;
 
             Compile(fctb.Text, true);
         }
@@ -322,13 +291,12 @@ namespace MCPU.IDE
 
                 fctb_host.labels = cmpres.Labels;
                 fctb_host.functions = cmpres.Functions;
-                fctb_host.OptimizableLines = cmpres.OptimizedLines;
                 fctb_host.UpdateAutocomplete();
 
                 if (!silent)
                 {
                     proc.Instructions = cmpres.Instructions;
-
+                    
                     watcher.Proc_InstructionExecuted(proc, null);
                 }
             }
@@ -543,3 +511,4 @@ namespace MCPU.IDE
         public static readonly RoutedUICommand ProcessorInfo = create(nameof(ProcessorInfo), Key.F8, ModifierKeys.None);
     }
 }
+

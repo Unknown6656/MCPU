@@ -42,7 +42,6 @@ for (int i = 2; i <= 26; i++)
 {
 	string type_str = string.Join(", ", from c in Enumerable.Range(0, i) select BigC(c));
 	string func_str = string.Join(", ", from j in Enumerable.Range(0, i) select $"Func<{BigC(j)}, _> {SmallC(j)}");
-	string act_str = string.Join(", ", from j in Enumerable.Range(0, i) select $"Action<{BigC(j)}> {SmallC(j)}");
 #>
 
 	/// <summary>
@@ -59,16 +58,6 @@ for (int i = 2; i <= 26; i++)
         : IUnsafeUnion
 #endif
     {
-        /// <summary>
-        /// Matches the current union value with the given functions and executes the matching function.
-        /// </summary>
-<#
-for (int j = 0; j < i; j++)
-{
-#>
-        /// <param name="<#=SmallC(j)#>">A function which matches the union type '<#=BigC(j)#>'</param>
-<# } #>
-        public abstract void Match(<#=act_str#>);
         /// <summary>
         /// Matches the current union value with the given functions and returns the common return value of the function.
         /// </summary>
@@ -166,8 +155,6 @@ for (int j = 0; j < i; j++)
 
 			public override _ Match<_>(<#=func_str#>) => <#=SmallC(j)#>(Item);
 			
-			public override void Match(<#=act_str#>) => <#=SmallC(j)#>(Item);
-
 			/// <summary>
             /// Creates a new union with '<#=i#>' possible cases and sets it to a value of the type '<#=BigC(j)#>'
             /// </summary>

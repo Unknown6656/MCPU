@@ -440,10 +440,10 @@ namespace MCPU
         /// <summary>
         /// Processes the next instruction
         /// </summary>
-        public void ProcessNext() => ProcessNext(Instructions[IP]);
-
-        internal void ProcessNext(Instruction ins, bool update_ip = true)
+        public void ProcessNext()
         {
+            Instruction ins = Instructions[IP];
+
             try
             {
                 if ((ins != null) && (ins.GetType() != typeof(Instructions.halt)))
@@ -456,10 +456,7 @@ namespace MCPU
 
                     if (!ins.OPCode.SpecialIPHandling)
                         if (IP < Instructions.Length)
-                        {
-                            if (update_ip)
-                                MoveNext();
-                        }
+                            MoveNext();
                         else
                             Halt();
                 }

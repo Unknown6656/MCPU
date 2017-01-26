@@ -1,130 +1,116 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:s="clr-namespace:System;assembly=mscorlib">
-    <s:String xml:space="preserve" x:Key="lang_iso">ENG</s:String>
-    <s:String xml:space="preserve" x:Key="lang_code">en-GB</s:String>
-    <s:String xml:space="preserve" x:Key="lang_name">English</s:String>
-    <s:String xml:space="preserve" x:Key="global_error_in">Error on {0} {1}</s:String>
-    <s:String xml:space="preserve" x:Key="global_abbrv_ln">Ln.</s:String>
-    <s:String xml:space="preserve" x:Key="global_abbrv_ch">Ch.</s:String>
-    <s:String xml:space="preserve" x:Key="global_port">Port</s:String>
-    <s:String xml:space="preserve" x:Key="global_bytes">Bytes</s:String>
-    <s:String xml:space="preserve" x:Key="global_cancel">Cancel</s:String>
-    <s:String xml:space="preserve" x:Key="global_ok">OK</s:String>
-    <s:String xml:space="preserve" x:Key="global_close">Close</s:String>
-    <s:String xml:space="preserve" x:Key="global_reset">Reset</s:String>
-    <s:String xml:space="preserve" x:Key="global_copyright">Copyright</s:String>
+    <s:String x:Key="lang_iso">ENG</s:String>
+    <s:String x:Key="lang_code">en-GB</s:String>
+    <s:String x:Key="lang_name">English</s:String>
+    <s:String x:Key="global_error_in">Error on {0} {1}</s:String>
+    <s:String x:Key="global_abbrv_ln">Ln.</s:String>
+    <s:String x:Key="global_abbrv_ch">Ch.</s:String>
+    <s:String x:Key="global_port">Port</s:String>
+    <s:String x:Key="global_bytes">Bytes</s:String>
+    <s:String x:Key="global_cancel">Cancel</s:String>
+    <s:String x:Key="global_ok">OK</s:String>
+    <s:String x:Key="global_close">Close</s:String>
+    <s:String x:Key="global_reset">Reset</s:String>
+    <s:String x:Key="global_copyright">Copyright</s:String>
     <ResourceDictionary x:Key="global_compiler_msg">
         <!-- NOTHING TO DO, AS EN-GB IS THE DEFAULT LANGUAGE -->
     </ResourceDictionary>
-    <s:String xml:space="preserve" x:Key="global_hint">Hint</s:String>
-    <s:String xml:space="preserve" x:Key="global_opt">{0} optimizable lines found.</s:String>
-    <s:String xml:space="preserve" x:Key="global_compiler_error">Compiler error</s:String>
-    <s:String xml:space="preserve" x:Key="tooltip_opt">This line can be removed, as it will be optimized away by the compiler.&#10;Such behaviour can be prevented by changing the according settings inside the settings-window.</s:String>
-    <s:String xml:space="preserve" x:Key="tooltip_addr">Address&#10;The expression '{0}' represents a MCPU processor address.</s:String>
-    <s:String xml:space="preserve" x:Key="tooltip_param">Parameter&#10;The expression '{0}' represents a function parameter passed to the current function by the caller.</s:String>
-    <s:String xml:space="preserve" x:Key="tooltip_int">Constant&#10;The expression '{0}' is a constant integer value.</s:String>
-    <s:String xml:space="preserve" x:Key="tooltip_float">Constant&#10;The expression '{0}' is a constant floating-point value.</s:String>
-    <s:String xml:space="preserve" x:Key="tooltip_func">Function declaration&#10;This line represents a function declaration, which can be called using the 'call'-instruction.</s:String>
-    <s:String xml:space="preserve" x:Key="tooltip_endfunc">End of function declaration&#10;This line the end of a function declartation.</s:String>
-    <s:String xml:space="preserve" x:Key="tooltip_label">Label declaration&#10;This expression defines a jumplabel, to which the program can jump using any jump-instruction.</s:String>
-    <s:String xml:space="preserve" x:Key="tooltip_funcref">Function&#10;The function '{0}', which has been defined on line {1}.</s:String>
-    <s:String xml:space="preserve" x:Key="tooltip_labelref">Jumplabel&#10;The jumplabel '{0}', which has been defined on line {1}.</s:String>
-    <s:String xml:space="preserve" x:Key="tooltip_instr">Instruction {0}&#10;The MCPU assembly instruction '{1}'</s:String>
-    <s:String xml:space="preserve" x:Key="tooltip_uinstr">Instruction {0}&#10;For more information visit the project's GitHub-page (Menu &gt; Help &gt; Visist GitHub).</s:String>
-    <s:String xml:space="preserve" x:Key="tooltip_keyword">Keyword '{0}'&#10;The expression '{0}' is a reserved keyword.</s:String>
-    <s:String xml:space="preserve" x:Key="tooltip_unknown">Unknown token '{0}'&#10;The expression or token '{0}' does not contain any information.</s:String>
-    <s:String xml:space="preserve" x:Key="autocomp_func">Function {0}&#10;The function {1} which has been defined on line {2}</s:String>
-    <s:String xml:space="preserve" x:Key="autocomp_label">Label '{0}'&#10;The label {1} which has been defined on line {2}</s:String>
-    <s:String xml:space="preserve" x:Key="autocomp_kernel">.kernel directive&#10;Grants the current processor kernel privileges</s:String>
-    <s:String xml:space="preserve" x:Key="autocomp_user">.user directive&#10;Grants the current processor user privileges</s:String>
-    <s:String xml:space="preserve" x:Key="autocomp_main">Main entry point&#10;The application's main entry point</s:String>
-    <s:String xml:space="preserve" x:Key="autocomp_instr">Instruction '{0}'&#10;The assembly instruction {1}</s:String>
-    <s:String xml:space="preserve" x:Key="mw_title">MCPU Integrated Development Environment</s:String>
-    <s:String xml:space="preserve" x:Key="mw_file">_FILE</s:String>
-    <s:String xml:space="preserve" x:Key="mw_file_new">_New</s:String>
-    <s:String xml:space="preserve" x:Key="mw_file_open">_Open ...</s:String>
-    <s:String xml:space="preserve" x:Key="mw_file_save">_Save</s:String>
-    <s:String xml:space="preserve" x:Key="mw_file_saveall">Save _As ...</s:String>
-    <s:String xml:space="preserve" x:Key="mw_file_export">_Export as HTML ...</s:String>
-    <s:String xml:space="preserve" x:Key="mw_file_settings">_Preferences</s:String>
-    <s:String xml:space="preserve" x:Key="mw_file_exit">E_xit</s:String>
-    <s:String xml:space="preserve" x:Key="mw_edit">_EDIT</s:String>
-    <s:String xml:space="preserve" x:Key="mw_edit_undo">U_ndo</s:String>
-    <s:String xml:space="preserve" x:Key="mw_edit_redo">_Redo</s:String>
-    <s:String xml:space="preserve" x:Key="mw_edit_copy">_Copy</s:String>
-    <s:String xml:space="preserve" x:Key="mw_edit_cut">C_ut</s:String>
-    <s:String xml:space="preserve" x:Key="mw_edit_paste">_Paste</s:String>
-    <s:String xml:space="preserve" x:Key="mw_edit_delete">_Delete</s:String>
-    <s:String xml:space="preserve" x:Key="mw_edit_select">_Select All</s:String>
-    <s:String xml:space="preserve" x:Key="mw_edit_insert">Insert Sni_ppet ...</s:String>
-    <s:String xml:space="preserve" x:Key="mw_edit_search">Search ...</s:String>
-    <s:String xml:space="preserve" x:Key="mw_edit_replace">Replace ...</s:String>
-    <s:String xml:space="preserve" x:Key="mw_edit_bm_create">Create Bookmark</s:String>
-    <s:String xml:space="preserve" x:Key="mw_edit_bm_delete">Delete Bookmark</s:String>
-    <s:String xml:space="preserve" x:Key="mw_edit_bm_prev">Previous Bookmark</s:String>
-    <s:String xml:space="preserve" x:Key="mw_edit_bm_next">Next Bookmark</s:String>
-    <s:String xml:space="preserve" x:Key="mw_edit_zin">Zoom _in</s:String>
-    <s:String xml:space="preserve" x:Key="mw_edit_zout">Zoom _out</s:String>
-    <s:String xml:space="preserve" x:Key="mw_edit_zres">Reset _Zoom</s:String>
-    <s:String xml:space="preserve" x:Key="mw_edit_fold">Fold all sections</s:String>
-    <s:String xml:space="preserve" x:Key="mw_edit_unfold">Unfold all sections</s:String>
-    <s:String xml:space="preserve" x:Key="mw_compiler">_COMPILER</s:String>
-    <s:String xml:space="preserve" x:Key="mw_compiler_compile">_Compile</s:String>
-    <s:String xml:space="preserve" x:Key="mw_compiler_errors">_Error list</s:String>
-    <s:String xml:space="preserve" x:Key="mw_compiler_instr">_View compiled Instructions ...</s:String>
-    <s:String xml:space="preserve" x:Key="mw_processor">_PROCESSOR</s:String>
-    <s:String xml:space="preserve" x:Key="mw_processor_start">_Start</s:String>
-    <s:String xml:space="preserve" x:Key="mw_processor_stop">St_op</s:String>
-    <s:String xml:space="preserve" x:Key="mw_processor_reset">_Reset</s:String>
-    <s:String xml:space="preserve" x:Key="mw_processor_memmap">View _Memory Map ...</s:String>
-    <s:String xml:space="preserve" x:Key="mw_processor_dump">Dump Memory ...</s:String>
-    <s:String xml:space="preserve" x:Key="mw_processor_loaddump">Load from Memory dump ...</s:String>
-    <s:String xml:space="preserve" x:Key="mw_help">_HELP</s:String>
-    <s:String xml:space="preserve" x:Key="mw_help_about">_About</s:String>
-    <s:String xml:space="preserve" x:Key="mw_help_github">_View on GitHub</s:String>
-    <s:String xml:space="preserve" x:Key="mw_INS">INS</s:String>
-    <s:String xml:space="preserve" x:Key="mw_OVR">OVR</s:String>
-    <s:String xml:space="preserve" x:Key="aw_title">About the MCPU IDE</s:String>
-    <s:String xml:space="preserve" x:Key="aw_version">Version:</s:String>
-    <s:String xml:space="preserve" x:Key="aw_version_str">v {0}</s:String>
-    <s:String xml:space="preserve" x:Key="aw_github">Visit the GitHub project</s:String>
-    <s:String xml:space="preserve" x:Key="aw_github_issues">Give Feedback or report a bug</s:String>
-    <s:String xml:space="preserve" x:Key="aw_description">This IDE (Integrated Development Environment) is designed to efficiently create, edit, compile, debug and run MCPU Assembly applications on the designated MCPU processor emulator.</s:String>
-    <s:String xml:space="preserve" x:Key="aw_fctb_before">The editor's main text box is implemented using the</s:String>
-    <s:String xml:space="preserve" x:Key="aw_fctb_after">.</s:String>
-    <s:String xml:space="preserve" x:Key="aw_fctb_desc">FastColoredTextBox-Project</s:String>
-    <s:String xml:space="preserve" x:Key="sw_title">MCPU IDE - Settings</s:String>
-    <s:String xml:space="preserve" x:Key="sw_applang">Application language:</s:String>
-    <s:String xml:space="preserve" x:Key="sw_procsett">Processor Settings:</s:String>
-    <s:String xml:space="preserve" x:Key="sw_memsz">Memory size:</s:String>
-    <s:String xml:space="preserve" x:Key="sw_stacksz">Callstack size:</s:String>
-    <s:String xml:space="preserve" x:Key="sw_optcode">Optimize MCPU code</s:String>
-    <s:String xml:space="preserve" x:Key="pw_title">MCPU IDE - Processor Watcher</s:String>
-    <s:String xml:space="preserve" x:Key="pw_gb_addr">Lower Addresses:  (.kernel)</s:String>
-    <s:String xml:space="preserve" x:Key="pw_gb_io">I/O Ports:  (.io)</s:String>
-    <s:String xml:space="preserve" x:Key="pw_gb_user">Userspace memory:  (.data)</s:String>
-    <s:String xml:space="preserve" x:Key="pw_gb_calls">Callstack:</s:String>
-    <s:String xml:space="preserve" x:Key="pw_gb_callspc">Stack space:  (.stack)</s:String>
-    <s:String xml:space="preserve" x:Key="pw_gb_instr">Instructions:</s:String>
-    <s:String xml:space="preserve" x:Key="pw_gb_instrsp">Instruction space:  (.instr)</s:String>
-    <s:String xml:space="preserve" x:Key="pw_csize">Size:</s:String>
-    <s:String xml:space="preserve" x:Key="pw_cflags">Saved Flags:</s:String>
-    <s:String xml:space="preserve" x:Key="pw_cparams">Parameters:</s:String>
-    <s:String xml:space="preserve" x:Key="pw_gb_output">Processor Output:</s:String>
-    <s:String xml:space="preserve" x:Key="msg_err">Error</s:String>
-    <s:String xml:space="preserve" x:Key="msg_suc">Success</s:String>
-    <s:String xml:space="preserve" x:Key="msg_war">Warning</s:String>
-    <s:String xml:space="preserve" x:Key="msg_suc_html">Successfully exported HTML</s:String>
-    <s:String xml:space="preserve" x:Key="msg_suctxt_html">The current code file could successfully be exported as HTML document and has been save inside the file '{0}'&#10;Do you want to open the HTML document?</s:String>
-    <s:String xml:space="preserve" x:Key="msg_war_unsaved">Save changes?</s:String>
-    <s:String xml:space="preserve" x:Key="msg_wartxt_unsaved">You have modified the code file since the last save. Do you want to save all changes?</s:String>
-    <s:String xml:space="preserve" x:Key="msg_err_compiler">Compiler error</s:String>
-    <s:String xml:space="preserve" x:Key="msg_errtxt_compiler">The code could not be compiled due to the following compiler error:&#10;'{0}'&#10;on line {1}.</s:String>
-    <s:String xml:space="preserve" x:Key="msg_err_filenfound">File not found</s:String>
-    <s:String xml:space="preserve" x:Key="msg_errtxt_filenfound">The file '{0}' could not be accessed or found.</s:String>
-    <s:String xml:space="preserve" x:Key="msg_err_filesave">Unable to save file</s:String>
-    <s:String xml:space="preserve" x:Key="msg_errtxt_filesave">The file '{0}' could not be saved due to the following error:&#10;{1}</s:String>
-    <s:String xml:space="preserve" x:Key="msg_err_html">Unable to export HTML</s:String>
-    <s:String xml:space="preserve" x:Key="msg_errtxt_html">The current code file could not be exported as HTML document due to the following internal error:&#10;{0}</s:String>
+    <s:String x:Key="global_compiler_error">Compiler error</s:String>
+    <s:String x:Key="autocomp_func">Function {0}&#10;The function {1} which has been defined on line {2}</s:String>
+    <s:String x:Key="autocomp_label">Label '{0}'&#10;The label {1} which has been defined on line {2}</s:String>
+    <s:String x:Key="autocomp_kernel">.kernel directive&#10;Grants the current processor kernel privileges</s:String>
+    <s:String x:Key="autocomp_user">.user directive&#10;Grants the current processor user privileges</s:String>
+    <s:String x:Key="autocomp_main">Main entry point&#10;The application's main entry point</s:String>
+    <s:String x:Key="autocomp_instr">Instruction '{0}'&#10;The assembly instruction {1}</s:String>
+    <s:String x:Key="mw_title">MCPU Integrated Development Environment</s:String>
+    <s:String x:Key="mw_file">_FILE</s:String>
+    <s:String x:Key="mw_file_new">_New</s:String>
+    <s:String x:Key="mw_file_open">_Open ...</s:String>
+    <s:String x:Key="mw_file_save">_Save</s:String>
+    <s:String x:Key="mw_file_saveall">Save _As ...</s:String>
+    <s:String x:Key="mw_file_export">_Export as HTML ...</s:String>
+    <s:String x:Key="mw_file_settings">_Preferences</s:String>
+    <s:String x:Key="mw_file_exit">E_xit</s:String>
+    <s:String x:Key="mw_edit">_EDIT</s:String>
+    <s:String x:Key="mw_edit_undo">U_ndo</s:String>
+    <s:String x:Key="mw_edit_redo">_Redo</s:String>
+    <s:String x:Key="mw_edit_copy">_Copy</s:String>
+    <s:String x:Key="mw_edit_cut">C_ut</s:String>
+    <s:String x:Key="mw_edit_paste">_Paste</s:String>
+    <s:String x:Key="mw_edit_delete">_Delete</s:String>
+    <s:String x:Key="mw_edit_select">_Select All</s:String>
+    <s:String x:Key="mw_edit_insert">Insert Sni_ppet ...</s:String>
+    <s:String x:Key="mw_edit_search">Search ...</s:String>
+    <s:String x:Key="mw_edit_replace">Replace ...</s:String>
+    <s:String x:Key="mw_edit_bm_create">Create Bookmark</s:String>
+    <s:String x:Key="mw_edit_bm_delete">Delete Bookmark</s:String>
+    <s:String x:Key="mw_edit_bm_prev">Previous Bookmark</s:String>
+    <s:String x:Key="mw_edit_bm_next">Next Bookmark</s:String>
+    <s:String x:Key="mw_edit_zin">Zoom _in</s:String>
+    <s:String x:Key="mw_edit_zout">Zoom _out</s:String>
+    <s:String x:Key="mw_edit_zres">Reset _Zoom</s:String>
+    <s:String x:Key="mw_edit_fold">Fold all sections</s:String>
+    <s:String x:Key="mw_edit_unfold">Unfold all sections</s:String>
+    <s:String x:Key="mw_compiler">_COMPILER</s:String>
+    <s:String x:Key="mw_compiler_compile">_Compile</s:String>
+    <s:String x:Key="mw_compiler_errors">_Error list</s:String>
+    <s:String x:Key="mw_compiler_instr">_View compiled Instructions ...</s:String>
+    <s:String x:Key="mw_processor">_PROCESSOR</s:String>
+    <s:String x:Key="mw_processor_start">_Start</s:String>
+    <s:String x:Key="mw_processor_stop">St_op</s:String>
+    <s:String x:Key="mw_processor_reset">_Reset</s:String>
+    <s:String x:Key="mw_processor_memmap">View _Memory Map ...</s:String>
+    <s:String x:Key="mw_processor_dump">Dump Memory ...</s:String>
+    <s:String x:Key="mw_processor_loaddump">Load from Memory dump ...</s:String>
+    <s:String x:Key="mw_help">_HELP</s:String>
+    <s:String x:Key="mw_help_about">_About</s:String>
+    <s:String x:Key="mw_help_github">_View on GitHub</s:String>
+    <s:String x:Key="mw_INS">INS</s:String>
+    <s:String x:Key="mw_OVR">OVR</s:String>
+    <s:String x:Key="aw_title">About the MCPU IDE</s:String>
+    <s:String x:Key="aw_version">Version:</s:String>
+    <s:String x:Key="aw_version_str">v {0}</s:String>
+    <s:String x:Key="aw_github">Visit the GitHub project</s:String>
+    <s:String x:Key="aw_github_issues">Give Feedback or report a bug</s:String>
+    <s:String x:Key="aw_description">
+        This IDE (Integrated Development Environment) is designed to efficiently create, edit, compile, debug and run MCPU Assembly applications on the
+        designated MCPU processor emulator.
+    </s:String>
+    <s:String x:Key="aw_fctb_before">The editor's main text box is implemented using the</s:String>
+    <s:String x:Key="aw_fctb_after">.</s:String>
+    <s:String x:Key="aw_fctb_desc">FastColoredTextBox-Project</s:String>
+    <s:String x:Key="sw_title">MCPU IDE - Settings</s:String>
+    <s:String x:Key="sw_applang">Application language:</s:String>
+    <s:String x:Key="sw_procsett">Processor Settings:</s:String>
+    <s:String x:Key="sw_memsz">Memory size:</s:String>
+    <s:String x:Key="sw_stacksz">Callstack size:</s:String>
+    <s:String x:Key="pw_title">MCPU IDE - Processor Watcher</s:String>
+    <s:String x:Key="pw_gb_addr">Lower Addresses:  (.kernel)</s:String>
+    <s:String x:Key="pw_gb_io">I/O Ports:  (.io)</s:String>
+    <s:String x:Key="pw_gb_user">Userspace memory:  (.data)</s:String>
+    <s:String x:Key="pw_gb_calls">Callstack:</s:String>
+    <s:String x:Key="pw_gb_callspc">Stack space:  (.stack)</s:String>
+    <s:String x:Key="pw_gb_instr">Instructions:</s:String>
+    <s:String x:Key="pw_gb_instrsp">Instruction space:  (.instr)</s:String>
+    <s:String x:Key="pw_csize">Size:</s:String>
+    <s:String x:Key="pw_cflags">Saved Flags:</s:String>
+    <s:String x:Key="pw_cparams">Parameters:</s:String>
+    <s:String x:Key="pw_gb_output">Processor Output:</s:String>
+    <s:String x:Key="msg_err">Error</s:String>
+    <s:String x:Key="msg_suc">Success</s:String>
+    <s:String x:Key="msg_war">Warning</s:String>
+    <s:String x:Key="msg_suc_html">Successfully exported HTML</s:String>
+    <s:String x:Key="msg_suctxt_html">The current code file could successfully be exported as HTML document and has been save inside the file '{0}'&#10;Do you want to open the HTML document?</s:String>
+    <s:String x:Key="msg_war_unsaved">Save changes?</s:String>
+    <s:String x:Key="msg_wartxt_unsaved">You have modified the code file since the last save. Do you want to save all changes?</s:String>
+    <s:String x:Key="msg_err_compiler">Compiler error</s:String>
+    <s:String x:Key="msg_errtxt_compiler">The code could not be compiled due to the following compiler error:&#10;'{0}'&#10;on line {1}.</s:String>
+    <s:String x:Key="msg_err_filenfound">File not found</s:String>
+    <s:String x:Key="msg_errtxt_filenfound">The file '{0}' could not be accessed or found.</s:String>
+    <s:String x:Key="msg_err_filesave">Unable to save file</s:String>
+    <s:String x:Key="msg_errtxt_filesave">The file '{0}' could not be saved due to the following error:&#10;{1}</s:String>
+    <s:String x:Key="msg_err_html">Unable to export HTML</s:String>
+    <s:String x:Key="msg_errtxt_html">The current code file could not be exported as HTML document due to the following internal error:&#10;{0}</s:String>
 </ResourceDictionary>
