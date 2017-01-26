@@ -34,7 +34,7 @@ namespace MCPU.Compiler
         /// <summary>
         /// Argument core matching pattern
         /// </summary>
-        internal static readonly Regex ARGUMENT_CORE = new Regex($@"((?<float>{FLOAT_CORE})|k?\[\$?(?<addr>{INTEGER_CORE})\]|k?\[\[\$?(?<ptr>{INTEGER_CORE})\]\]|\$?(?<const>{INTEGER_CORE})|{NAME_REGEX_CORE})", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        internal static readonly Regex ARGUMENT_CORE = new Regex($@"((?<float>{FLOAT_CORE})|k?\[\$?(?<addr>{INTEGER_CORE})\]|k?\[\[\$?(?<ptr>{INTEGER_CORE})\]\]|\$?(?<const>{INTEGER_CORE})|\<\s*(?<opref>[_a-z]*[a-z]+\w*)\s*\>|{NAME_REGEX_CORE})", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         /// <summary>
         /// Instruction matching pattern
         /// </summary>
@@ -375,6 +375,16 @@ namespace MCPU.Compiler
                                                 iarg.Value = ParseIntArg(val);
                                                 iarg.Type = ArgumentType.Constant;
                                             }
+                                            else if (CheckGroup("opref", out val))
+                                                try
+                                                {
+                                                    iarg.Type = ArgumentType.Constant;
+                                                    iarg.Value = CodesByToken[val.ToLower().Trim()].Number;
+                                                }
+                                                catch
+                                                {
+                                                    return Error(GetString("COULDNT_TRANSLATE_EXEC"));
+                                                }
                                             else if (CheckGroup("name", out val))
                                             {
                                                 if (arg.Contains('[') || arg.Contains(']'))
@@ -662,13 +672,14 @@ namespace MCPU.Compiler
                         return CanBeRemoved((OPCodes.CodesByID[(ushort)i[0].Value], i.Arguments.Skip(1).ToArray()));
                     else
                         return (i == NOP)
-                            || (In(ADD, SUB, CLEAR, WAIT, OR, XOR, FSUB, FADD)  && i[1] == (0, ArgumentType.Constant))
-                            || (In(MUL, DIV)                                    && i[1] == (1, ArgumentType.Constant))
-                            || (In(AND, NXOR)                                   && i[1] == (unchecked((int)0xffffffffu), ArgumentType.Constant))
-                            || (In(MOV, SWAP, OR, AND)                          && i[0] == i[1])
-                            || (In(FMUL, FDIV, FPOW, FROOT)                     && i[1] == ((FloatIntUnion)1f, ArgumentType.Constant))
-                            || (In(COPY)                                        && i[2] == (0, ArgumentType.Constant))
-                            || (In(JMPREL)                                      && i[0] == (1, ArgumentType.Constant));
+                            || (In(ADD, SUB, CLEAR, OR, XOR, FSUB, FADD, ROL, ROR, SHL, SHR) && i[1] == (0, ArgumentType.Constant))
+                            || (In(MUL, DIV)                                                 && i[1] == (1, ArgumentType.Constant))
+                            || (In(AND, NXOR)                                                && i[1] == (unchecked((int)0xffffffffu), ArgumentType.Constant))
+                            || (In(MOV, SWAP, OR, AND)                                       && i[0] == i[1])
+                            || (In(FMUL, FDIV, FPOW, FROOT)                                  && i[1] == ((FloatIntUnion)1f, ArgumentType.Constant))
+                            || (In(COPY)                                                     && i[2] == (0, ArgumentType.Constant))
+                            || (In(JMPREL)                                                   && i[0] == (1, ArgumentType.Constant));
+                    // todo : wait
                 }
                 catch
                 {

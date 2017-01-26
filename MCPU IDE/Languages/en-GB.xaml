@@ -20,7 +20,6 @@
     <s:String xml:space="preserve" x:Key="global_hint">Hint</s:String>
     <s:String xml:space="preserve" x:Key="global_opt">{0} optimizable lines found.</s:String>
     <s:String xml:space="preserve" x:Key="global_compiler_error">Compiler error</s:String>
-
     <s:String xml:space="preserve" x:Key="tooltip_opt">This line can be removed, as it will be optimized away by the compiler.&#10;Such behaviour can be prevented by changing the according settings inside the settings-window.</s:String>
     <s:String xml:space="preserve" x:Key="tooltip_addr">Address&#10;The expression '{0}' represents a MCPU processor address.</s:String>
     <s:String xml:space="preserve" x:Key="tooltip_param">Parameter&#10;The expression '{0}' represents a function parameter passed to the current function by the caller.</s:String>
@@ -29,13 +28,12 @@
     <s:String xml:space="preserve" x:Key="tooltip_func">Function declaration&#10;This line represents a function declaration, which can be called using the 'call'-instruction.</s:String>
     <s:String xml:space="preserve" x:Key="tooltip_endfunc">End of function declaration&#10;This line the end of a function declartation.</s:String>
     <s:String xml:space="preserve" x:Key="tooltip_label">Label declaration&#10;This expression defines a jumplabel, to which the program can jump using any jump-instruction.</s:String>
-    <s:String xml:space="preserve" x:Key="tooltip_funcref">Function&#10;The function '{0}', which has been defined on line '{1}'.</s:String>
-    <s:String xml:space="preserve" x:Key="tooltip_labelref">Jumplabel&#10;The jumplabel '{0}', which has been defined on line '{1}'.</s:String>
+    <s:String xml:space="preserve" x:Key="tooltip_funcref">Function&#10;The function '{0}', which has been defined on line {1}.</s:String>
+    <s:String xml:space="preserve" x:Key="tooltip_labelref">Jumplabel&#10;The jumplabel '{0}', which has been defined on line {1}.</s:String>
     <s:String xml:space="preserve" x:Key="tooltip_instr">Instruction {0}&#10;The MCPU assembly instruction '{1}'</s:String>
-    <s:String xml:space="preserve" x:Key="tooltip_uinstr">Instruction {0}&#10;For more information visit the project's GitHub-page (Menu > Help > Visist GitHub).</s:String>
+    <s:String xml:space="preserve" x:Key="tooltip_uinstr">Instruction {0}&#10;For more information visit the project's GitHub-page (Menu &gt; Help &gt; Visist GitHub).</s:String>
     <s:String xml:space="preserve" x:Key="tooltip_keyword">Keyword '{0}'&#10;The expression '{0}' is a reserved keyword.</s:String>
     <s:String xml:space="preserve" x:Key="tooltip_unknown">Unknown token '{0}'&#10;The expression or token '{0}' does not contain any information.</s:String>
-
     <s:String xml:space="preserve" x:Key="autocomp_func">Function {0}&#10;The function {1} which has been defined on line {2}</s:String>
     <s:String xml:space="preserve" x:Key="autocomp_label">Label '{0}'&#10;The label {1} which has been defined on line {2}</s:String>
     <s:String xml:space="preserve" x:Key="autocomp_kernel">.kernel directive&#10;Grants the current processor kernel privileges</s:String>

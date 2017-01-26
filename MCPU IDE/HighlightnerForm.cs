@@ -30,6 +30,7 @@ namespace MCPU.IDE
         internal static readonly string REGEX_FLOAT = $@"\b({MCPUCompiler.FLOAT_CORE})\b";
         internal static readonly string REGEX_KWORD = $@"({REGEX_FUNC}|{REGEX_END_FUNC}|\b({string.Join("|", MCPUCompiler.ReservedKeywords)}|{MCPUCompiler.MAIN_FUNCTION_NAME})\b)";
         internal static readonly string REGEX_INSTR = $@"\b({string.Join("|", from o in OPCodes.CodesByToken select o.Key)})\b";
+        internal static readonly string REGEX_OPREF = $@"\<\s*({REGEX_INSTR})\s*\>";
 
         internal static TextStyle CreateStyle(int rgb, FontStyle f) => new TextStyle(new SolidBrush(Color.FromArgb((int)(0xff000000u | rgb))), null, f);
 
@@ -45,6 +46,7 @@ namespace MCPU.IDE
         public static readonly TextStyle style_stoken = CreateStyle(0xD574F0, FontStyle.Regular);
         public static readonly TextStyle style_kword = CreateStyle(0x2E80EE, FontStyle.Regular);
         public static readonly TextStyle style_opc = CreateStyle(0xFDEBD0, FontStyle.Regular);
+        public static readonly TextStyle style_opcref = CreateStyle(0xCAA310, FontStyle.Regular);
         public static readonly Dictionary<TextStyle, string> styles = new Dictionary<TextStyle, string>
         {
             [style_comments] = REGEX_COMMENT,
@@ -55,6 +57,7 @@ namespace MCPU.IDE
             [style_float] = REGEX_FLOAT,
             [style_int] = REGEX_INT,
             [style_addr] = REGEX_ADDR,
+            [style_opcref] = REGEX_OPREF,
             [style_opc] = REGEX_INSTR,
         };
         private static readonly Dictionary<string, Bitmap> autocomp_images = new Dictionary<string, Bitmap>
@@ -289,14 +292,16 @@ namespace MCPU.IDE
                         e.ToolTipText = "tooltip_int".GetStr(e.HoveredWord);
                     else if (reg(REGEX_FLOAT))
                         e.ToolTipText = "tooltip_float".GetStr(e.HoveredWord);
+                    else if (reg(REGEX_LABEL_DECL, true))
+                        e.ToolTipText = "tooltip_label".GetStr();
                     else if (reg(REGEX_FUNC, true))
                         e.ToolTipText = "tooltip_func".GetStr();
                     else if (reg(REGEX_END_FUNC, true))
                         e.ToolTipText = "tooltip_endfunc".GetStr();
-                    else if (reg(REGEX_LABEL_DECL, true))
-                        e.ToolTipText = "tooltip_label".GetStr();
                     else if (reg(REGEX_STOKEN))
                         e.ToolTipText = $"{e.HoveredWord}-token\n << TODO >>";
+                    else if (reg(REGEX_OPREF))
+                        e.ToolTipText = ""; /////////////////////////////////////////////// TODO ///////////////////////////////////////////////
                     else if (reg(REGEX_INSTR))
                     {
                         OPCode opc = OPCodes.CodesByToken.FirstOrDefault(_ => _.Key.ToLower() == token.Trim()).Value;

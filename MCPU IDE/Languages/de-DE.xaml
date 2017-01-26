@@ -44,9 +44,20 @@
     <s:String xml:space="preserve" x:Key="global_hint">Hinweis</s:String>
     <s:String xml:space="preserve" x:Key="global_opt">{0} optimierbare Zeilen gefunden.</s:String>
     <s:String xml:space="preserve" x:Key="global_compiler_error">Compilerfehler</s:String>
-
     <s:String xml:space="preserve" x:Key="tooltip_opt">Diese Zeile kann entfernt werden, da sie durch den Compiler weg-optimiert wird.&#10;Ein solches Verhalten kann durch das Ändern der entspechenden Einstellung im Einstellungsfenster unterbunden werden.</s:String>
-
+    <s:String xml:space="preserve" x:Key="tooltip_addr">Adresse&#10;Der Ausdruck '{0}' stellt eine MCPU Prozessoradresse dar.</s:String>
+    <s:String xml:space="preserve" x:Key="tooltip_param">Parameter&#10;Der Ausdruck '{0}' stellt einen Funktionsparameter dar, welcher vom Aufrufer an die Funktion übergeben wurde.</s:String>
+    <s:String xml:space="preserve" x:Key="tooltip_int">Konstante&#10;Der Ausdruck '{0}' ist eine konstante Ganzzahl.</s:String>
+    <s:String xml:space="preserve" x:Key="tooltip_float">Konstante&#10;Der Ausdruck '{0}' ist eine konstante Gleitkommazahl.</s:String>
+    <s:String xml:space="preserve" x:Key="tooltip_func">Funktionsdeklaration&#10;Diese Zeile repräsentiert eine Funktionsdeklaration, welche mit der 'call'-Instruktion aufgerufen werden kann.</s:String>
+    <s:String xml:space="preserve" x:Key="tooltip_endfunc">Ende der Funktionsdeklaration&#10;Dise Zeile repräsentiert das Ende einer Funktionsdeklaration.</s:String>
+    <s:String xml:space="preserve" x:Key="tooltip_label">Sprungmarkendeklaration&#10;Dieser Ausdruck deklariert eine Sprungmarke, zu welcher mit einer beliebigen Sprung-instruktion gesprungen werden kann.</s:String>
+    <s:String xml:space="preserve" x:Key="tooltip_funcref">Funktion&#10;Die Funktion '{0}', welche in Zeile {1} definiert wurde.</s:String>
+    <s:String xml:space="preserve" x:Key="tooltip_labelref">Sprungmarke&#10;Die Sprungmarke '{0}', welche in Zeile {1} definiert wurde.</s:String>
+    <s:String xml:space="preserve" x:Key="tooltip_instr">Instruktion {0}&#10;Die MCPU Assembly Instruktion '{1}'</s:String>
+    <s:String xml:space="preserve" x:Key="tooltip_uinstr">Instruktion {0}&#10;Besuchen Sie die GitHub-Seite des Projektes für mehr informationen über diese Instruktion (Menu &gt; Hilfe &gt; GitHub-Projekt besuchen).</s:String>
+    <s:String xml:space="preserve" x:Key="tooltip_keyword">Schlüsselwort '{0}'&#10;Der Ausdruck '{0}' ist ein reserviertes Schlüsselwort.</s:String>
+    <s:String xml:space="preserve" x:Key="tooltip_unknown">Unbekannter Ausdruck '{0}'&#10;Über den Ausdruck '{0}' sind leider derzeitig keine Informationen vorhanden.</s:String>
     <s:String xml:space="preserve" x:Key="autocomp_func">Funktion {0}&#10;Die Funktion {1}, welche in Zeile {2} definiert wurde</s:String>
     <s:String xml:space="preserve" x:Key="autocomp_label">Sprungmarke '{0}'&#10;Die Sprungmarke {1}, welche in Zeile {2} definiert wurde</s:String>
     <s:String xml:space="preserve" x:Key="autocomp_kernel">.kernel-Directive&#10;Gibt dem Prozessor Kernel-Privilegien</s:String>

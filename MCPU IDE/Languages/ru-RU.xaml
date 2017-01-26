@@ -44,9 +44,20 @@
     <s:String xml:space="preserve" x:Key="global_hint">намек</s:String>
     <s:String xml:space="preserve" x:Key="global_opt">{0} оптимизируемое линии найдено.</s:String>
     <s:String xml:space="preserve" x:Key="global_compiler_error">Oшибка компилятора</s:String>
-
     <s:String xml:space="preserve" x:Key="tooltip_opt">Эта линия может быть удалена, так как он будет оптимизирован прочь компилятором.&#10;Такое поведение может быть предотвращено путем изменения согласно настройкам внутри настроек окна.</s:String>
-
+    <s:String xml:space="preserve" x:Key="tooltip_addr">Адрес&#10;Выражение '{0}' представляет собой адрес MCPU процессора.</s:String>
+    <s:String xml:space="preserve" x:Key="tooltip_param">параметр&#10;Выражение '{0}' представляет собой параметр функции, передаваемый текущей функции вызывающей стороной.</s:String>
+    <s:String xml:space="preserve" x:Key="tooltip_int">постоянная&#10;Выражение '{0}' является постоянное целое значение.</s:String>
+    <s:String xml:space="preserve" x:Key="tooltip_float">постоянная&#10;Выражение '{0}' является постоянной величиной с плавающей точкой.</s:String>
+    <s:String xml:space="preserve" x:Key="tooltip_func">объявление функции&#10;Эта строка представляет собой объявление функции, которая может быть вызвана с помощью 'call'-инструкции.</s:String>
+    <s:String xml:space="preserve" x:Key="tooltip_endfunc">Конец объявления функции&#10;Эта линия конец функции declartation.</s:String>
+    <s:String xml:space="preserve" x:Key="tooltip_label">декларация этикетки&#10;Это выражение определяет jumplabel, к которому программа может прыгать с помощью любого скачка-инструкции.</s:String>
+    <s:String xml:space="preserve" x:Key="tooltip_funcref">функция&#10;Функция '{0}', который был определен на линии {1}.</s:String>
+    <s:String xml:space="preserve" x:Key="tooltip_labelref">Метка&#10;Метка '{0}', который был определен на линии {1}.</s:String>
+    <s:String xml:space="preserve" x:Key="tooltip_instr">Инструкция {0}&#10;Инструкция MCPU сборка '{1}'</s:String>
+    <s:String xml:space="preserve" x:Key="tooltip_uinstr">Инструкция {0}&#10;Для получения дополнительной информации посетите GitHub-страницу проекта (Меню &gt; Помогите &gt; Посмотреть на GitHub).</s:String>
+    <s:String xml:space="preserve" x:Key="tooltip_keyword">Ключевое слово '{0}'&#10;Выражение '{0}' является зарезервированным ключевым словом.</s:String>
+    <s:String xml:space="preserve" x:Key="tooltip_unknown">Неизвестный лексема '{0}'&#10;Выражение или маркер '{0}' не содержит никакой информации.</s:String>
     <s:String xml:space="preserve" x:Key="autocomp_func">Функция {0}&#10;Функция {1}, который был определен на линии {2}</s:String>
     <s:String xml:space="preserve" x:Key="autocomp_label">Этикетка '{0}'&#10;Метка {1}, который был определен на линии {2}</s:String>
     <s:String xml:space="preserve" x:Key="autocomp_kernel">.kernel директива&#10;Предоставляет текущие привилегии ядра процессора</s:String>
