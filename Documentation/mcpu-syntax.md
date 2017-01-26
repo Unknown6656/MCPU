@@ -29,6 +29,7 @@ This is the MCPU Assembly syntax reference. For the actual MCPU language referen
                      |  address
                      |  indirect_address
                      |  parameter
+                     |  '<' opcode '>'
 
            parameter := '$' decimal_constant
 

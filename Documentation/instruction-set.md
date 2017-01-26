@@ -125,7 +125,8 @@ OP codes marked with the icon ![︽][elv] require kernel privilege to execute. O
 |![⥃][ip]![𝔉][flt]`0072`|`JINF`|`JINF <label>`| Jumps to `label` if the compared float value is equal to positive or negative infinity (or if both are not in case of a dual-value comparison) |
 |![⥃][ip]![𝔉][flt]`0073`|`JPINF`|`JPINF <label>`| Jumps to `label` if the compared float value is equal to positive infinity (or if both are not in case of a dual-value comparison) |
 |![⥃][ip]![𝔉][flt]`0074`|`JNINF`|`JNINF <label>`| Jumps to `label` if the compared float value is equal to negative infinity (or if both are not in case of a dual-value comparison) |
-|`0xffff`|`KERNEL`|`KERNEL <1/0>`| Enters (1) or exits (0) the privileged kernel execution mode |
+|![︽][`0xfffe`]|`EXEC`|`EXEC <c> [params]`| Executes the OP code associated with the given number `c` and passes the given parameters `params` to the OP code |
+|![︽][`0xffff`]|`KERNEL`|`KERNEL <1/0>`| Enters (1) or exits (0) the privileged kernel execution mode |
 
 
 [elv]: ./elevated.png "Elevated instruction"
