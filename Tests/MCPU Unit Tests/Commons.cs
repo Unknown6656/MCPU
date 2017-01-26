@@ -17,11 +17,7 @@ namespace MCPU.Testing
     {
         public const char ERROR_LOC = '§';
 
-
-        public Commons()
-        {
-            MCPUCompiler.ResetLanguage();
-        }
+        public Commons() => MCPUCompiler.ResetLanguage();
 
         public static bool ApproximateFormatStringEqual(string str, string format)
         {
@@ -53,6 +49,10 @@ namespace MCPU.Testing
             try
             {
                 func.Invoke();
+            }
+            catch (SkippedException)
+            {
+                throw;
             }
             catch (T ex)
             when (!(ex is UnitTestAssertException))
@@ -93,18 +93,37 @@ namespace MCPU.Testing
 
         public static void CompileExpectError(string code, string message)
         {
-            MCPUCompilerException ex = CompileExpectError(code);
+            string exmsg = CompileExpectError(code).Message;
+            bool comp = ApproximateFormatStringEqual(exmsg, message);
 
-            IsTrue(ApproximateFormatStringEqual(ex.Message, message));
+            if (!comp)
+                ConsoleExtensions.Diff(exmsg, message);
+
+            IsTrue(comp);
         }
 
         public static MCPUCompilerResult Compile(string code) => MCPUCompiler.Compile(code).AsA;
 
         public static bool Contains(Instruction[] instr, OPCode opc) => instr?.Any(i => i.OPCode.Number == opc.Number) ?? false;
 
+        public static void Skip()
+        {
+            throw new SkippedException();
+        }
+
         [TestInitialize]
         public virtual void Test_Init()
         {
         }
+    }
+
+    public sealed class SkippedException
+        : Exception
+    {
+    }
+
+    public sealed class AppVeyorSkipAttribute
+        : Attribute
+    {
     }
 }

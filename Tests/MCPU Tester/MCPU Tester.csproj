@@ -36,9 +36,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>MCPU.UnitTestWrapper</StartupObject>
+    <StartupObject>MCPU.Program</StartupObject>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="FSharp.Core, Version=4.4.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="Microsoft.VisualStudio.TestPlatform.TestFramework, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\..\packages\MSTest.TestFramework.1.0.8-rc\lib\net45\Microsoft.VisualStudio.TestPlatform.TestFramework.dll</HintPath>
     </Reference>
@@ -76,13 +77,29 @@
       <Project>{2df6d431-a417-4d2d-abd9-e852671e947e}</Project>
       <Name>MCPU Library</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\MCPU++\MCPU++ Parser\MCPU++ Parser.fsproj">
-      <Project>{179e3955-51f8-4a5b-a4e5-8e00a5889554}</Project>
-      <Name>MCPU++ Parser</Name>
+    <ProjectReference Include="..\..\MCPUPP.Compiler\MCPUPP.Compiler.csproj">
+      <Project>{dde7fd0a-f879-4e62-a3ca-8fc69cea380c}</Project>
+      <Name>MCPUPP.Compiler</Name>
     </ProjectReference>
-    <ProjectReference Include="..\MCPU Unit Tests\MCPU Unit Tests.csproj">
+    <ProjectReference Include="..\..\MCPUPP.Parser\MCPUPP.Parser.fsproj">
+      <Project>{ec613ade-fdff-461d-9e84-9093e96aa759}</Project>
+      <Name>MCPUPP.Parser</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\MCPUPP.UnitTests\MCPUPP.UnitTests.fsproj">
+      <Project>{56bda770-be2b-4e83-b363-7c3e385deda5}</Project>
+      <Name>MCPUPP.UnitTests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\ObjectDumper\ObjectDumper.csproj">
+      <Project>{08a40eeb-232f-42d0-a02d-2e6e303c063e}</Project>
+      <Name>ObjectDumper</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Piglet\Piglet\Piglet.csproj">
+      <Project>{1e23f251-94e1-4504-81e8-2618f5c9fea3}</Project>
+      <Name>Piglet</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\MCPU Unit Tests\MCPU.UnitTests.csproj">
       <Project>{15a7417f-b941-406b-a0b7-8fb3402dfffc}</Project>
-      <Name>MCPU Unit Tests</Name>
+      <Name>MCPU.UnitTests</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
@@ -94,4 +111,8 @@
     <Error Condition="!Exists('..\..\packages\MSTest.TestAdapter.1.1.8-rc\build\net45\MSTest.TestAdapter.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\MSTest.TestAdapter.1.1.8-rc\build\net45\MSTest.TestAdapter.targets'))" />
   </Target>
   <Import Project="..\..\packages\MSTest.TestAdapter.1.1.8-rc\build\net45\MSTest.TestAdapter.targets" Condition="Exists('..\..\packages\MSTest.TestAdapter.1.1.8-rc\build\net45\MSTest.TestAdapter.targets')" />
+  <PropertyGroup>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
 </Project>

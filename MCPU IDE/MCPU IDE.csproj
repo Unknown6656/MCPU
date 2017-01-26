@@ -41,9 +41,6 @@
     <StartupObject>MCPU.IDE.App</StartupObject>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="FastColoredTextBox, Version=2.16.21.0, Culture=neutral, PublicKeyToken=fb8aa12b994ef61b, processorArchitecture=MSIL">
-      <HintPath>..\packages\FCTB.2.16.21.0\lib\FastColoredTextBox.dll</HintPath>
-    </Reference>
     <Reference Include="MahApps.Metro, Version=0.9.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>Resources\MahApps.Metro.dll</HintPath>
@@ -186,6 +183,10 @@
     </Resource>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\FastColoredTextBox\FastColoredTextBox\FastColoredTextBox.csproj">
+      <Project>{6dd14a85-ccfc-4774-bd26-0f5772512319}</Project>
+      <Name>FastColoredTextBox</Name>
+    </ProjectReference>
     <ProjectReference Include="..\MCPU Core Compiler\MCPU Core Compiler.csproj">
       <Project>{7e31c14a-a3b4-4d0c-b67a-3b842dca55b1}</Project>
       <Name>MCPU Core Compiler</Name>

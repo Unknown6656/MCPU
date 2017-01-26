@@ -24,7 +24,10 @@ namespace MCPU.Testing
 
         public MCPUProcessingException ExpectError(string instr) => Throws<MCPUProcessingException>(() => Execute(instr));
 
-        public void Execute(string instr) => proc.ProcessWithoutReset(MCPUCompiler.Compile(instr).AsA.Instructions);
+        public void Execute(string instr) => MCPUCompiler.Compile(instr).Match(res => proc.ProcessWithoutReset(res.Instructions),
+                                                                               exc => {
+                                                                                   throw exc;
+                                                                               });
 
         public string ReadProcessorOutput(string instr)
         {
@@ -48,9 +51,21 @@ namespace MCPU.Testing
                 IsValue(cond.Item1, cond.Item2);
         }
 
-        public ProcessorTests()
-            : base()
+        public unsafe void RequireFloatUnion()
         {
+            Random rand = new Random();
+
+            for (int i = 0; i < 0x10; i++)
+            {
+                float f = (float)(rand.NextDouble() / short.MaxValue * rand.Next());
+                FloatIntUnion un = f;
+                int val = *((int*)&f);
+
+                // this test has to be done because of the endianess of some machines
+
+                if (val != un)
+                    Skip(); // skip this test case
+            }
         }
 
         [TestInitialize]
@@ -408,10 +423,11 @@ end func
             IsTrue(proc[3] != 0);
         }
 
-        [TestMethod]
+        [TestMethod, AppVeyorSkip]
         public void Test_21()
         {
-            Execute($@"
+            RequireFloatUnion();
+            Execute(@"
     .main
     MOV [2] 42.0
     MOV [3] 315
@@ -426,9 +442,10 @@ end func
             );
         }
 
-        [TestMethod]
+        [TestMethod, AppVeyorSkip]
         public void Test_22()
         {
+            RequireFloatUnion();
             Execute($@"
     .main
     MOV [2] 42.0
@@ -479,13 +496,13 @@ end func
             for (int i = 0; i < 0xff; i++)
                 proc[i] = i + 1;
 
-            int offs = 5;
-            int size = 42;
+            const int offs = 5;
+            const int size = 42;
 
             Execute($@"
     .main
     .kernel
-    CLEAN [{offs}] {size}
+    CLEAR [{offs}] {size}
 ");
             for (int i = 0; i < 0xff; i++)
                 IsValue(i, (i - offs < size) && (i >= offs) ? 0 : i + 1);

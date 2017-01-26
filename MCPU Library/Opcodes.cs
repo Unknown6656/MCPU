@@ -7,7 +7,7 @@ using static System.Math;
 namespace MCPU.Instructions
 {
 #pragma warning disable IDE1006 // DISABLE CLASS NAMING CONVENTION WARNING (THE INSTRUCTION NAMES DO NOT FOLLOW THE PASCAL CONVENTION)
-    
+
     [OPCodeNumber(0x0000)]
     public sealed class nop
         : OPCode
@@ -753,7 +753,7 @@ namespace MCPU.Instructions
     #endregion
     #region 0034...003b <<unassigned>>
     #endregion
-    
+
     [OPCodeNumber(0x003c)]
     public sealed unsafe class swap
         : OPCode
@@ -788,7 +788,7 @@ namespace MCPU.Instructions
         {
         }
     }
-    
+
     [OPCodeNumber(0x003e), Keyword]
     public sealed class wait
         : OPCode
@@ -1411,7 +1411,19 @@ namespace MCPU.Instructions
 
     #endregion
 
+    [OPCodeNumber(0xfffe), RequiresPrivilege, Keyword]
+    public sealed unsafe class exec
+        : OPCode
+    {
+        public exec()
+            : base(1, (p, _) => {
+                AssertNotInstructionSpace(0, _);
 
+                p.ProcessNext((OPCodes.CodesByID[(ushort)p.TranslateConstant(_[0])], _.Skip(1).ToArray()), false);
+            })
+        {
+        }
+    }
 
     [OPCodeNumber(0xffff)]
     public sealed unsafe class kernel

@@ -12,6 +12,9 @@ namespace MCPU.Testing
     public sealed class CompilerTests
         : Commons
     {
+        [TestInitialize]
+        public override void Test_Init() => MCPUCompiler.OptimizationEnabled = false;
+
         [TestMethod]
         public void Test_01() => CompileExpectError(@"
     mov [0] [0]   §### ERROR
@@ -119,13 +122,19 @@ end func
 ", MCPUCompiler.GetString("TOKEN_NOT_PARSED"));
 
         [TestMethod]
-        public void Test_14() => CompileExpectError(@"
+        public void Test_14()
+        {
+            MCPUCompiler.OptimizationEnabled = true;
+
+            CompileExpectError(@"
 .inline func myfunc   ;### ERROR <AFTER PRECOMPILATION>
     NOP
 end func
 
     .main
 ", MCPUCompiler.GetString("INLINE_NYET_SUPP"));
+
+        }
 
         [TestMethod]
         public void Test_15() => CompileExpectError(@"
@@ -140,7 +149,7 @@ end func
         [TestMethod]
         public void Test_16() => CompileExpectError(@"
     .main
-    mov [4.2]   §### ERROR
+    mov [99] [4.2]   §### ERROR
 ", MCPUCompiler.GetString("INVALID_ARG"));
 
         [TestMethod]
@@ -152,8 +161,8 @@ end func
         [TestMethod]
         public void Test_18() => CompileExpectError(@"
     .main
-    mov kk[0]   §### ERROR
-", MCPUCompiler.GetString("LABEL_FUNC_NFOUND"));
+    mov 5 kk[0]   §### ERROR
+", MCPUCompiler.GetString("INVALID_ARG"));
 
         [TestMethod]
         public void Test_19() => CompileExpectError(@"
@@ -186,7 +195,7 @@ end:   §### ERROR
 
         [TestMethod]
         public void Test_22() => CompileExpectError(@"
-func ___main   §### ERROR
+func ____main   §### ERROR
 end func
     
     .main
@@ -215,9 +224,24 @@ loop:
 pool:
     JMP loop
 ");
-            Instruction[] optimized = MCPUCompiler.Optimize(res.Instructions);
-            
+            int ln = 0;
+            (Instruction[], int[]) optimized = MCPUCompiler.Optimize((from i in res.Instructions
+                                                                      select (i, ln++)).ToArray());
+
             // TODO : Assertions ?
         }
+
+        [TestMethod]
+        public void Test_24() => CompileExpectError(@"
+    .main
+    mov 2   §### ERROR
+", MCPUCompiler.GetString("NEED_MORE_ARGS"));
+
+        [TestMethod]
+        public void Test_25() => CompileExpectError(@"
+    .main
+test:
+    mov [test] 315   §### ERROR
+", MCPUCompiler.GetString("INVALID_ARG"));
     }
 }

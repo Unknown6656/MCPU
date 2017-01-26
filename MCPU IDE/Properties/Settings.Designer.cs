@@ -70,5 +70,17 @@ namespace MCPU.IDE.Properties {
                 this["UpgradeRequired"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool OptimizeCode {
+            get {
+                return ((bool)(this["OptimizeCode"]));
+            }
+            set {
+                this["OptimizeCode"] = value;
+            }
+        }
     }
 }

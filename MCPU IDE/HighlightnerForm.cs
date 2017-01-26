@@ -26,9 +26,15 @@ namespace MCPU.IDE
         internal const string REGEX_ADDR = @"(\bk)?\[{1,2}(?:.+)\]{1,2}";
         internal const string REGEX_PARAM = @"\$[0-9]+\b";
         internal const string REGEX_COMMENT = @"\;.*$";
+        internal static readonly string REGEX_INT = $@"\b({MCPUCompiler.INTEGER_CORE})\b";
+        internal static readonly string REGEX_FLOAT = $@"\b({MCPUCompiler.FLOAT_CORE})\b";
+        internal static readonly string REGEX_KWORD = $@"({REGEX_FUNC}|{REGEX_END_FUNC}|\b({string.Join("|", MCPUCompiler.ReservedKeywords)}|{MCPUCompiler.MAIN_FUNCTION_NAME})\b)";
+        internal static readonly string REGEX_INSTR = $@"\b({string.Join("|", from o in OPCodes.CodesByToken select o.Key)})\b";
+        internal static readonly string REGEX_OPREF = $@"\<\s*({REGEX_INSTR})\s*\>";
 
         internal static TextStyle CreateStyle(int rgb, FontStyle f) => new TextStyle(new SolidBrush(Color.FromArgb((int)(0xff000000u | rgb))), null, f);
 
+        public static OptimizableStyle style_opt;
         public static readonly ErrorStyle style_error = new ErrorStyle();
         public static readonly TextStyle style_param = CreateStyle(0x92CAF4, FontStyle.Regular);
         public static readonly TextStyle style_addr = CreateStyle(0xEFF284, FontStyle.Regular);
@@ -39,27 +45,29 @@ namespace MCPU.IDE
         public static readonly TextStyle style_comments = CreateStyle(0x14D81A, FontStyle.Italic);
         public static readonly TextStyle style_stoken = CreateStyle(0xD574F0, FontStyle.Regular);
         public static readonly TextStyle style_kword = CreateStyle(0x2E80EE, FontStyle.Regular);
+        public static readonly TextStyle style_opc = CreateStyle(0xFDEBD0, FontStyle.Regular);
+        public static readonly TextStyle style_opcref = CreateStyle(0xCAA310, FontStyle.Regular);
         public static readonly Dictionary<TextStyle, string> styles = new Dictionary<TextStyle, string>
         {
-            { style_comments, REGEX_COMMENT },
-            { style_stoken, REGEX_STOKEN },
-            { style_param, REGEX_PARAM },
-            { style_kword, $@"({REGEX_FUNC}|{REGEX_END_FUNC}|\b({string.Join("|", from opc in OPCodes.CodesByID.Values
-                                                                                  where opc.IsKeyword
-                                                                                  select opc.Token.ToLower())}|___main)\b)" },
+            [style_comments] = REGEX_COMMENT,
+            [style_stoken] = REGEX_STOKEN,
+            [style_param] = REGEX_PARAM,
+            [style_opcref] = REGEX_OPREF,
+            [style_kword] = REGEX_KWORD,
             // { style_labels, @"(^(\s|\b)+\w+\:|(?:\bfunc\s+)\w+\s*$)" },
-            { style_float, $@"\b({MCPUCompiler.FLOAT_CORE})\b" },
-            { style_int, $@"\b({MCPUCompiler.INTEGER_CORE})\b" },
-            { style_addr, REGEX_ADDR },
+            [style_float] = REGEX_FLOAT,
+            [style_int] = REGEX_INT,
+            [style_addr] = REGEX_ADDR,
+            [style_opc] = REGEX_INSTR,
         };
         private static readonly Dictionary<string, Bitmap> autocomp_images = new Dictionary<string, Bitmap>
         {
-            { "opcode", Properties.Resources.autocomp_instruction },
-            { "address", Properties.Resources.autocomp_address },
-            { "directive", Properties.Resources.autocomp_directive },
-            { "function", Properties.Resources.autocomp_function },
-            { "label", Properties.Resources.autocomp_label },
-            { "keyword", Properties.Resources.autocomp_keyword },
+            ["opcode"] = Properties.Resources.autocomp_instruction,
+            ["address"] = Properties.Resources.autocomp_address,
+            ["directive"] = Properties.Resources.autocomp_directive,
+            ["function"] = Properties.Resources.autocomp_function,
+            ["label"] = Properties.Resources.autocomp_label,
+            ["keyword"] = Properties.Resources.autocomp_keyword,
         };
 
         public new event EventHandler<TextChangedEventArgs> TextChanged;
@@ -70,8 +78,10 @@ namespace MCPU.IDE
         internal AutocompleteMenu autocomp;
         private MCPUCompilerException err;
         private Range err_range;
+        private Range[] opt_range;
+        private int[] opt_lines;
 
-        public MainWindow Parent { set; get; }
+        public new MainWindow Parent { set; get; }
 
 
         internal MCPUCompilerException Error
@@ -88,17 +98,34 @@ namespace MCPU.IDE
                     int line = value.LineNr - 1;
 
                     if (line > 0)
-                    {
-                        string ln = fctb.Lines[line];
-                        int start = ln.Length - ln.TrimStart().Length;
-                        int end = (ln.Contains(MCPUCompiler.COMMENT_START) ? ln.Remove(ln.IndexOf(MCPUCompiler.COMMENT_START)) : ln).Trim().Length;
-
-                        err_range = new Range(fctb, start, line, start + end, line);
-                        err_range.SetStyle(style_error);
-                    }
+                        (err_range = GetEffectiveLineRange(line)).SetStyle(style_error);
                 }
-                
+
                 Parent.Error = err = value;
+            }
+        }
+
+        internal int[] OptimizableLines
+        {
+            get => opt_lines;
+            set
+            {
+                fctb.Range.ClearStyle(style_opt);
+
+                value = value ?? new int[0];
+
+                opt_range = (from l in value
+                             where l > 0
+                             where l < fctb.LinesCount
+                             select new Func<Range>(() => {
+                                 Range r = GetEffectiveLineRange(l);
+
+                                 r.SetStyle(style_opt);
+
+                                 return r;
+                             })()).ToArray();
+
+                Parent.OptimizableLines = opt_lines = value;
             }
         }
 
@@ -138,6 +165,8 @@ namespace MCPU.IDE
             fctb.BackColor;
             fctb.Select();
 
+            style_opt = new OptimizableStyle(fctb.BackColor, .55);
+
             autocomp = new AutocompleteMenu(fctb);
             autocomp.ToolTip = new DarkTooltip();
             autocomp.ToolTip.BackColor = fctb.BackColor;
@@ -146,7 +175,7 @@ namespace MCPU.IDE
             autocomp.ForeColor = fctb.ForeColor;
             autocomp.ImageList = new ImageList();
             autocomp.AllowTabKey = true;
-            autocomp.AppearInterval = 100;
+            autocomp.AppearInterval = 50;
 
             foreach (var kvp in autocomp_images)
                 autocomp.ImageList.Images.Add(kvp.Key, kvp.Value);
@@ -161,36 +190,46 @@ namespace MCPU.IDE
                                      MenuText = nv,
                                      ToolTipText = "autocomp_instr".GetStr(nv, kvp.Value),
                                      ImageIndex = GetImageIndex(kv ? "keyword" : "opcode"),
-                                 }).Concat(new AutocompleteItem[]
-                                 {
-                                     new AutocompleteItem
+                                 })
+                                .Concat(new AutocompleteItem[]
+                                {
+                                    new AutocompleteItem
                                      {
                                          Text = ".main",
                                          MenuText = ".main",
                                          ToolTipText = "autocomp_main".GetStr(),
                                          ImageIndex = GetImageIndex("directive"),
                                      },
-                                     new AutocompleteItem
+                                    new AutocompleteItem
                                      {
                                          Text = ".kernel",
                                          MenuText = ".kernel",
                                          ToolTipText = "autocomp_kernel".GetStr(),
                                          ImageIndex = GetImageIndex("directive"),
                                      },
-                                     new AutocompleteItem
+                                    new AutocompleteItem
                                      {
                                          Text = ".user",
                                          MenuText = ".user",
                                          ToolTipText = "autocomp_user".GetStr(),
                                          ImageIndex = GetImageIndex("directive"),
                                      },
-                                 }).ToArray();
+                                }).ToArray();
 
             UpdateAutocomplete();
 
             // autocomp.Items.MinimumSize = new Size(200, 300);
             autocomp.Items.Width = 500;
             autocomp.MinFragmentLength = 0;
+        }
+
+        private Range GetEffectiveLineRange(int line)
+        {
+            string ln = fctb.Lines[line];
+            int start = ln.Length - ln.TrimStart().Length;
+            int end = (ln.Contains(MCPUCompiler.COMMENT_START) ? ln.Remove(ln.IndexOf(MCPUCompiler.COMMENT_START)) : ln).Trim().Length;
+
+            return new Range(fctb, start, line, start + end, line);
         }
 
         private int GetImageIndex(string name) => autocomp.ImageList.Images.IndexOfKey(name);
@@ -204,7 +243,7 @@ namespace MCPU.IDE
         {
             fctb.OnSyntaxHighlight(new TextChangedEventArgs(fctb.Range));
         }
-        
+
         private void Fctb_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyData == (Keys.Space | Keys.Control))
@@ -221,18 +260,77 @@ namespace MCPU.IDE
 
         private void Fctb_ToolTipNeeded(object sender, ToolTipNeededEventArgs e)
         {
+            e.ToolTipIcon = ToolTipIcon.None;
+
             if ((Error != null) && (err_range?.Contains(e.Place) ?? false))
             {
                 e.ToolTipText = $"{"global_compiler_error".GetStr()}\n{err.Message}";
                 e.ToolTipIcon = ToolTipIcon.Error;
             }
+            else if (opt_range?.Any(r => r.Contains(e.Place)) ?? false)
+            {
+                e.ToolTipText = $"{"global_hint".GetStr()}\n{"tooltip_opt".GetStr()}";
+                e.ToolTipIcon = ToolTipIcon.Info;
+            }
             else if (!string.IsNullOrEmpty(e.HoveredWord))
             {
-                e.ToolTipIcon = ToolTipIcon.None;
-                
-                // TODO
+                string line = fctb.Lines[e.Place.iLine];
+                Match m;
 
-                e.ToolTipText = $"{e.HoveredWord}\nThis is the tooltip for '{e.HoveredWord}'";
+                if (line.Contains(';') && (line.IndexOf(';') < e.Place.iChar))
+                    return;
+                else
+                {
+                    bool reg(string pat, bool lln = false) => (m = Regex.Match(e.HoveredWord, lln ? line : pat, RegexOptions.IgnoreCase)).Success;
+                    string token = e.HoveredWord.ToLower();
+
+                    if (reg(REGEX_ADDR))
+                        e.ToolTipText = "tooltip_addr".GetStr(e.HoveredWord);
+                    else if (reg(REGEX_PARAM))
+                        e.ToolTipText = "tooltip_param".GetStr(e.HoveredWord);
+                    else if (reg(REGEX_INT))
+                        e.ToolTipText = "tooltip_int".GetStr(e.HoveredWord);
+                    else if (reg(REGEX_FLOAT))
+                        e.ToolTipText = "tooltip_float".GetStr(e.HoveredWord);
+                    else if (reg(REGEX_LABEL_DECL, true))
+                        e.ToolTipText = "tooltip_label".GetStr();
+                    else if (reg(REGEX_FUNC, true))
+                        e.ToolTipText = "tooltip_func".GetStr();
+                    else if (reg(REGEX_END_FUNC, true))
+                        e.ToolTipText = "tooltip_endfunc".GetStr();
+                    else if (reg(REGEX_STOKEN))
+                        e.ToolTipText = $"{e.HoveredWord}-token\n << TODO >>";
+                    else if (reg(REGEX_OPREF))
+                        e.ToolTipText = ""; /////////////////////////////////////////////// TODO ///////////////////////////////////////////////
+                    else if (reg(REGEX_INSTR))
+                    {
+                        OPCode opc = OPCodes.CodesByToken.FirstOrDefault(_ => _.Key.ToLower() == token.Trim()).Value;
+
+                        if (opc != null)
+                            e.ToolTipText = "tooltip_instr".GetStr(opc.Token, opc);
+                        else
+                            e.ToolTipText = "token".GetStr(token);
+                    }
+                    else if (reg(REGEX_KWORD))
+                        e.ToolTipText = "tooltip_keyword".GetStr(e.HoveredWord);
+                    else
+                    {
+                        var func = functions.Where(_ => _.Name.ToLower() == token.Trim()).ToArray();
+                        var label = labels.Where(_ => _.Name.ToLower() == token.Trim()).ToArray();
+
+                        if (func.Length > 0)
+                            e.ToolTipText = "tooltip_funcref".GetStr(token, func[0].DefinedLine);
+                        else if (label.Length > 0)
+                            e.ToolTipText = "tooltip_labelref".GetStr(token, label[0].DefinedLine);
+                        else
+                        {
+                            e.ToolTipIcon = ToolTipIcon.Warning;
+                            e.ToolTipText = "tooltip_unknown".GetStr(e.HoveredWord);
+                        }
+                    }
+
+                    // TODO
+                }
             }
         }
 
@@ -257,7 +355,7 @@ namespace MCPU.IDE
                                          .Concat(std_autocompitems)
                                          .OrderBy(_ => _.Text));
             autocomp.Items.Invalidate();
-        }   
+        }
 
         private void Fctb_AutoIndentNeeded(object sender, AutoIndentEventArgs e)
         {
@@ -290,7 +388,7 @@ namespace MCPU.IDE
                 found.ClearStyle(style_kword);
                 rng.SetStyle(style_labels, $@"\b{found.Text}\b");
             }
-            
+
             TextChanged?.Invoke(sender, e);
 
             docmap.Invalidate();
@@ -300,7 +398,7 @@ namespace MCPU.IDE
         }
     }
 
-    public class ErrorStyle
+    public sealed class ErrorStyle
         : MarkerStyle
     {
         internal WavyLineStyle wls;
@@ -314,6 +412,23 @@ namespace MCPU.IDE
             base.Draw(gr, position, range);
 
             wls.Draw(gr, position, range);
+        }
+    }
+
+    public sealed class OptimizableStyle
+        : MarkerStyle
+    {
+        internal WavyLineStyle wls;
+
+
+        public OptimizableStyle(Color c, double op)
+            : base(new SolidBrush(Color.FromArgb((int)(255 * op), c))) => wls = new WavyLineStyle(255, Color.FromArgb(0x55555555));
+
+        public override void Draw(Graphics gr, Point position, Range range)
+        {
+            wls.Draw(gr, position, range);
+
+            base.Draw(gr, position, range);
         }
     }
 }
