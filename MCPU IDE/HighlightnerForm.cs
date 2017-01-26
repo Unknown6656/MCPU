@@ -29,6 +29,7 @@ namespace MCPU.IDE
         internal static readonly string REGEX_INT = $@"\b({MCPUCompiler.INTEGER_CORE})\b";
         internal static readonly string REGEX_FLOAT = $@"\b({MCPUCompiler.FLOAT_CORE})\b";
         internal static readonly string REGEX_KWORD = $@"({REGEX_FUNC}|{REGEX_END_FUNC}|\b({string.Join("|", MCPUCompiler.ReservedKeywords)}|{MCPUCompiler.MAIN_FUNCTION_NAME})\b)";
+        internal static readonly string REGEX_INSTR = $@"\b({string.Join("|", from o in OPCodes.CodesByToken select o.Key)})\b";
 
         internal static TextStyle CreateStyle(int rgb, FontStyle f) => new TextStyle(new SolidBrush(Color.FromArgb((int)(0xff000000u | rgb))), null, f);
 
@@ -43,6 +44,7 @@ namespace MCPU.IDE
         public static readonly TextStyle style_comments = CreateStyle(0x14D81A, FontStyle.Italic);
         public static readonly TextStyle style_stoken = CreateStyle(0xD574F0, FontStyle.Regular);
         public static readonly TextStyle style_kword = CreateStyle(0x2E80EE, FontStyle.Regular);
+        public static readonly TextStyle style_opc = CreateStyle(0xFDEBD0, FontStyle.Regular);
         public static readonly Dictionary<TextStyle, string> styles = new Dictionary<TextStyle, string>
         {
             [style_comments] = REGEX_COMMENT,
@@ -53,6 +55,7 @@ namespace MCPU.IDE
             [style_float] = REGEX_FLOAT,
             [style_int] = REGEX_INT,
             [style_addr] = REGEX_ADDR,
+            [style_opc] = REGEX_INSTR,
         };
         private static readonly Dictionary<string, Bitmap> autocomp_images = new Dictionary<string, Bitmap>
         {
@@ -159,7 +162,7 @@ namespace MCPU.IDE
             fctb.BackColor;
             fctb.Select();
 
-            style_opt = new OptimizableStyle(fctb.BackColor, .35);
+            style_opt = new OptimizableStyle(fctb.BackColor, .55);
 
             autocomp = new AutocompleteMenu(fctb);
             autocomp.ToolTip = new DarkTooltip();
@@ -262,7 +265,10 @@ namespace MCPU.IDE
                 e.ToolTipIcon = ToolTipIcon.Error;
             }
             else if (opt_range?.Any(r => r.Contains(e.Place)) ?? false)
-                e.ToolTipText = $"{"global_hint".GetStr()}\n{"global_compiler_opt".GetStr()}";
+            {
+                e.ToolTipText = $"{"global_hint".GetStr()}\n{"tooltip_opt".GetStr()}";
+                e.ToolTipIcon = ToolTipIcon.Info;
+            }
             else if (!string.IsNullOrEmpty(e.HoveredWord))
             {
                 string line = fctb.Lines[e.Place.iLine];
@@ -272,20 +278,51 @@ namespace MCPU.IDE
                     return;
                 else
                 {
-                    bool reg(string pat) => (m = Regex.Match(e.HoveredWord, pat, RegexOptions.IgnoreCase)).Success;
+                    bool reg(string pat, bool lln = false) => (m = Regex.Match(e.HoveredWord, lln ? line : pat, RegexOptions.IgnoreCase)).Success;
+                    string token = e.HoveredWord.ToLower();
 
                     if (reg(REGEX_ADDR))
-                        e.ToolTipText = $"Address '{e.HoveredWord}'";
+                        e.ToolTipText = "tooltip_addr".GetStr(e.HoveredWord);
                     else if (reg(REGEX_PARAM))
-                        e.ToolTipText = $"Parameter '{e.HoveredWord}'";
-                    else if (reg(REGEX_KWORD))
-                        e.ToolTipText = $"Keyword '{e.HoveredWord}'";
+                        e.ToolTipText = "tooltip_param".GetStr(e.HoveredWord);
                     else if (reg(REGEX_INT))
-                        e.ToolTipText = $"Constant integer '{e.HoveredWord}'";
+                        e.ToolTipText = "tooltip_int".GetStr(e.HoveredWord);
                     else if (reg(REGEX_FLOAT))
-                        e.ToolTipText = $"Constant floating-point number '{e.HoveredWord}'";
+                        e.ToolTipText = "tooltip_float".GetStr(e.HoveredWord);
+                    else if (reg(REGEX_FUNC, true))
+                        e.ToolTipText = "tooltip_func".GetStr();
+                    else if (reg(REGEX_END_FUNC, true))
+                        e.ToolTipText = "tooltip_endfunc".GetStr();
+                    else if (reg(REGEX_LABEL_DECL, true))
+                        e.ToolTipText = "tooltip_label".GetStr();
+                    else if (reg(REGEX_STOKEN))
+                        e.ToolTipText = $"{e.HoveredWord}-token\n << TODO >>";
+                    else if (reg(REGEX_INSTR))
+                    {
+                        OPCode opc = OPCodes.CodesByToken.FirstOrDefault(_ => _.Key.ToLower() == token.Trim()).Value;
+
+                        if (opc != null)
+                            e.ToolTipText = "tooltip_instr".GetStr(opc.Token, opc);
+                        else
+                            e.ToolTipText = "token".GetStr(token);
+                    }
+                    else if (reg(REGEX_KWORD))
+                        e.ToolTipText = "tooltip_keyword".GetStr(e.HoveredWord);
                     else
-                        e.ToolTipText = $"{e.HoveredWord}";
+                    {
+                        var func = functions.Where(_ => _.Name.ToLower() == token.Trim()).ToArray();
+                        var label = labels.Where(_ => _.Name.ToLower() == token.Trim()).ToArray();
+
+                        if (func.Length > 0)
+                            e.ToolTipText = "tooltip_funcref".GetStr(token, func[0].DefinedLine);
+                        else if (label.Length > 0)
+                            e.ToolTipText = "tooltip_labelref".GetStr(token, label[0].DefinedLine);
+                        else
+                        {
+                            e.ToolTipIcon = ToolTipIcon.Warning;
+                            e.ToolTipText = "tooltip_unknown".GetStr(e.HoveredWord);
+                        }
+                    }
 
                     // TODO
                 }
@@ -380,7 +417,7 @@ namespace MCPU.IDE
 
 
         public OptimizableStyle(Color c, double op)
-            : base(new SolidBrush(Color.FromArgb((int)(255 * op), c))) => wls = new WavyLineStyle(255, Color.FromArgb(0x50808080));
+            : base(new SolidBrush(Color.FromArgb((int)(255 * op), c))) => wls = new WavyLineStyle(255, Color.FromArgb(0x55555555));
 
         public override void Draw(Graphics gr, Point position, Range range)
         {
