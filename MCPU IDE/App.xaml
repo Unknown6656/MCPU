@@ -1,0 +1,24 @@
+﻿<Application x:Class="MCPU.IDE.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:s="clr-namespace:System;assembly=mscorlib"
+             xmlns:local="https://github.com/Unknown6656/MCPU"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <!--
+                <ResourceDictionary Source="pack://application:,,,/Selen.Wpf.SystemStyles;component/ButtonStyles.xaml"/>
+                <ResourceDictionary Source="pack://application:,,,/Selen.Wpf.SystemStyles;component/TextBoxStyles.xaml"/>
+                -->
+                <ResourceDictionary Source="pack://application:,,,/Selen.Wpf.SystemStyles;component/Styles.xaml"/>
+                <ResourceDictionary>
+                    <Color x:Key="BG" A="255" R="64" G="64" B="64"/>
+                    <Color x:Key="BGERR" A="255" R="128" G="64" B="64"/>
+                    <SolidColorBrush x:Key="FG" Color="WhiteSmoke"/>
+                    <s:String x:Key="github_base_url">https://github.com/Unknown6656/MCPU</s:String>
+                </ResourceDictionary>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

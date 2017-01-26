@@ -36,6 +36,10 @@ namespace MCPU
         /// </summary>
         public bool SpecialIPHandling { get; }
         /// <summary>
+        /// Returns whether the OP code shall be used as a keyword inside an IDE
+        /// </summary>
+        public bool IsKeyword { get; }
+        /// <summary>
         /// Returns the argument count
         /// </summary>
         public int RequiredArguments { get; }
@@ -86,8 +90,13 @@ namespace MCPU
                 Number = attr?.Number ?? throw new InvalidProgramException($"The OP-code {Token} must define an number using the {typeof(OPCodeNumberAttribute).FullName}");
                 RequiresEleveation = (from v in t.GetCustomAttributes(true) where v is RequiresPrivilegeAttribute select true).FirstOrDefault();
                 SpecialIPHandling = (from v in t.GetCustomAttributes(true) where v is SpecialIPHandlingAttribute select true).FirstOrDefault();
+                IsKeyword = (from v in t.GetCustomAttributes(true) where v is KeywordAttribute select true).FirstOrDefault();
             }
         }
+
+        public static bool operator ==(OPCode o1, OPCode o2) => !(o1 is null) && (o1?.Number == o2?.Number);
+
+        public static bool operator !=(OPCode o1, OPCode o2) => !(o1 == o2);
 
         #region ASSERTIONS
 
@@ -253,7 +262,7 @@ namespace MCPU
     }
 
     /// <summary>
-    /// 
+    /// Represents a fully-parameterized instruction (meaning an OP code and instruction arguments)
     /// </summary>
     [Serializable]
     public unsafe class Instruction
@@ -267,6 +276,12 @@ namespace MCPU
         /// </summary>
         public InstructionArgument[] Arguments { get; }
 
+        /// <summary>
+        /// Returns the instruction arguement at the given index
+        /// </summary>
+        /// <param name="index">Instruction argument index</param>
+        /// <returns>Instruction argument</returns>
+        public InstructionArgument this[int index] => Arguments[index];
 
         /// <summary>
         /// Processes the current instruction on the given processor
@@ -464,6 +479,14 @@ namespace MCPU
         public static Instruction Create(OPCode opcode, params InstructionArgument[] args) => (opcode, args);
 
 
+        public static bool operator ==(Instruction ins, OPCode opc) => ins.OPCode == opc;
+
+        public static bool operator ==(OPCode opc, Instruction ins) => ins.OPCode == opc;
+
+        public static bool operator !=(Instruction ins, OPCode opc) => !(ins == opc);
+
+        public static bool operator !=(OPCode opc, Instruction ins) => !(opc == ins);
+
         public static implicit operator Instruction(OPCode opc) => new Instruction(opc);
 
         public static implicit operator Instruction((int, IEnumerable<InstructionArgument>) ins) => new Instruction(OPCodes.CodesByID[(ushort)ins.Item1], ins.Item2?.ToArray());
@@ -473,6 +496,15 @@ namespace MCPU
         public static implicit operator (OPCode, InstructionArgument[]) (Instruction ins) => (ins.OPCode, ins.Arguments);
 
         public static implicit operator (ushort, InstructionArgument[]) (Instruction ins) => (ins.OPCode.Number, ins.Arguments);
+    }
+
+    /// <summary>
+    /// Indicates the IDE's autocompletetion menu, that the targeted OP code shall be used and highlighted as a keyword
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true), Serializable]
+    public class KeywordAttribute
+        : Attribute
+    {
     }
 
     /// <summary>
@@ -610,7 +642,40 @@ namespace MCPU
         /// </summary>
         /// <returns>String representation</returns>
         public override string ToString() => $"({Type}: {Value})";
+        /// <summary>
+        /// Returns the short string representation of the current instruction argument
+        /// </summary>
+        /// <returns>Short string representation</returns>
+        public string ToShortString()
+        {
+            string tostr(InstructionArgument arg, bool wasaddr = false)
+            {
+                string ret = "";
 
+                if (arg.IsInstructionSpace)
+                    return $"{(arg.Type == ArgumentType.Function ? "func" : "label")}::{arg.Value:x8}";
+                else if (arg.IsKernel)
+                    ret = "k";
+
+                arg.Type = arg.KernelInvariantType;
+
+                if (arg.IsAddress)
+                    return ret + $"[{tostr((arg.Value, arg.Type & ~ArgumentType.Address), true)}]";
+                else if (arg.IsIndirect)
+                    return ret + $"[{tostr((arg.Value, arg.Type & ~ArgumentType.Indirect), true)}]";
+                else if (arg.IsParameter)
+                    ret += '$';
+
+                return ret + (wasaddr ? $"{arg.Value:x8}h" : arg.Value.ToString());
+            }
+
+            return tostr(this);
+        }
+
+
+        public static bool operator ==(InstructionArgument a1, InstructionArgument a2) => (a1.Value == a2.Value) && (a1.Type == a2.Type);
+
+        public static bool operator !=(InstructionArgument a1, InstructionArgument a2) => !(a1 == a2);
 
         public static implicit operator int(InstructionArgument arg) => arg.Value;
 

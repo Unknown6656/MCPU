@@ -7,7 +7,7 @@ using static System.Math;
 namespace MCPU.Instructions
 {
 #pragma warning disable IDE1006 // DISABLE CLASS NAMING CONVENTION WARNING (THE INSTRUCTION NAMES DO NOT FOLLOW THE PASCAL CONVENTION)
-    
+
     [OPCodeNumber(0x0000)]
     public sealed class nop
         : OPCode
@@ -18,7 +18,7 @@ namespace MCPU.Instructions
         }
     }
 
-    [OPCodeNumber(0x0001), SpecialIPHandling]
+    [OPCodeNumber(0x0001), SpecialIPHandling, Keyword]
     public sealed class halt
         : OPCode
     {
@@ -36,7 +36,7 @@ namespace MCPU.Instructions
     {
         public jmp()
             : base(1, (p, _) => {
-                AssertLabel(0, _);
+                AssertInstructionSpace(0, _);
 
                 p.MoveTo(_[0]);
             })
@@ -70,28 +70,30 @@ namespace MCPU.Instructions
         {
         }
     }
-
-    [OPCodeNumber(0x0005), RequiresPrivilege]
+    
+    [OPCodeNumber(0x0005), RequiresPrivilege, Keyword]
     public sealed class syscall
         : OPCode
     {
         public syscall()
             : base(1, (p, _) => {
-                AssertConstant(0, _);
+                AssertConstant(0, _); // lift this restriction in the future ?
 
-                Processor.__syscalltable[p.TranslateConstant(_[0])](p, _.Skip(1).ToArray());
+                p.Syscall(p.TranslateConstant(_[0]), _.Skip(1).ToArray());
             })
         {
         }
     }
 
-    [OPCodeNumber(0x0006), SpecialIPHandling]
+    [OPCodeNumber(0x0006), SpecialIPHandling, Keyword]
     public sealed unsafe class call
         : OPCode
     {
         public call()
             : base(1, (p, _) => {
-                AssertFunction(0, _);
+                AssertInstructionSpace(0, _);
+                // cannot be 'AssertFunction', as this would crash with the look-ahead bug
+                // see the following issue: https://github.com/Unknown6656/MCPU/issues/30
 
                 FunctionCall call = new FunctionCall
                 {
@@ -101,7 +103,7 @@ namespace MCPU.Instructions
                 };
         
                 for (int i = 0, l = _.Length - 1; i < l; i++)
-                    call.Arguments[i] = *p.TranslateAddress(_[i + 1]);
+                    call.Arguments[i] = _[i + 1].IsInstructionSpace ? (int)_[i + 1] : p.TranslateConstant(_[i + 1]);
 
                 p.PushCall(call);
                 p.MoveTo(_[0]);
@@ -111,7 +113,7 @@ namespace MCPU.Instructions
         }
     }
 
-    [OPCodeNumber(0x0007), SpecialIPHandling]
+    [OPCodeNumber(0x0007), SpecialIPHandling, Keyword]
     public sealed class ret
         : OPCode
     {
@@ -195,7 +197,7 @@ namespace MCPU.Instructions
             : base(2, (p, _) => {
                 AssertNotInstructionSpace(0, _);
                 AssertAddress(1, _);
-
+                
                 *p.TranslateAddress(_[1]) = p.IO[p.TranslateConstant(_[0])].Value;
             })
         {
@@ -210,7 +212,7 @@ namespace MCPU.Instructions
             : base(2, (p, _) => {
                 AssertNotInstructionSpace(0, _);
                 AssertNotInstructionSpace(1, _);
-
+                
                 p.IO.SetValue(p.TranslateConstant(_[0]), (byte)(p.TranslateConstant(_[1]) & 0xff));
             })
         {
@@ -267,7 +269,7 @@ namespace MCPU.Instructions
     {
         public mov()
             : base(2, (p, _) => {
-                AssertNotInstructionSpace(0, _);
+                AssertAddress(0, _);
                 AssertNotInstructionSpace(1, _);
 
                 *p.TranslateAddress(_[0]) = *p.TranslateAddress(_[1]);
@@ -584,7 +586,7 @@ namespace MCPU.Instructions
     {
         public jle()
             : base(1, (p, _) => {
-                AssertLabel(0, _);
+                AssertInstructionSpace(0, _);
                 
                 if (p.Flags.HasFlag(StatusFlags.Lower | StatusFlags.Equal))
                     p.MoveTo(_[0]);
@@ -601,7 +603,7 @@ namespace MCPU.Instructions
     {
         public jl()
             : base(1, (p, _) => {
-                AssertLabel(0, _);
+                AssertInstructionSpace(0, _);
 
                 if (p.Flags.HasFlag(StatusFlags.Lower))
                     p.MoveTo(_[0]);
@@ -618,7 +620,7 @@ namespace MCPU.Instructions
     {
         public jge()
             : base(1, (p, _) => {
-                AssertLabel(0, _);
+                AssertInstructionSpace(0, _);
 
                 if (p.Flags.HasFlag(StatusFlags.Greater | StatusFlags.Equal))
                     p.MoveTo(_[0]);
@@ -635,7 +637,7 @@ namespace MCPU.Instructions
     {
         public jg()
             : base(1, (p, _) => {
-                AssertLabel(0, _);
+                AssertInstructionSpace(0, _);
 
                 if (p.Flags.HasFlag(StatusFlags.Greater))
                     p.MoveTo(_[0]);
@@ -652,7 +654,7 @@ namespace MCPU.Instructions
     {
         public je()
             : base(1, (p, _) => {
-                AssertLabel(0, _);
+                AssertInstructionSpace(0, _);
 
                 if (p.Flags.HasFlag(StatusFlags.Equal))
                     p.MoveTo(_[0]);
@@ -669,7 +671,7 @@ namespace MCPU.Instructions
     {
         public jne()
             : base(1, (p, _) => {
-                AssertLabel(0, _);
+                AssertInstructionSpace(0, _);
 
                 if (!p.Flags.HasFlag(StatusFlags.Equal))
                     p.MoveTo(_[0]);
@@ -686,7 +688,7 @@ namespace MCPU.Instructions
     {
         public jz()
             : base(1, (p, _) => {
-                AssertLabel(0, _);
+                AssertInstructionSpace(0, _);
                 
                 if (p.Flags.HasFlag(StatusFlags.Zero2) & (p.Flags.HasFlag(StatusFlags.Unary) | p.Flags.HasFlag(StatusFlags.Zero1)))
                     p.MoveTo(_[0]);
@@ -703,7 +705,7 @@ namespace MCPU.Instructions
     {
         public jnz()
             : base(1, (p, _) => {
-                AssertLabel(0, _);
+                AssertInstructionSpace(0, _);
 
                 if (p.Flags.HasFlag(StatusFlags.Zero2) | (p.Flags.HasFlag(StatusFlags.Unary) & p.Flags.HasFlag(StatusFlags.Zero1)))
                     p.MoveNext();
@@ -720,7 +722,7 @@ namespace MCPU.Instructions
     {
         public jneg()
             : base(1, (p, _) => {
-                AssertLabel(0, _);
+                AssertInstructionSpace(0, _);
 
                 if (p.Flags.HasFlag(StatusFlags.Sign2) & (p.Flags.HasFlag(StatusFlags.Unary) | p.Flags.HasFlag(StatusFlags.Sign1)))
                     p.MoveTo(_[0]);
@@ -737,7 +739,7 @@ namespace MCPU.Instructions
     {
         public jpos()
             : base(1, (p, _) => {
-                AssertLabel(0, _);
+                AssertInstructionSpace(0, _);
 
                 if (p.Flags.HasFlag(StatusFlags.Sign2) | (p.Flags.HasFlag(StatusFlags.Unary) & p.Flags.HasFlag(StatusFlags.Sign1)))
                     p.MoveNext();
@@ -751,7 +753,7 @@ namespace MCPU.Instructions
     #endregion
     #region 0034...003b <<unassigned>>
     #endregion
-    
+
     [OPCodeNumber(0x003c)]
     public sealed unsafe class swap
         : OPCode
@@ -786,8 +788,8 @@ namespace MCPU.Instructions
         {
         }
     }
-    
-    [OPCodeNumber(0x003e)]
+
+    [OPCodeNumber(0x003e), Keyword]
     public sealed class wait
         : OPCode
     {
@@ -801,12 +803,12 @@ namespace MCPU.Instructions
         }
     }
 
-    [OPCodeNumber(0x003f), RequiresPrivilege]
+    [OPCodeNumber(0x003f), RequiresPrivilege, Keyword]
     public sealed class reset
         : OPCode
     {
         public reset()
-            : base(1, (p, _) => p.Reset())
+            : base(0, (p, _) => p.Reset())
         {
         }
     }
@@ -852,7 +854,7 @@ namespace MCPU.Instructions
         public peek()
             : base(1, (p, _) => {
                 AssertAddress(0, _);
-
+                
                 int val = p.Peek();
 
                 *p.TranslateAddress(_[0]) = val;
@@ -1007,7 +1009,12 @@ namespace MCPU.Instructions
         : FloatingPointArithmeticBinaryOPCode
     {
         public fdiv()
-            : base((f, g) => f / g)
+            : base((f, g) => {
+                if (g == 0)
+                    return f == 0 ? float.NaN : f * float.PositiveInfinity;
+                else
+                    return f / g;
+            })
         {
         }
     }
@@ -1017,7 +1024,12 @@ namespace MCPU.Instructions
         : FloatingPointArithmeticBinaryOPCode
     {
         public fmod()
-            : base((f, g) => f % g)
+            : base((f, g) => {
+                if (g == 0)
+                    return f == 0 ? float.NaN : f * float.PositiveInfinity;
+                else
+                    return f % g;
+            })
         {
         }
     }
@@ -1261,10 +1273,157 @@ namespace MCPU.Instructions
         {
         }
     }
-    
+
+    #endregion
+    #region 006f...0074 FLOATING POINT COMPARISON + JUMP
+
+    [OPCodeNumber(0x006f)]
+    public sealed class fcmp
+        : OPCode
+    {
+        public fcmp()
+            : base(1, (p, _) =>
+            {
+                StatusFlags f = StatusFlags.Float;
+
+                if (_.Length < 2)
+                {
+                    _ = new InstructionArgument[] { ((FloatIntUnion)0f, ArgumentType.Constant), _[0] };
+                    f |= StatusFlags.Unary;
+                }
+
+                AssertNotInstructionSpace(0, _);
+                AssertNotInstructionSpace(1, _);
+
+                float c1 = p.TranslateFloatConstant(_[0]);
+                float c2 = p.TranslateFloatConstant(_[1]);
+
+                if (Abs(c1) < float.Epsilon) f |= StatusFlags.Zero1;
+                if (Abs(c2) < float.Epsilon) f |= StatusFlags.Zero2;
+
+                if (c1 < 0) f |= StatusFlags.Sign1;
+                if (c2 < 0) f |= StatusFlags.Sign2;
+
+                f |= c1 < c2 ? StatusFlags.Lower
+                   : c1 > c2 ? StatusFlags.Greater : StatusFlags.Equal;
+
+                if (float.IsInfinity(c1))
+                    f |= StatusFlags.Infinity1;
+                else if (float.IsNaN(c1))
+                    f |= StatusFlags.NaN1;
+
+                if (float.IsInfinity(c2))
+                    f |= StatusFlags.Infinity2;
+                else if (float.IsNaN(c2))
+                    f |= StatusFlags.NaN2;
+
+                p.Flags = f;
+            })
+        {
+        }
+    }
+
+    [OPCodeNumber(0x0070), SpecialIPHandling]
+    public sealed class jnan
+        : OPCode
+    {
+        public jnan()
+            : base(1, (p, _) => {
+                AssertInstructionSpace(0, _);
+
+                if (p.Flags.HasFlag(StatusFlags.NaN2) | (!p.Flags.HasFlag(StatusFlags.Unary) & p.Flags.HasFlag(StatusFlags.NaN1)))
+                    p.MoveTo(_[0]);
+                else
+                    p.MoveNext();
+            })
+        {
+        }
+    }
+
+    [OPCodeNumber(0x0071), SpecialIPHandling]
+    public sealed class jnnan
+        : OPCode
+    {
+        public jnnan()
+            : base(1, (p, _) => {
+                AssertInstructionSpace(0, _);
+
+                if (p.Flags.HasFlag(StatusFlags.NaN1) | (p.Flags.HasFlag(StatusFlags.Unary) & p.Flags.HasFlag(StatusFlags.NaN2)))
+                    p.MoveNext();
+                else
+                    p.MoveTo(_[0]);
+            })
+        {
+        }
+    }
+
+    [OPCodeNumber(0x0072), SpecialIPHandling]
+    public sealed class jinf
+        : OPCode
+    {
+        public jinf()
+            : base(1, (p, _) => {
+                AssertInstructionSpace(0, _);
+
+                if (p.Flags.HasFlag(StatusFlags.Infinity2) | (!p.Flags.HasFlag(StatusFlags.Unary) & p.Flags.HasFlag(StatusFlags.Infinity1)))
+                    p.MoveTo(_[0]);
+                else
+                    p.MoveNext();
+            })
+        {
+        }
+    }
+
+    [OPCodeNumber(0x0073), SpecialIPHandling]
+    public sealed class jpinf
+        : OPCode
+    {
+        public jpinf()
+            : base(1, (p, _) => {
+                AssertInstructionSpace(0, _);
+                
+                if ((p.Flags.HasFlag(StatusFlags.Infinity2) & !p.Flags.HasFlag(StatusFlags.Sign2)) |
+                    (!p.Flags.HasFlag(StatusFlags.Unary) & p.Flags.HasFlag(StatusFlags.Infinity1) & !p.Flags.HasFlag(StatusFlags.Sign1)))
+                    p.MoveTo(_[0]);
+                else
+                    p.MoveNext();
+            })
+        {
+        }
+    }
+
+    [OPCodeNumber(0x0074), SpecialIPHandling]
+    public sealed class jninf
+        : OPCode
+    {
+        public jninf()
+            : base(1, (p, _) => {
+                AssertInstructionSpace(0, _);
+
+                if (p.Flags.HasFlag(StatusFlags.NegativeInfinity2) | (!p.Flags.HasFlag(StatusFlags.Unary) & p.Flags.HasFlag(StatusFlags.NegativeInfinity1)))
+                    p.MoveTo(_[0]);
+                else
+                    p.MoveNext();
+            })
+        {
+        }
+    }
+
     #endregion
 
+    [OPCodeNumber(0xfffe), RequiresPrivilege, Keyword]
+    public sealed unsafe class exec
+        : OPCode
+    {
+        public exec()
+            : base(1, (p, _) => {
+                AssertNotInstructionSpace(0, _);
 
+                p.ProcessNext((OPCodes.CodesByID[(ushort)p.TranslateConstant(_[0])], _.Skip(1).ToArray()), false);
+            })
+        {
+        }
+    }
 
     [OPCodeNumber(0xffff)]
     public sealed unsafe class kernel

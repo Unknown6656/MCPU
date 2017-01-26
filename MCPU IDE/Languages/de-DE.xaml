@@ -1,0 +1,154 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:s="clr-namespace:System;assembly=mscorlib">
+    <s:String xml:space="preserve" x:Key="lang_iso">DEU</s:String>
+    <s:String xml:space="preserve" x:Key="lang_code">de-DE</s:String>
+    <s:String xml:space="preserve" x:Key="lang_name">Deutsch</s:String>
+    <s:String xml:space="preserve" x:Key="global_error_in">Fehler in {0} {1}</s:String>
+    <s:String xml:space="preserve" x:Key="global_abbrv_ln">Z.</s:String>
+    <s:String xml:space="preserve" x:Key="global_abbrv_ch">$</s:String>
+    <s:String xml:space="preserve" x:Key="global_port">Port</s:String>
+    <s:String xml:space="preserve" x:Key="global_bytes">Bytes</s:String>
+    <s:String xml:space="preserve" x:Key="global_cancel">Abbrechen</s:String>
+    <s:String xml:space="preserve" x:Key="global_ok">OK</s:String>
+    <s:String xml:space="preserve" x:Key="global_close">Schließen</s:String>
+    <s:String xml:space="preserve" x:Key="global_reset">Zurücksetzen</s:String>
+    <s:String xml:space="preserve" x:Key="global_copyright">Copyright</s:String>
+    <ResourceDictionary x:Key="global_compiler_msg">
+        <s:String xml:space="preserve" x:Key="JMP_INSIDE_FUNC">Eine Sprungmarke kann nur innerhalb einer Funktion oder nach der '.main'-Marke deklariert werden.</s:String>
+        <s:String xml:space="preserve" x:Key="FUNC_ALREADY_EXISTS_SP">Eine Funktion namens '{0}' existiert bereits.</s:String>
+        <s:String xml:space="preserve" x:Key="LABEL_ALREADY_EXISTS_SP">Eine Sprungmarke namens '{0}' wurde bereits in Zeile {1} deklariert.</s:String>
+        <s:String xml:space="preserve" x:Key="TOKEN_NOT_PARSED">Die Marke '.{0}' konnte nicht analysiert werden.</s:String>
+        <s:String xml:space="preserve" x:Key="TOKEN_INSIDE_FUNC">Die Marke '.{0}' kann nur innerhalb einer Funktion oder nach der '.main'-Marke verwendet werden.</s:String>
+        <s:String xml:space="preserve" x:Key="FUNC_NOT_NESTED">Funktionen können nicht geschachtelt werden. Bitte schließen Sie die aktuelle Funktion mit 'END FUNC' ab.</s:String>
+        <s:String xml:space="preserve" x:Key="FUNC_AFTER_MAIN">Funktionen können nicht nach der '.main'-Marke definiert werden.</s:String>
+        <s:String xml:space="preserve" x:Key="FUNC_ALREADY_EXISTS">Die Funktion '{0}' existiert bereits.</s:String>
+        <s:String xml:space="preserve" x:Key="LABEL_ALREADY_EXISTS">Eine Sprungmarke namens '{0}' existiert bereits.</s:String>
+        <s:String xml:space="preserve" x:Key="MISSING_FUNC_DECL">Eine Funktionsdeklaration muss einem 'END FUNC' vorangehen.</s:String>
+        <s:String xml:space="preserve" x:Key="INSTR_OUTSIDE_MAIN">Instruktionen können nur innerhalb einer Funktion oder nach der '.main'-Marke verwendet werden.</s:String>
+        <s:String xml:space="preserve" x:Key="INSTR_NFOUND">Die Instruktion '{0}' konnte nicht gefunden werden.</s:String>
+        <s:String xml:space="preserve" x:Key="DONT_USE_KERNEL">Die Instruktion 'KERNEL' sollte nicht direkt verwendet werden. Bitte verwenden Sie stattdessen '.kernel' oder '.user'.</s:String>
+        <s:String xml:space="preserve" x:Key="ARGTYPE_NDET">Der Datentyp des Argumentes '{0}' konnte nicht determiniert werden.</s:String>
+        <s:String xml:space="preserve" x:Key="INVALID_ARG">Ungültiges Argument '{0}'.</s:String>
+        <s:String xml:space="preserve" x:Key="LABEL_FUNC_NFOUND">Die Funktion oder Sprungmarke '{0}' konnte nicht gefunden werden.</s:String>
+        <s:String xml:space="preserve" x:Key="LINE_NPARSED">Die Zeile '{0}' konnte nicht analysiert werden.</s:String>
+        <s:String xml:space="preserve" x:Key="MAIN_TOKEN_MISSING">Die '.main'-Marke fehlt.</s:String>
+        <s:String xml:space="preserve" x:Key="INLINE_NYET_SUPP">'.inline' wird derzeitig noch nicht unterstützt</s:String>
+        <s:String xml:space="preserve" x:Key="FUNC_RESV_NAME">Der Name '{0}' ist reserviert und kann daher nicht als Funktionsname verwendet werden.</s:String>
+        <s:String xml:space="preserve" x:Key="LABEL_RESV_NAME">Der Name '{0}' ist reserviert und kann daher nicht als Sprungmarkenname verwendet werden.</s:String>
+        <s:String xml:space="preserve" x:Key="NEED_MORE_ARGS">Die Instruktion '{0}' benötigt mindestens '{1}' Argumente.</s:String>
+        <s:String xml:space="preserve" x:Key="COULDNT_TRANSLATE_EXEC">Der 'exec'-Ausdruck konnte nicht kompiliert werden.</s:String>
+        <s:String xml:space="preserve" x:Key="INVALID_RET">Die 'ret'-Instruktion kann nicht nach der '.main'-Marke verwendet werden, da dies zur Laufzeit einen StackUnderflow-Fehler verursachen könnte. Ziehen Sie stattdessen die Verwendung der instruktion 'halt' in Erwägung.</s:String>
+        <s:String xml:space="preserve" x:Key="INVALID_MAIN_TOKEN">Die '.main'-Marke kann nicht innerhalb einer Funktion oder nach einer anderen '.main'-Marke verwendet werden.</s:String>
+    </ResourceDictionary>
+    <s:String xml:space="preserve" x:Key="global_hint">Hinweis</s:String>
+    <s:String xml:space="preserve" x:Key="global_opt">{0} optimierbare Zeilen gefunden.</s:String>
+    <s:String xml:space="preserve" x:Key="global_compiler_error">Compilerfehler</s:String>
+    <s:String xml:space="preserve" x:Key="tooltip_opt">Diese Zeile kann entfernt werden, da sie durch den Compiler weg-optimiert wird.&#10;Ein solches Verhalten kann durch das Ändern der entspechenden Einstellung im Einstellungsfenster unterbunden werden.</s:String>
+    <s:String xml:space="preserve" x:Key="tooltip_addr">Adresse&#10;Der Ausdruck '{0}' stellt eine MCPU Prozessoradresse dar.</s:String>
+    <s:String xml:space="preserve" x:Key="tooltip_param">Parameter&#10;Der Ausdruck '{0}' stellt einen Funktionsparameter dar, welcher vom Aufrufer an die Funktion übergeben wurde.</s:String>
+    <s:String xml:space="preserve" x:Key="tooltip_int">Konstante&#10;Der Ausdruck '{0}' ist eine konstante Ganzzahl.</s:String>
+    <s:String xml:space="preserve" x:Key="tooltip_float">Konstante&#10;Der Ausdruck '{0}' ist eine konstante Gleitkommazahl.</s:String>
+    <s:String xml:space="preserve" x:Key="tooltip_func">Funktionsdeklaration&#10;Diese Zeile repräsentiert eine Funktionsdeklaration, welche mit der 'call'-Instruktion aufgerufen werden kann.</s:String>
+    <s:String xml:space="preserve" x:Key="tooltip_endfunc">Ende der Funktionsdeklaration&#10;Dise Zeile repräsentiert das Ende einer Funktionsdeklaration.</s:String>
+    <s:String xml:space="preserve" x:Key="tooltip_label">Sprungmarkendeklaration&#10;Dieser Ausdruck deklariert eine Sprungmarke, zu welcher mit einer beliebigen Sprung-instruktion gesprungen werden kann.</s:String>
+    <s:String xml:space="preserve" x:Key="tooltip_funcref">Funktion&#10;Die Funktion '{0}', welche in Zeile {1} definiert wurde.</s:String>
+    <s:String xml:space="preserve" x:Key="tooltip_labelref">Sprungmarke&#10;Die Sprungmarke '{0}', welche in Zeile {1} definiert wurde.</s:String>
+    <s:String xml:space="preserve" x:Key="tooltip_instr">Instruktion {0}&#10;Die MCPU Assembly Instruktion '{1}'</s:String>
+    <s:String xml:space="preserve" x:Key="tooltip_uinstr">Instruktion {0}&#10;Besuchen Sie die GitHub-Seite des Projektes für mehr informationen über diese Instruktion (Menu &gt; Hilfe &gt; GitHub-Projekt besuchen).</s:String>
+    <s:String xml:space="preserve" x:Key="tooltip_keyword">Schlüsselwort '{0}'&#10;Der Ausdruck '{0}' ist ein reserviertes Schlüsselwort.</s:String>
+    <s:String xml:space="preserve" x:Key="tooltip_unknown">Unbekannter Ausdruck '{0}'&#10;Über den Ausdruck '{0}' sind leider derzeitig keine Informationen vorhanden.</s:String>
+    <s:String xml:space="preserve" x:Key="autocomp_func">Funktion {0}&#10;Die Funktion {1}, welche in Zeile {2} definiert wurde</s:String>
+    <s:String xml:space="preserve" x:Key="autocomp_label">Sprungmarke '{0}'&#10;Die Sprungmarke {1}, welche in Zeile {2} definiert wurde</s:String>
+    <s:String xml:space="preserve" x:Key="autocomp_kernel">.kernel-Directive&#10;Gibt dem Prozessor Kernel-Privilegien</s:String>
+    <s:String xml:space="preserve" x:Key="autocomp_user">.user-Directive&#10;Gibt dem Prozessor User-Privilegien</s:String>
+    <s:String xml:space="preserve" x:Key="autocomp_main">Haupteinstiegspunkt&#10;Represäntiert den Haupteinstiegspunkt des Programms</s:String>
+    <s:String xml:space="preserve" x:Key="autocomp_instr">Instruktion '{0}'&#10;Die Assembler-Instruktion {1}</s:String>
+    <s:String xml:space="preserve" x:Key="mw_title">MCPU Entwicklungsumgebung</s:String>
+    <s:String xml:space="preserve" x:Key="mw_file">_DATEI</s:String>
+    <s:String xml:space="preserve" x:Key="mw_file_new">_Neu</s:String>
+    <s:String xml:space="preserve" x:Key="mw_file_open">_Öffnen ...</s:String>
+    <s:String xml:space="preserve" x:Key="mw_file_save">_Speichern</s:String>
+    <s:String xml:space="preserve" x:Key="mw_file_saveall">Speichern _unter ...</s:String>
+    <s:String xml:space="preserve" x:Key="mw_file_export">Als HTML _Exportieren...</s:String>
+    <s:String xml:space="preserve" x:Key="mw_file_settings">E_instellungen</s:String>
+    <s:String xml:space="preserve" x:Key="mw_file_exit">_Beenden</s:String>
+    <s:String xml:space="preserve" x:Key="mw_edit">_BEARBEITEN</s:String>
+    <s:String xml:space="preserve" x:Key="mw_edit_undo">_Rückgängig</s:String>
+    <s:String xml:space="preserve" x:Key="mw_edit_redo">_Wiederholen</s:String>
+    <s:String xml:space="preserve" x:Key="mw_edit_copy">_Kopieren</s:String>
+    <s:String xml:space="preserve" x:Key="mw_edit_cut">_Ausschneiden</s:String>
+    <s:String xml:space="preserve" x:Key="mw_edit_paste">_Einfügen</s:String>
+    <s:String xml:space="preserve" x:Key="mw_edit_delete">Ent_fernen</s:String>
+    <s:String xml:space="preserve" x:Key="mw_edit_select">A_lles auswählen</s:String>
+    <s:String xml:space="preserve" x:Key="mw_edit_insert">A_usschnitt einfügen ...</s:String>
+    <s:String xml:space="preserve" x:Key="mw_edit_search">Suchen ...</s:String>
+    <s:String xml:space="preserve" x:Key="mw_edit_replace">Ersetzen ...</s:String>
+    <s:String xml:space="preserve" x:Key="mw_edit_bm_create">Lesezeichen erstellen</s:String>
+    <s:String xml:space="preserve" x:Key="mw_edit_bm_delete">Lesezeichen löschen</s:String>
+    <s:String xml:space="preserve" x:Key="mw_edit_bm_prev">Nächstes Lesezeichen</s:String>
+    <s:String xml:space="preserve" x:Key="mw_edit_bm_next">Vorheriges Lesezeichen</s:String>
+    <s:String xml:space="preserve" x:Key="mw_edit_zin">Zoom _in</s:String>
+    <s:String xml:space="preserve" x:Key="mw_edit_zout">Zoom _out</s:String>
+    <s:String xml:space="preserve" x:Key="mw_edit_zres">_Zoom zurücksetzen</s:String>
+    <s:String xml:space="preserve" x:Key="mw_edit_fold">Alle Regionen falten</s:String>
+    <s:String xml:space="preserve" x:Key="mw_edit_unfold">Alle Region entfalten</s:String>
+    <s:String xml:space="preserve" x:Key="mw_compiler">_ERSTELLEN</s:String>
+    <s:String xml:space="preserve" x:Key="mw_compiler_compile">_Erstellen</s:String>
+    <s:String xml:space="preserve" x:Key="mw_compiler_errors">_Fehlerliste</s:String>
+    <s:String xml:space="preserve" x:Key="mw_compiler_instr">Kompilierte _Instruktionen ansehen ...</s:String>
+    <s:String xml:space="preserve" x:Key="mw_processor">_PROZESSOR</s:String>
+    <s:String xml:space="preserve" x:Key="mw_processor_start">_Start</s:String>
+    <s:String xml:space="preserve" x:Key="mw_processor_stop">St_op</s:String>
+    <s:String xml:space="preserve" x:Key="mw_processor_reset">_Zurücksetzen</s:String>
+    <s:String xml:space="preserve" x:Key="mw_processor_memmap">_Prozessorspeicher ansehen ...</s:String>
+    <s:String xml:space="preserve" x:Key="mw_processor_dump">_Speicherauszug erstellen ...</s:String>
+    <s:String xml:space="preserve" x:Key="mw_processor_loaddump">Speicherauszug _laden ...</s:String>
+    <s:String xml:space="preserve" x:Key="mw_help">_HILFE</s:String>
+    <s:String xml:space="preserve" x:Key="mw_help_about">_Über</s:String>
+    <s:String xml:space="preserve" x:Key="mw_help_github">_Auf GitHub ansehen</s:String>
+    <s:String xml:space="preserve" x:Key="mw_INS">EINF</s:String>
+    <s:String xml:space="preserve" x:Key="mw_OVR">ÜBR</s:String>
+    <s:String xml:space="preserve" x:Key="aw_title">Über die MCPU Entwicklungsumgebung</s:String>
+    <s:String xml:space="preserve" x:Key="aw_version">Version:</s:String>
+    <s:String xml:space="preserve" x:Key="aw_version_str">V {0}</s:String>
+    <s:String xml:space="preserve" x:Key="aw_github">GitHub-Projekt besuchen</s:String>
+    <s:String xml:space="preserve" x:Key="aw_github_issues">Feedback geben oder einen technischen Fehler melden</s:String>
+    <s:String xml:space="preserve" x:Key="aw_description">Diese IDE (Entwicklungsumgebung ist für die effiziente Erstellung, Änderung, Auführung und Fehleranalyse von MCPU Assembly Programmen konzipiert, welche auf dem hierfür dedizierten MCPU Prozessor Emulator ausgeführt werden.</s:String>
+    <s:String xml:space="preserve" x:Key="aw_fctb_before">Das Haupt-texteingabefeld des Editors wurde mithilfe des</s:String>
+    <s:String xml:space="preserve" x:Key="aw_fctb_after">umgesetzt.</s:String>
+    <s:String xml:space="preserve" x:Key="aw_fctb_desc">FastColoredTextBox-Projektes</s:String>
+    <s:String xml:space="preserve" x:Key="sw_title">MCPU Entwicklungsumgebung - Einstellungen</s:String>
+    <s:String xml:space="preserve" x:Key="sw_applang">Anwendungssprache:</s:String>
+    <s:String xml:space="preserve" x:Key="sw_procsett">Prozessoreinstellungen:</s:String>
+    <s:String xml:space="preserve" x:Key="sw_memsz">Speichergröße:</s:String>
+    <s:String xml:space="preserve" x:Key="sw_stacksz">Aufrufstapelgröße:</s:String>
+    <s:String xml:space="preserve" x:Key="sw_optcode">MCPU-Code optimieren</s:String>
+    <s:String xml:space="preserve" x:Key="pw_title">MCPU Entwicklungsumgebung - Prozessorüberwachung</s:String>
+    <s:String xml:space="preserve" x:Key="pw_gb_addr">Niedere<!-- TODO --> Adressen:  (.kernel)</s:String>
+    <s:String xml:space="preserve" x:Key="pw_gb_io">I/O Ports:  (.io)</s:String>
+    <s:String xml:space="preserve" x:Key="pw_gb_user">Benutzerspeicher:  (.data)</s:String>
+    <s:String xml:space="preserve" x:Key="pw_gb_calls">Aufrufstapel:</s:String>
+    <s:String xml:space="preserve" x:Key="pw_gb_callspc">Stapelsegment:  (.stack)</s:String>
+    <s:String xml:space="preserve" x:Key="pw_gb_instr">Instruktionen:</s:String>
+    <s:String xml:space="preserve" x:Key="pw_gb_instrsp">Instruktionssegment:  (.instr)</s:String>
+    <s:String xml:space="preserve" x:Key="pw_csize">Größe:</s:String>
+    <s:String xml:space="preserve" x:Key="pw_cflags">Gespeicherte Flags:</s:String>
+    <s:String xml:space="preserve" x:Key="pw_cparams">Parameter:</s:String>
+    <s:String xml:space="preserve" x:Key="pw_gb_output">Prozessorausgabe:</s:String>
+    <s:String xml:space="preserve" x:Key="msg_err">Fehler</s:String>
+    <s:String xml:space="preserve" x:Key="msg_suc">OK<!-- TODO --></s:String>
+    <s:String xml:space="preserve" x:Key="msg_war">Warnung</s:String>
+    <s:String xml:space="preserve" x:Key="msg_suc_html">HTML efolgreich exportiert</s:String>
+    <s:String xml:space="preserve" x:Key="msg_suctxt_html">Die Code-Datei konnte erfolgreich als HTML-Dokument exportiert werden und wurde in die Datei '{0}' geschrieben&#10;Möchten Sie das exportierte HTML-Dokument jetzt öffnen?</s:String>
+    <s:String xml:space="preserve" x:Key="msg_war_unsaved">Änderungen speichern?</s:String>
+    <s:String xml:space="preserve" x:Key="msg_wartxt_unsaved">Sie besitzen ungespeicherte Änderungen ihrer Code-Datei. Sollen diese gespeichert werden?</s:String>
+    <s:String xml:space="preserve" x:Key="msg_err_compiler">Compilerfehler</s:String>
+    <s:String xml:space="preserve" x:Key="msg_errtxt_compiler">Der Quellcode konnte aufgrund des folgenden fehlers nicht kompiliert werden:&#10;'{0}'&#10;in Zeile {1}.</s:String>
+    <s:String xml:space="preserve" x:Key="msg_err_filenfound">Datei nicht gefunden</s:String>
+    <s:String xml:space="preserve" x:Key="msg_errtxt_filenfound">Die Datei '{0}' konnte nicht geöffnet oder gefunden werden.</s:String>
+    <s:String xml:space="preserve" x:Key="msg_err_filesave">Datei nicht gespeichert</s:String>
+    <s:String xml:space="preserve" x:Key="msg_errtxt_filesave">Die Datei '{0}' konnte aufgrund des folgenden Fehlers nicht gespeichert werden:&#10;{1}</s:String>
+    <s:String xml:space="preserve" x:Key="msg_err_html">HTML nicht exportiert</s:String>
+    <s:String xml:space="preserve" x:Key="msg_errtxt_html">Die Code-Datei konnte aufgrund des folgenden Fehlers nicht als HTML-Dokument exportiert werden:&#10;{0}</s:String>
+</ResourceDictionary>

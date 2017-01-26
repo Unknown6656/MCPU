@@ -1,0 +1,154 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:s="clr-namespace:System;assembly=mscorlib">
+    <s:String xml:space="preserve" x:Key="lang_iso">RUS</s:String>
+    <s:String xml:space="preserve" x:Key="lang_code">ru-RU</s:String>
+    <s:String xml:space="preserve" x:Key="lang_name">Pусский (бета)</s:String>
+    <s:String xml:space="preserve" x:Key="global_error_in">Ошибка в {0} {1}</s:String>
+    <s:String xml:space="preserve" x:Key="global_abbrv_ln">ли.</s:String>
+    <s:String xml:space="preserve" x:Key="global_abbrv_ch">си.</s:String>
+    <s:String xml:space="preserve" x:Key="global_port">Порт</s:String>
+    <s:String xml:space="preserve" x:Key="global_bytes">Б</s:String>
+    <s:String xml:space="preserve" x:Key="global_cancel">Отмена</s:String>
+    <s:String xml:space="preserve" x:Key="global_ok">ОК</s:String>
+    <s:String xml:space="preserve" x:Key="global_close">Закрыть</s:String>
+    <s:String xml:space="preserve" x:Key="global_reset">Сброс</s:String>
+    <s:String xml:space="preserve" x:Key="global_copyright">Авторские права</s:String>
+    <ResourceDictionary x:Key="global_compiler_msg">
+        <s:String xml:space="preserve" x:Key="JMP_INSIDE_FUNC">Метка прыжок может быть использован только внутри функции или после '.main'-маркера.</s:String>
+        <s:String xml:space="preserve" x:Key="FUNC_ALREADY_EXISTS_SP">Функция называется '{0}' уже существует.</s:String>
+        <s:String xml:space="preserve" x:Key="LABEL_ALREADY_EXISTS_SP">Метка '{0}' уже существует в строке {1}.</s:String>
+        <s:String xml:space="preserve" x:Key="TOKEN_NOT_PARSED">Маркер '.{0}' не может быть разобрано.</s:String>
+        <s:String xml:space="preserve" x:Key="TOKEN_INSIDE_FUNC">Маркер '.{0}' может использоваться только внутри функции или после '.main'-декларации.</s:String>
+        <s:String xml:space="preserve" x:Key="FUNC_NOT_NESTED">Функции не могут быть вложенными. Пожалуйста, закройте текущую функцию с 'END FUNC'-токен.</s:String>
+        <s:String xml:space="preserve" x:Key="FUNC_AFTER_MAIN">Функции не могут быть объявлены после '.main'-токен.</s:String>
+        <s:String xml:space="preserve" x:Key="FUNC_ALREADY_EXISTS">Функция '{0}' уже существует.</s:String>
+        <s:String xml:space="preserve" x:Key="LABEL_ALREADY_EXISTS">Метка называется '{0}' уже существует.</s:String>
+        <s:String xml:space="preserve" x:Key="MISSING_FUNC_DECL">Объявление функции должно предшествовать 'END FUNC'-маркер.</s:String>
+        <s:String xml:space="preserve" x:Key="INSTR_OUTSIDE_MAIN">Инструкция может быть использована только внутри функции или после '.main'-маркера.</s:String>
+        <s:String xml:space="preserve" x:Key="INSTR_NFOUND">Команда '{0}' не может быть найден.</s:String>
+        <s:String xml:space="preserve" x:Key="DONT_USE_KERNEL">Команда "ЯДРО" не должна использоваться непосредственно. Используйте '.kernel' или '.user' вместо этого.</s:String>
+        <s:String xml:space="preserve" x:Key="ARGTYPE_NDET">Тип аргумента '{0}' не может быть определена.</s:String>
+        <s:String xml:space="preserve" x:Key="INVALID_ARG">Недопустимый аргумент '{0}' дано.</s:String>
+        <s:String xml:space="preserve" x:Key="LABEL_FUNC_NFOUND">Метка или функция '{0}' не может быть найден.</s:String>
+        <s:String xml:space="preserve" x:Key="LINE_NPARSED">Линия '{0}' не может быть разобрано.</s:String>
+        <s:String xml:space="preserve" x:Key="MAIN_TOKEN_MISSING">'.main'-Маркер отсутствует.</s:String>
+        <s:String xml:space="preserve" x:Key="INLINE_NYET_SUPP">'.inline' Не поддерживается</s:String>
+        <s:String xml:space="preserve" x:Key="FUNC_RESV_NAME">Имя '{0}' зарезервировано и поэтому не может быть использован в качестве имени функции.</s:String>
+        <s:String xml:space="preserve" x:Key="LABEL_RESV_NAME">Имя '{0}' зарезервировано и поэтому не может быть использован в качестве имени метки.</s:String>
+        <s:String xml:space="preserve" x:Key="NEED_MORE_ARGS">Команда '{0}' требует, по крайней мере, '{1}' аргументы.</s:String>
+        <s:String xml:space="preserve" x:Key="COULDNT_TRANSLATE_EXEC">'exec'-выражение не может быть переведено.</s:String>
+        <s:String xml:space="preserve" x:Key="INVALID_RET">'ret'-инструкция не может быть использован после '.main'-маркера из-за StackUnderflow во время выполнения. Рассмотрим использование 'halt'.</s:String>
+        <s:String xml:space="preserve" x:Key="INVALID_MAIN_TOKEN">'.main'-Маркер не может быть использован внутри метода или после другого' .main'-Маркер.</s:String>
+    </ResourceDictionary>
+    <s:String xml:space="preserve" x:Key="global_hint">намек</s:String>
+    <s:String xml:space="preserve" x:Key="global_opt">{0} оптимизируемое линии найдено.</s:String>
+    <s:String xml:space="preserve" x:Key="global_compiler_error">Oшибка компилятора</s:String>
+    <s:String xml:space="preserve" x:Key="tooltip_opt">Эта линия может быть удалена, так как он будет оптимизирован прочь компилятором.&#10;Такое поведение может быть предотвращено путем изменения согласно настройкам внутри настроек окна.</s:String>
+    <s:String xml:space="preserve" x:Key="tooltip_addr">Адрес&#10;Выражение '{0}' представляет собой адрес MCPU процессора.</s:String>
+    <s:String xml:space="preserve" x:Key="tooltip_param">параметр&#10;Выражение '{0}' представляет собой параметр функции, передаваемый текущей функции вызывающей стороной.</s:String>
+    <s:String xml:space="preserve" x:Key="tooltip_int">постоянная&#10;Выражение '{0}' является постоянное целое значение.</s:String>
+    <s:String xml:space="preserve" x:Key="tooltip_float">постоянная&#10;Выражение '{0}' является постоянной величиной с плавающей точкой.</s:String>
+    <s:String xml:space="preserve" x:Key="tooltip_func">объявление функции&#10;Эта строка представляет собой объявление функции, которая может быть вызвана с помощью 'call'-инструкции.</s:String>
+    <s:String xml:space="preserve" x:Key="tooltip_endfunc">Конец объявления функции&#10;Эта линия конец функции declartation.</s:String>
+    <s:String xml:space="preserve" x:Key="tooltip_label">декларация этикетки&#10;Это выражение определяет jumplabel, к которому программа может прыгать с помощью любого скачка-инструкции.</s:String>
+    <s:String xml:space="preserve" x:Key="tooltip_funcref">функция&#10;Функция '{0}', который был определен на линии {1}.</s:String>
+    <s:String xml:space="preserve" x:Key="tooltip_labelref">Метка&#10;Метка '{0}', который был определен на линии {1}.</s:String>
+    <s:String xml:space="preserve" x:Key="tooltip_instr">Инструкция {0}&#10;Инструкция MCPU сборка '{1}'</s:String>
+    <s:String xml:space="preserve" x:Key="tooltip_uinstr">Инструкция {0}&#10;Для получения дополнительной информации посетите GitHub-страницу проекта (Меню &gt; Помогите &gt; Посмотреть на GitHub).</s:String>
+    <s:String xml:space="preserve" x:Key="tooltip_keyword">Ключевое слово '{0}'&#10;Выражение '{0}' является зарезервированным ключевым словом.</s:String>
+    <s:String xml:space="preserve" x:Key="tooltip_unknown">Неизвестный лексема '{0}'&#10;Выражение или маркер '{0}' не содержит никакой информации.</s:String>
+    <s:String xml:space="preserve" x:Key="autocomp_func">Функция {0}&#10;Функция {1}, который был определен на линии {2}</s:String>
+    <s:String xml:space="preserve" x:Key="autocomp_label">Этикетка '{0}'&#10;Метка {1}, который был определен на линии {2}</s:String>
+    <s:String xml:space="preserve" x:Key="autocomp_kernel">.kernel директива&#10;Предоставляет текущие привилегии ядра процессора</s:String>
+    <s:String xml:space="preserve" x:Key="autocomp_user">.user директива&#10;Предоставляет текущие пользовательские привилегии процессора</s:String>
+    <s:String xml:space="preserve" x:Key="autocomp_main">Главная точка входа&#10;Главная точка входа приложения</s:String>
+    <s:String xml:space="preserve" x:Key="autocomp_instr">инструкция '{0}'&#10;Инструкция по монтажу {1}</s:String>
+    <s:String xml:space="preserve" x:Key="mw_title">MCPU Интегрированная Среда Развития</s:String>
+    <s:String xml:space="preserve" x:Key="mw_file">_ФАЙЛ</s:String>
+    <s:String xml:space="preserve" x:Key="mw_file_new">_Новый</s:String>
+    <s:String xml:space="preserve" x:Key="mw_file_open">_Открыть ...</s:String>
+    <s:String xml:space="preserve" x:Key="mw_file_save">_Сохранить</s:String>
+    <s:String xml:space="preserve" x:Key="mw_file_saveall">Сохранить _как ...</s:String>
+    <s:String xml:space="preserve" x:Key="mw_file_export">_Экспорт в HTML ...</s:String>
+    <s:String xml:space="preserve" x:Key="mw_file_settings">_Предпочтения</s:String>
+    <s:String xml:space="preserve" x:Key="mw_file_exit">_Выход</s:String>
+    <s:String xml:space="preserve" x:Key="mw_edit">_РЕДАКТИРОВАТЬ</s:String>
+    <s:String xml:space="preserve" x:Key="mw_edit_undo">_расстегивать</s:String>
+    <s:String xml:space="preserve" x:Key="mw_edit_redo">_переделывать</s:String>
+    <s:String xml:space="preserve" x:Key="mw_edit_copy">_копия</s:String>
+    <s:String xml:space="preserve" x:Key="mw_edit_cut">П_орез</s:String>
+    <s:String xml:space="preserve" x:Key="mw_edit_paste">_Вставить</s:String>
+    <s:String xml:space="preserve" x:Key="mw_edit_delete">_Удалить</s:String>
+    <s:String xml:space="preserve" x:Key="mw_edit_select">_Выбрать все</s:String>
+    <s:String xml:space="preserve" x:Key="mw_edit_insert">Вставка _сниппета ...</s:String>
+    <s:String xml:space="preserve" x:Key="mw_edit_search">Поиск ...</s:String>
+    <s:String xml:space="preserve" x:Key="mw_edit_replace">Замещать ...</s:String>
+    <s:String xml:space="preserve" x:Key="mw_edit_bm_create">Создать закладку</s:String>
+    <s:String xml:space="preserve" x:Key="mw_edit_bm_delete">Удалить закладку</s:String>
+    <s:String xml:space="preserve" x:Key="mw_edit_bm_prev">Предыдущая закладка</s:String>
+    <s:String xml:space="preserve" x:Key="mw_edit_bm_next">Следующая закладка</s:String>
+    <s:String xml:space="preserve" x:Key="mw_edit_zin">Приблизить</s:String>
+    <s:String xml:space="preserve" x:Key="mw_edit_zout">Уменьшить</s:String>
+    <s:String xml:space="preserve" x:Key="mw_edit_zres">Сброс масштабирования</s:String>
+    <s:String xml:space="preserve" x:Key="mw_edit_fold">Сложите все разделы</s:String>
+    <s:String xml:space="preserve" x:Key="mw_edit_unfold">Открываются все разделы</s:String>
+    <s:String xml:space="preserve" x:Key="mw_compiler">_СОСТАВИТЕЛЬ</s:String>
+    <s:String xml:space="preserve" x:Key="mw_compiler_compile">_компилировать</s:String>
+    <s:String xml:space="preserve" x:Key="mw_compiler_errors">_список ошибок</s:String>
+    <s:String xml:space="preserve" x:Key="mw_compiler_instr">_Посмотреть скомпилирован инструкции ...</s:String>
+    <s:String xml:space="preserve" x:Key="mw_processor">_ПРОЦЕССОР</s:String>
+    <s:String xml:space="preserve" x:Key="mw_processor_start">_Пуск</s:String>
+    <s:String xml:space="preserve" x:Key="mw_processor_stop">_Стоп</s:String>
+    <s:String xml:space="preserve" x:Key="mw_processor_reset">С_брос</s:String>
+    <s:String xml:space="preserve" x:Key="mw_processor_memmap">_Просмотр карты памяти ...</s:String>
+    <s:String xml:space="preserve" x:Key="mw_processor_dump">Распечатка содержимого памяти ...</s:String>
+    <s:String xml:space="preserve" x:Key="mw_processor_loaddump">Загрузка из дампа памяти ...</s:String>
+    <s:String xml:space="preserve" x:Key="mw_help">_ПОМОГИТЕ</s:String>
+    <s:String xml:space="preserve" x:Key="mw_help_about">_О</s:String>
+    <s:String xml:space="preserve" x:Key="mw_help_github">_Посмотреть на GitHub</s:String>
+    <s:String xml:space="preserve" x:Key="mw_INS">ВСТ.</s:String>
+    <s:String xml:space="preserve" x:Key="mw_OVR">ЗАТ.</s:String>
+    <s:String xml:space="preserve" x:Key="aw_title">О MCPU ИСР</s:String>
+    <s:String xml:space="preserve" x:Key="aw_version">Версия:</s:String>
+    <s:String xml:space="preserve" x:Key="aw_version_str">в {0}</s:String>
+    <s:String xml:space="preserve" x:Key="aw_github">Посетите проект GitHub</s:String>
+    <s:String xml:space="preserve" x:Key="aw_github_issues">Оставить отзыв или сообщить об ошибке</s:String>
+    <s:String xml:space="preserve" x:Key="aw_description">Это ИСР (Интегрированная Среда Развития) предназначена для эффективного создания, редактирования, компиляции, отладки и запуска приложений MCPU Ассамблеи по вопросу о назначенный MCPU эмулятор процессора.</s:String>
+    <s:String xml:space="preserve" x:Key="aw_fctb_before">основной текст в редакторе осуществляется с помощью</s:String>
+    <s:String xml:space="preserve" x:Key="aw_fctb_after">.</s:String>
+    <s:String xml:space="preserve" x:Key="aw_fctb_desc">FastColoredTextBox-проекта</s:String>
+    <s:String xml:space="preserve" x:Key="sw_title">MCPU ИСР - настройки</s:String>
+    <s:String xml:space="preserve" x:Key="sw_applang">Язык приложений:</s:String>
+    <s:String xml:space="preserve" x:Key="sw_procsett">Настройки процессора:</s:String>
+    <s:String xml:space="preserve" x:Key="sw_memsz">Размер памяти:</s:String>
+    <s:String xml:space="preserve" x:Key="sw_stacksz">Вызов размер стека:</s:String>
+    <s:String xml:space="preserve" x:Key="sw_optcode">Оптимизация кода MCPU</s:String>
+    <s:String xml:space="preserve" x:Key="pw_title">MCPU ИСР - Процессор наблюдающий</s:String>
+    <s:String xml:space="preserve" x:Key="pw_gb_addr">Нижние Адреса:  (.kernel)</s:String>
+    <s:String xml:space="preserve" x:Key="pw_gb_io">I/O порты:  (.io)</s:String>
+    <s:String xml:space="preserve" x:Key="pw_gb_user">Память пространстве пользователя:  (.data)</s:String>
+    <s:String xml:space="preserve" x:Key="pw_gb_calls">Стек вызовов:</s:String>
+    <s:String xml:space="preserve" x:Key="pw_gb_callspc">Стек пространство:  (.stack)</s:String>
+    <s:String xml:space="preserve" x:Key="pw_gb_instr">Инструкции:</s:String>
+    <s:String xml:space="preserve" x:Key="pw_gb_instrsp">Инструкция пространство:  (.instr)</s:String>
+    <s:String xml:space="preserve" x:Key="pw_csize">Размер:</s:String>
+    <s:String xml:space="preserve" x:Key="pw_cflags">Сохраненные Флаги:</s:String>
+    <s:String xml:space="preserve" x:Key="pw_cparams">Параметры:</s:String>
+    <s:String xml:space="preserve" x:Key="pw_gb_output">Процессор Выходной:</s:String>
+    <s:String xml:space="preserve" x:Key="msg_err">Ошибка</s:String>
+    <s:String xml:space="preserve" x:Key="msg_suc">Успех</s:String>
+    <s:String xml:space="preserve" x:Key="msg_war">Предупреждение</s:String>
+    <s:String xml:space="preserve" x:Key="msg_suc_html">Устпешно экспортировала HTML</s:String>
+    <s:String xml:space="preserve" x:Key="msg_suctxt_html">Текущий файл код может успешно быть экспортированы в виде HTML-документа и был сохранения в файле '{0}'&#10;Вы хотите, чтобы открыть HTML-документа?</s:String>
+    <s:String xml:space="preserve" x:Key="msg_war_unsaved">Сохранить изменения?</s:String>
+    <s:String xml:space="preserve" x:Key="msg_wartxt_unsaved">Вы изменили файл кода после последнего сохранения. Вы хотите, чтобы сохранить все изменения?</s:String>
+    <s:String xml:space="preserve" x:Key="msg_err_compiler">Ошибка компилятора</s:String>
+    <s:String xml:space="preserve" x:Key="msg_errtxt_compiler">Код не может быть скомпилирован из-за следующей ошибки компилятора:&#10;'{0}'&#10;на строке {1}.</s:String>
+    <s:String xml:space="preserve" x:Key="msg_err_filenfound">Файл не найден</s:String>
+    <s:String xml:space="preserve" x:Key="msg_errtxt_filenfound">Файл '{0}' не удалось получить доступ к или найден.</s:String>
+    <s:String xml:space="preserve" x:Key="msg_err_filesave">Невозможно сохранить файл</s:String>
+    <s:String xml:space="preserve" x:Key="msg_errtxt_filesave">Файл '{0}' не может быть сохранено из-за следующей ошибки:&#10;{1}</s:String>
+    <s:String xml:space="preserve" x:Key="msg_err_html">Невозможно экспортировать HTML</s:String>
+    <s:String xml:space="preserve" x:Key="msg_errtxt_html">Текущий файл код не может быть экспортированы в HTML-документ из-за следующей внутренней ошибки:&#10;{0}</s:String>
+</ResourceDictionary>
