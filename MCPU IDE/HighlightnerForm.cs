@@ -52,12 +52,12 @@ namespace MCPU.IDE
             [style_comments] = REGEX_COMMENT,
             [style_stoken] = REGEX_STOKEN,
             [style_param] = REGEX_PARAM,
+            [style_opcref] = REGEX_OPREF,
             [style_kword] = REGEX_KWORD,
             // { style_labels, @"(^(\s|\b)+\w+\:|(?:\bfunc\s+)\w+\s*$)" },
             [style_float] = REGEX_FLOAT,
             [style_int] = REGEX_INT,
             [style_addr] = REGEX_ADDR,
-            [style_opcref] = REGEX_OPREF,
             [style_opc] = REGEX_INSTR,
         };
         private static readonly Dictionary<string, Bitmap> autocomp_images = new Dictionary<string, Bitmap>

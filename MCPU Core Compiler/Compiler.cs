@@ -429,9 +429,7 @@ namespace MCPU.Compiler
 
                             OPCode opc = CodesByToken[token];
 
-                            if (opc.RequiredArguments > args.Count)
-                                return Error(GetString("NEED_MORE_ARGS", opc.Token, opc.RequiredArguments));
-                            else if (opc == EXEC)
+                            while (opc == EXEC)
                                 try
                                 {
                                     opc = CodesByID[(ushort)args[0]];
@@ -441,6 +439,9 @@ namespace MCPU.Compiler
                                 {
                                     return Error(GetString("COULDNT_TRANSLATE_EXEC"));
                                 }
+
+                            if (opc.RequiredArguments > args.Count)
+                                return Error(GetString("NEED_MORE_ARGS", opc.Token, opc.RequiredArguments));
                             else if ((opc == RET) && (curr_func.Name == MAIN_FUNCTION_NAME))
                                 return Error(GetString("INVALID_RET"));
 
@@ -672,14 +673,14 @@ namespace MCPU.Compiler
                         return CanBeRemoved((OPCodes.CodesByID[(ushort)i[0].Value], i.Arguments.Skip(1).ToArray()));
                     else
                         return (i == NOP)
+                            || (In(MOV, SWAP, OR, AND)                                       && i[0] == i[1])
+                            || (In(JMPREL)                                                   && i[0] == (1, ArgumentType.Constant))
+                            || (In(WAIT)                                                     && i[0] == (0, ArgumentType.Constant))
                             || (In(ADD, SUB, CLEAR, OR, XOR, FSUB, FADD, ROL, ROR, SHL, SHR) && i[1] == (0, ArgumentType.Constant))
                             || (In(MUL, DIV)                                                 && i[1] == (1, ArgumentType.Constant))
                             || (In(AND, NXOR)                                                && i[1] == (unchecked((int)0xffffffffu), ArgumentType.Constant))
-                            || (In(MOV, SWAP, OR, AND)                                       && i[0] == i[1])
                             || (In(FMUL, FDIV, FPOW, FROOT)                                  && i[1] == ((FloatIntUnion)1f, ArgumentType.Constant))
-                            || (In(COPY)                                                     && i[2] == (0, ArgumentType.Constant))
-                            || (In(JMPREL)                                                   && i[0] == (1, ArgumentType.Constant));
-                    // todo : wait
+                            || (In(COPY)                                                     && i[2] == (0, ArgumentType.Constant));
                 }
                 catch
                 {
