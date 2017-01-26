@@ -6,13 +6,6 @@ using System.Linq;
 using System.Text;
 using System;
 
-using Piglet.Lexer;
-using Piglet.Parser;
-
-using MCPU.MCPUPP.Parser.SyntaxTree;
-using MCPU.MCPUPP.Compiler;
-using MCPU.MCPUPP.Parser;
-using MCPU.MCPUPP.Tests;
 using MCPU.Compiler;
 
 namespace MCPU
@@ -25,108 +18,16 @@ namespace MCPU
 
     public unsafe class Program
     {
-        public static void VisualizeError(LexerException err, string code)
+        public static void Main(string[] args)
         {
-            int lnr = 1;
-
-            foreach (string line in code.Split('\n'))
-            {
-                ForegroundColor = ConsoleColor.Gray;
-
-                if (lnr == err.LineNumber)
-                {
-                    string bline = err.LineContents.TrimEnd();
-                    string eline = line.Remove(0, err.LineContents.Length + 1).TrimStart();
-
-                    ForegroundColor = ConsoleColor.Red;
-                    Write("> ");
-                    Write(bline);
-                    BackgroundColor = ConsoleColor.DarkRed;
-                    ForegroundColor = ConsoleColor.White;
-                    Write(line.Substring(bline.Length, line.Length - (eline + bline).Length));
-                    BackgroundColor = ConsoleColor.Black;
-                    ForegroundColor = ConsoleColor.Red;
-                    WriteLine(eline);
-                }
-                else
-                    WriteLine($"  {line}");
-
-                ++lnr;
-            }
-        }
-
-        public static int Main(string[] args)
-        {
-            if (args.Contains("-inner"))
-                return InnerMain(args);
-            else // if (args.Contains("-unittests"))
-                return UnitTestWrapper.Main(args);
-        }
-
-        private static int InnerMain(string[] args)
-        {
-            var mcppp = @"
-int* test;
-
-void main(int[] arr)
-{
-    int f;
-    float* ptr;
-
-    __asm ""
-        .kernel
-        NOP
-        MOV k[44]  [[$0]] __test
-__test:
-        HALT
-    "";
-}
-".Trim();
-
-            try
-            {
-                var ast = Lexer.parse(mcppp);
-
-                WriteLine(SyntaxTreeExtensions.ToDebugString(ast));
-            }
-            catch (Exception ex)
-            {
-                if (ex is ParseException pex)
-                    WriteLine($"{pex.FoundToken}\n{string.Join(", ", pex.ExpectedTokens)}");
-                else if (ex is LexerException lex)
-                {
-                    VisualizeError(lex, mcppp);
-                    ForegroundColor = ConsoleColor.White;
-                }
-
-                WriteLine();
-
-                do
-                {
-                    print(ex);
-
-                    ex = ex.InnerException;
-                }
-                while (ex != null);
-
-                void print(Exception _)
-                {
-                    WriteLine(_.Message);
-                    WriteLine(_.StackTrace);
-                }
-            }
-
-            ReadKey(false);
-            return 0;
-
             Processor proc = new Processor(64, 64, -559038737);
-
+            
             proc.OnError += (p, ex) => {
                 ForegroundColor = ConsoleColor.Red;
                 WriteLine($"WELL FUGG :D\n{ex.Message}\n{ex.StackTrace}");
                 ForegroundColor = ConsoleColor.White;
             };
-
+            
             var res = MCPUCompiler.Compile(@"
 func rec
     wait $2
@@ -152,16 +53,14 @@ end func
 
             foreach (var i in instr)
                 WriteLine($"{line++:d3}: {i}");
-
+            
             proc.ProcessWithoutReset(instr);
 
             WriteLine($"SBP: {proc.StackBaseAddress:x8}");
             WriteLine($"SP:  {proc.StackPointerAddress:x8}");
             WriteLine($"SSZ: {proc.StackSize * 4}");
-
+            
             ReadKey(true);
-
-            return 0;
         }
     }
 }

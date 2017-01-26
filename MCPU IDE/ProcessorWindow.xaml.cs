@@ -42,7 +42,7 @@ namespace MCPU.IDE
                         tasks.Dequeue().Start();
             }).Start();
         }
-
+        
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
 
@@ -160,7 +160,7 @@ namespace MCPU.IDE
                         lst_call.Items.Add(c);
                     foreach (InstructionData i in _instr)
                         lst_instr.Items.Add(i);
-
+                    
                     lst_io.SelectedIndex = -1;
                     lst_instr.SelectedIndex = eip >= lst_instr.Items.Count ? -1 : eip;
                     lst_instr.ScrollIntoView(lst_instr.SelectedItem);

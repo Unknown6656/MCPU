@@ -12,7 +12,7 @@ namespace MCPU.IDE
     public partial class SettingsWindow
         : Window
     {
-        internal (string, int, int, bool) settings;
+        internal (string, int, int) settings;
 
 
         public SettingsWindow(MainWindow mainWindow)
@@ -20,23 +20,19 @@ namespace MCPU.IDE
             InitializeComponent();
 
             Owner = mainWindow;
-            settings = (Settings.Default.Language, Settings.Default.MemorySize, Settings.Default.CallStackSize, Settings.Default.OptimizeCode);
+            settings = (Settings.Default.Language, Settings.Default.MemorySize, Settings.Default.CallStackSize);
         }
-
+        
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             mtb_memsz.Text = settings.Item2.ToString();
             mtb_memsz.TextChanged += MaskedTextBox_TextChanged;
-
+            
             mtb_stacksz.Text = settings.Item3.ToString();
             mtb_stacksz.TextChanged += MaskedTextBox_TextChanged;
 
             lst_lang.SelectionMode = SelectionMode.Single;
             lst_lang.Items.Clear();
-
-            cb_optcode.IsChecked = settings.Item4;
-            cb_optcode.Checked += (s, a) => settings.Item4 = true;
-            cb_optcode.Unchecked += (s, a) => settings.Item4 = false;
 
             foreach ((string code, string lang) in App.available_languages)
                 lst_lang.Items.Add(new LanguageInfo
@@ -88,7 +84,7 @@ namespace MCPU.IDE
                 (Application.Current as App).ChangeLanguage(settings.Item1);
             }
         }
-
+        
         private void Button_cancel_Click(object sender, RoutedEventArgs e) => Close();
 
         private void Button_reset_Click(object sender, RoutedEventArgs e) => settings = App.DEFAULT_SETTINGS;
@@ -97,9 +93,8 @@ namespace MCPU.IDE
         {
             (Settings.Default.Language,
              Settings.Default.MemorySize,
-             Settings.Default.CallStackSize,
-             Settings.Default.OptimizeCode) = settings;
-
+             Settings.Default.CallStackSize) = settings;
+            
             App.UpdateSaveSettings();
 
             if (Owner is MainWindow mwin)

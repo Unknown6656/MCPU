@@ -46,7 +46,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ConsoleExtensions.cs" />
-    <Compile Include="DiffEngine.cs" />
     <Compile Include="GeneratedInstructions.cs">
       <DependentUpon>GeneratedInstructions.tt</DependentUpon>
       <DesignTime>True</DesignTime>
