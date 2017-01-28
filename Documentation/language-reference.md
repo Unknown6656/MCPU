@@ -3,6 +3,7 @@
 ## Basics
 
 The MCPU assembly language is a case-insensitive Intel-syntax-based language to control the MCPU processor.
+You might want considering a look at the [MCPU syntax reference](./mcpu-syntax.md) if you only want to see, "how it is written".
 A MCPU program (unless empty) must declare its main entry-point by using the following token:
 ```
     .main
@@ -132,6 +133,18 @@ END func
                     ; The result will be:
                     ;   ([3] + [1]) * 5 = (4 + 2) * 5 = 6 * 5 = 30
 ```
+
+The sixth parameter type are OP code references, which are compiled into the constant number, which the OP code in question is associated with, e.g:
+```
+    .MAIN
+    MOV [4] <NOP>
+```
+compiles to
+```
+    .MAIN
+    MOV [4] 0
+```
+This OP code referencing can be useful in combination with the `exec`-instruction. See [the instruction set](./instruction-set.md) for a complete list of all OP codes and their associated number.
 
 ### Control flow
 
