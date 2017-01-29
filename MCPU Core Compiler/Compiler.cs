@@ -16,6 +16,10 @@ namespace MCPU.Compiler
     public static class MCPUCompiler
     {
         /// <summary>
+        /// The character sequence, which indicates a not yet implemented code snippet/token/segment
+        /// </summary>
+        public const string TODO_TOKEN = "__TODO__";
+        /// <summary>
         /// The character sequence which marks the start of a code comment
         /// </summary>
         public const string COMMENT_START = ";";

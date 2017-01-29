@@ -18,6 +18,7 @@ namespace MCPU.IDE
 
     public partial class HighlightnerForm
         : UserControl
+        , IDisposable
     {
         internal const string REGEX_STOKEN = @"\.(user|inline|kernel|main)\b";
         internal const string REGEX_FUNC = @"^(?:\s*\.inline)?\s*func\s+(?:\w+)";
@@ -26,6 +27,7 @@ namespace MCPU.IDE
         internal const string REGEX_ADDR = @"(\bk)?\[{1,2}(?:.+)\]{1,2}";
         internal const string REGEX_PARAM = @"\$[0-9]+\b";
         internal const string REGEX_COMMENT = @"\;.*$";
+        internal static readonly string REGEX_TODO = $@"\b{MCPUCompiler.TODO_TOKEN}\b";
         internal static readonly string REGEX_INT = $@"\b({MCPUCompiler.INTEGER_CORE})\b";
         internal static readonly string REGEX_FLOAT = $@"\b({MCPUCompiler.FLOAT_CORE})\b";
         internal static readonly string REGEX_KWORD = $@"({REGEX_FUNC}|{REGEX_END_FUNC}|\b({string.Join("|", MCPUCompiler.ReservedKeywords)}|{MCPUCompiler.MAIN_FUNCTION_NAME})\b)";
@@ -36,6 +38,7 @@ namespace MCPU.IDE
 
         public static OptimizableStyle style_opt;
         public static readonly ErrorStyle style_error = new ErrorStyle();
+        public static readonly FadeStyle style_todo = new FadeStyle(Color.GreenYellow, Color.DarkGreen, 1000);
         public static readonly TextStyle style_param = CreateStyle(0x92CAF4, FontStyle.Regular);
         public static readonly TextStyle style_addr = CreateStyle(0xEFF284, FontStyle.Regular);
         public static readonly TextStyle style_labels = CreateStyle(0x4EC9B0, FontStyle.Italic);
@@ -50,6 +53,7 @@ namespace MCPU.IDE
         public static readonly Dictionary<TextStyle, string> styles = new Dictionary<TextStyle, string>
         {
             [style_comments] = REGEX_COMMENT,
+            [style_todo] = REGEX_TODO,
             [style_stoken] = REGEX_STOKEN,
             [style_param] = REGEX_PARAM,
             [style_opcref] = REGEX_OPREF,
@@ -77,6 +81,7 @@ namespace MCPU.IDE
         internal AutocompleteItem[] std_autocompitems;
         internal AutocompleteMenu autocomp;
         private MCPUCompilerException err;
+        private Timer refr_timer;
         private Range err_range;
         private Range[] opt_range;
         private int[] opt_lines;
@@ -221,6 +226,11 @@ namespace MCPU.IDE
             // autocomp.Items.MinimumSize = new Size(200, 300);
             autocomp.Items.Width = 500;
             autocomp.MinFragmentLength = 0;
+
+            refr_timer = new Timer();
+            refr_timer.Interval = 50;
+            refr_timer.Tick += (s, a) => fctb.Invalidate();
+            refr_timer.Start();
         }
 
         private Range GetEffectiveLineRange(int line)
@@ -396,6 +406,15 @@ namespace MCPU.IDE
             if (sender != null)
                 Parent.changed = true;
         }
+
+        public new void Dispose()
+        {
+            refr_timer.Stop();
+            refr_timer.Dispose();
+            refr_timer = null;
+
+            base.Dispose();
+        }
     }
 
     public sealed class ErrorStyle
@@ -428,6 +447,39 @@ namespace MCPU.IDE
         {
             wls.Draw(gr, position, range);
 
+            base.Draw(gr, position, range);
+        }
+    }
+
+    public sealed class FadeStyle
+        : TextStyle
+    {
+        public Color ForeColor1 { get; }
+        public Color ForeColor2 { get; }
+        public int Milliseconds { get; }
+
+
+        public FadeStyle(Color fg1, Color fg2, int ms)
+            : base(null, null, FontStyle.Bold)
+        {
+            ForeColor1 = fg1;
+            ForeColor2 = fg2;
+            Milliseconds = ms;
+        }
+
+        public override void Draw(Graphics gr, Point position, Range range)
+        {
+            TimeSpan now = DateTime.MinValue - DateTime.Now;
+            double step = (Math.Sin((now.TotalMilliseconds % Milliseconds) * Math.PI * 2d / Milliseconds) + 1) / 2;
+
+            int interpolate(int c1, int c2) => (int)(c1 * step + c2 * (1 - step));
+
+            base.ForeBrush = new SolidBrush(Color.FromArgb(
+                    interpolate(ForeColor1.A, ForeColor2.A),
+                    interpolate(ForeColor1.R, ForeColor2.R),
+                    interpolate(ForeColor1.G, ForeColor2.G),
+                    interpolate(ForeColor1.B, ForeColor2.B)
+                ));
             base.Draw(gr, position, range);
         }
     }

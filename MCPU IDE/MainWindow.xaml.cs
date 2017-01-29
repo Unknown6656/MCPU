@@ -24,6 +24,7 @@ using MCPU;
 using FastColoredTextBoxNS;
 
 using WinForms = System.Windows.Forms;
+using System.Reflection;
 
 namespace MCPU.IDE
 {
@@ -379,6 +380,11 @@ namespace MCPU.IDE
 
         private void mie_cut(object sender, ExecutedRoutedEventArgs e) => fctb.Cut();
 
+        private void mie_insert_snippet(object sender, ExecutedRoutedEventArgs e)
+        {
+
+        }
+
         private void mie_search(object sender, ExecutedRoutedEventArgs e) => fctb.ProcessKey(WinForms.Keys.F | WinForms.Keys.Control);
 
         private void mie_replace(object sender, ExecutedRoutedEventArgs e) => fctb.ProcessKey(WinForms.Keys.H | WinForms.Keys.Control);
@@ -501,6 +507,53 @@ namespace MCPU.IDE
         #endregion
     }
 
+    public static class Snippets
+    {
+        internal static Dictionary<string, string> snp { get; } = new Dictionary<string, string> {
+            ["IF"] = $@"
+    CMP [{MCPUCompiler.TODO_TOKEN}] 0
+    JE _else
+    
+    ; condition is true
+
+    JMP _endif
+_else:
+
+    ; condition is false
+    
+_endif:",
+            ["WHILE"] = $@"
+_while:
+    CMP [{MCPUCompiler.TODO_TOKEN}] 0
+    JE _endwhle
+    
+    ; while body
+
+    JMP _while
+_endwhle:",
+        };
+
+        public static string[] Names => snp.Keys.ToArray();
+
+        public static string GetSnippet(string name)
+        {
+            try
+            {
+                bool isempty(string s) => (s ?? "").Trim().Length == 0;
+
+                return string.Join("\n", snp[name].Split('\n')
+                                                  .SkipWhile(isempty)
+                                                  .Reverse()
+                                                  .SkipWhile(isempty)
+                                                  .Reverse());
+            }
+            catch
+            {
+                return "";
+            }
+        }
+    }
+
     public static class Commands
     {
         private static RoutedUICommand create(string name, Key key, ModifierKeys mod = ModifierKeys.Control) =>
@@ -524,6 +577,7 @@ namespace MCPU.IDE
         public static readonly RoutedUICommand Delete = create(nameof(Delete), Key.Delete, ModifierKeys.None);
         public static readonly RoutedUICommand Undo = create(nameof(Undo), Key.Z);
         public static readonly RoutedUICommand Redo = create(nameof(Redo), Key.Y);
+        public static readonly RoutedUICommand InsertSnippet = create(nameof(InsertSnippet), Key.K);
         public static readonly RoutedUICommand Compile = create(nameof(Compile), Key.F5, ModifierKeys.None);
         public static readonly RoutedUICommand Start = create(nameof(Start), Key.F6, ModifierKeys.None);
         public static readonly RoutedUICommand Next = create(nameof(Next), Key.F5, ModifierKeys.Shift);
