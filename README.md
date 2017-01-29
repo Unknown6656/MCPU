@@ -6,17 +6,20 @@ The name **MCPU** stands for **M**inimalistic **C**entral **P**rocessing **U**ni
 #### Build status (Windows 64Bit, VS 2017 RC)
 [<img src="https://ci.appveyor.com/api/projects/status/k9t9jqap2iemau3c/branch/master?svg=true&pendingText=master%20-%20pending&failingText=master%20-%20failed&passingText=master%20-%20passed" height="30"/>](https://ci.appveyor.com/project/Unknown6656/mcpu/branch/master)<br/>
 [<img src="https://ci.appveyor.com/api/projects/status/k9t9jqap2iemau3c/branch/dev?svg=true&pendingText=dev%20-%20pending&failingText=dev%20-%20failed&passingText=dev%20-%20passed" height="30"/>](https://ci.appveyor.com/project/Unknown6656/mcpu/branch/dev)<br/>
-[<img src="https://ci.appveyor.com/api/projects/status/k9t9jqap2iemau3c/branch/mcpu%2B%2B?svg=true&pendingText=mcpu%2B%2B%20-%20pending&failingText=mcpu%2B%2B%20-%20failed&passingText=mcpu%2B%2B%20-%20passed" height="30"/>](https://ci.appveyor.com/project/Unknown6656/mcpu/branch/mcpu%2B%2B)
+[<img src="https://ci.appveyor.com/api/projects/status/k9t9jqap2iemau3c/branch/mcpu%2B%2B?svg=true&pendingText=mcpu%2B%2B%20-%20pending&failingText=mcpu%2B%2B%20-%20failed&passingText=mcpu%2B%2B%20-%20passed" height="30"/>](https://ci.appveyor.com/project/Unknown6656/mcpu/branch/mcpu%2B%2B)<br/>
+[<img src="https://img.shields.io/github/release/Unknown6656/MCPU.svg" height="30"/>](https://github.com/Unknown6656/MCPU/releases)
+
 #### Testing status (Windows 64Bit)
 [<img src="https://ci.appveyor.com/api/projects/status/fyvayfc9e82xh6eg/branch/master?svg=true&pendingText=master%20-%20pending&failingText=master%20-%20failed&passingText=master%20-%20passed" height="30"/>](https://ci.appveyor.com/project/Unknown6656/mcpu-he9wv/branch/master)<br/>
 [<img src="https://ci.appveyor.com/api/projects/status/fyvayfc9e82xh6eg/branch/dev?svg=true&pendingText=dev%20-%20pending&failingText=dev%20-%20failed&passingText=dev%20-%20passed" height="30"/>](https://ci.appveyor.com/project/Unknown6656/mcpu-he9wv/branch/dev)<br/>
 [<img src="https://ci.appveyor.com/api/projects/status/fyvayfc9e82xh6eg/branch/mcpu%2B%2B?svg=true&pendingText=mcpu%2B%2B%20-%20pending&failingText=mcpu%2B%2B%20-%20failed&passingText=mcpu%2B%2B%20-%20passed" height="30"/>](https://ci.appveyor.com/project/Unknown6656/mcpu-he9wv/branch/mcpu%2B%2B)
 
 
-#### Issue/PR stats
+#### Stats
 
-[<img src="http://issuestats.com/github/Unknown6656/MCPU/badge/pr?style=flat" height="30"/>](http://issuestats.com/github/Unknown6656/MCPU)<br/>
-[<img src="http://issuestats.com/github/Unknown6656/MCPU/badge/issue?style=flat" height="30"/>](http://issuestats.com/github/Unknown6656/MCPU)<br/>
+[<img src="https://img.shields.io/issuestats/i/github/Unknown6656/MCPU.svg" height="30"/>](http://issuestats.com/github/Unknown6656/MCPU)<br/>
+[<img src="https://img.shields.io/issuestats/p/github/Unknown6656/MCPU.svg" height="30"/>](http://issuestats.com/github/Unknown6656/MCPU)<br/>
+<img src="https://img.shields.io/github/downloads/Unknown6656/MCPU/total.svg" height="30"/><br/>
 
 ### Reference Manual
 
