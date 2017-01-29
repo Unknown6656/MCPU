@@ -577,7 +577,7 @@ namespace MCPU.Compiler
 
                         tailopt -= fdiff;
 
-                        if (tailopt > 0)
+                        if ((tailopt > 0) && OptimizationEnabled)
                             for (int i = 0, l = f.Instructions.Last().Item2 - fdiff; i < tailopt; i++)
                                 rm.Add(l - i);
 
@@ -590,12 +590,14 @@ namespace MCPU.Compiler
                             }
                             else
                             {
-                                if (canoptimize)
+                                if (canoptimize && OptimizationEnabled)
                                     rm.Add(ol);
+                                else
+                                {
+                                    instr.Add((ins, ol));
 
-                                instr.Add((ins, ol));
-
-                                linenr++;
+                                    linenr++;
+                                }
 
                                 if ((ins.OPCode == RET) ||
                                     (ins.OPCode == HALT) ||
@@ -617,7 +619,7 @@ namespace MCPU.Compiler
                             unused_isl.Remove(val);
                         }
 
-                (Instruction[] inst, int[] opt_lines) = OptimizationEnabled ? Optimize(cmp_instr) : (cmp_instr.Select(_ => _.Item1).ToArray(), new int[0]);
+                (Instruction[] inst, int[] opt_lines) = Optimize(cmp_instr);
 
                 return (inst, (from o in opt_lines.Union(rm)
                                                   .Union(unused_isl.Values)
@@ -673,20 +675,23 @@ namespace MCPU.Compiler
                         return CanBeRemoved((OPCodes.CodesByID[(ushort)i[0].Value], i.Arguments.Skip(1).ToArray()));
                     else
                         return (i == NOP)
-                            || (In(MOV, SWAP, OR, AND)                                       && i[0] == i[1])
-                            || (In(JMPREL)                                                   && i[0] == (1, ArgumentType.Constant))
-                            || (In(WAIT)                                                     && i[0] == (0, ArgumentType.Constant))
-                            || (In(ADD, SUB, CLEAR, OR, XOR, FSUB, FADD, ROL, ROR, SHL, SHR) && i[1] == (0, ArgumentType.Constant))
-                            || (In(MUL, DIV)                                                 && i[1] == (1, ArgumentType.Constant))
-                            || (In(AND, NXOR)                                                && i[1] == (unchecked((int)0xffffffffu), ArgumentType.Constant))
-                            || (In(FMUL, FDIV, FPOW, FROOT)                                  && i[1] == ((FloatIntUnion)1f, ArgumentType.Constant))
-                            || (In(COPY)                                                     && i[2] == (0, ArgumentType.Constant));
+                            || (In(MOV, SWAP, OR, AND)                                          && i[0] == i[1])
+                            || (In(JMPREL)                                                      && i[0] == (1, ArgumentType.Constant))
+                            || (In(WAIT)                                                        && i[0] == (0, ArgumentType.Constant))
+                            || (In(ADD, SUB, CLEAR, OR, XOR, FSUB, FADD, ROL, ROR, SHL, SHR)    && i[1] == (0, ArgumentType.Constant))
+                            || (In(MUL, DIV)                                                    && i[1] == (1, ArgumentType.Constant))
+                            || (In(AND, NXOR)                                                   && i[1] == (unchecked((int)0xffffffffu), ArgumentType.Constant))
+                            || (In(FMUL, FDIV, FPOW, FROOT)                                     && i[1] == ((FloatIntUnion)1f, ArgumentType.Constant))
+                            || (In(COPY)                                                        && i[2] == (0, ArgumentType.Constant));
                 }
                 catch
                 {
                     return false;
                 }
             }
+
+            if (!OptimizationEnabled)
+                return ((from i in instr select i.Item1).ToArray(), new int[0]);
 
             Dictionary<int, (int, bool)> offset_table = Enumerable.Range(0, instr.Length).ToDictionary(_ => _, _ => (0, false));
             List<Instruction> outp = new List<Instruction>();
