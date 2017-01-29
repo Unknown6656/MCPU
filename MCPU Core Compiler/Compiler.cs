@@ -285,7 +285,7 @@ namespace MCPU.Compiler
                         {
                             bool inline = match.Groups["inline"]?.ToString()?.ToLower()?.Contains("inline") ?? false;
                             string name = match.Groups["name"].ToString().ToLower();
-                            (int, string, int) um = unmapped.FirstOrDefault(_ => _.Item2 == name);
+                            (int, string, int) um = unmapped.Find(_ => _.Item2 == name);
                             int tid;
 
                             if (name == MAIN_FUNCTION_NAME)
@@ -390,7 +390,7 @@ namespace MCPU.Compiler
                                                 if (arg.Contains('[') || arg.Contains(']'))
                                                     return Error(GetString("INVALID_ARG", arg));
 
-                                                var dic = functions.ToDictionary(_ => _.Name.ToLower(), _ => _.ID);
+                                                Dictionary<string, int> dic = functions.ToDictionary(_ => _.Name.ToLower(), _ => _.ID);
 
                                                 val = val.ToLower();
 
@@ -462,7 +462,7 @@ namespace MCPU.Compiler
             }
             else
                 return (functions.ToArray(), labelmeta.ToArray(), ignore.ToArray(), -1, "");
-            
+
             (MCPUFunction[], MCPULabelMetadata[], int[], int, string) Error(string message) => (null, null, null, linenr + 1, message);
 
             MCPUFunction FindFirst(string name) => (from f in functions where f.Name == name select f).FirstOrDefault();
