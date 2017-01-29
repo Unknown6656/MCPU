@@ -14,12 +14,10 @@ The name **MCPU** stands for **M**inimalistic **C**entral **P**rocessing **U**ni
 [<img src="https://ci.appveyor.com/api/projects/status/fyvayfc9e82xh6eg/branch/dev?svg=true&pendingText=dev%20-%20pending&failingText=dev%20-%20failed&passingText=dev%20-%20passed" height="30"/>](https://ci.appveyor.com/project/Unknown6656/mcpu-he9wv/branch/dev)<br/>
 [<img src="https://ci.appveyor.com/api/projects/status/fyvayfc9e82xh6eg/branch/mcpu%2B%2B?svg=true&pendingText=mcpu%2B%2B%20-%20pending&failingText=mcpu%2B%2B%20-%20failed&passingText=mcpu%2B%2B%20-%20passed" height="30"/>](https://ci.appveyor.com/project/Unknown6656/mcpu-he9wv/branch/mcpu%2B%2B)
 
-
 #### Stats
-
-[<img src="https://img.shields.io/issuestats/i/github/Unknown6656/MCPU.svg" height="30"/>](http://issuestats.com/github/Unknown6656/MCPU)<br/>
-[<img src="https://img.shields.io/issuestats/p/github/Unknown6656/MCPU.svg" height="30"/>](http://issuestats.com/github/Unknown6656/MCPU)<br/>
-<img src="https://img.shields.io/github/downloads/Unknown6656/MCPU/total.svg" height="30"/><br/>
+[<img src="https://img.shields.io/issuestats/i/github/Unknown6656/MCPU.svg" height="30"/>](https://github.com/Unknown6656/MCPU/issues)<br/>
+[<img src="https://img.shields.io/issuestats/p/github/Unknown6656/MCPU.svg" height="30"/>](https://github.com/Unknown6656/MCPU/pulls)<br/>
+[<img src="https://img.shields.io/github/downloads/Unknown6656/MCPU/total.svg" height="30"/><br/>](https://github.com/Unknown6656/MCPU/releases)
 
 ### Reference Manual
 
@@ -32,8 +30,8 @@ The name **MCPU** stands for **M**inimalistic **C**entral **P**rocessing **U**ni
 
 ### TODO-List
 
-- [ ] IDE Documentation (!)
-- [ ] MCPU++ Documentation (!)
+- [ ] IDE Documentation (!) **(currently in progress)**
+- [ ] MCPU++ Documentation (!) **(currently in progress)**
 - [ ] Function inlining
 - [ ] Asynchronous processor execution
 - [ ] Virtual Device support
