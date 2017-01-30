@@ -279,7 +279,10 @@ namespace MCPU.IDE
 
         private void Fctb_ToolTipNeeded(object sender, ToolTipNeededEventArgs e)
         {
+            DarkTooltip tooltip = fctb.ToolTip as DarkTooltip;
+
             e.ToolTipIcon = ToolTipIcon.None;
+            tooltip.Icon = null;
 
             if ((Error != null) && (err_range?.Contains(e.Place) ?? false))
             {
@@ -304,49 +307,82 @@ namespace MCPU.IDE
                                                            || (m = Regex.Match(lln ? line : e.HoveredWord, TrimStart(TrimEnd(pat, @"\b"), @"\b"), RegexOptions.IgnoreCase)).Success;
                     string token = e.HoveredWord.ToLower();
 
-                    if (reg(REGEX_ADDR))
-                        e.ToolTipText = "tooltip_addr".GetStr(e.HoveredWord);
-                    else if (reg(REGEX_PARAM))
-                        e.ToolTipText = "tooltip_param".GetStr(e.HoveredWord);
-                    else if (reg(REGEX_INT))
-                        e.ToolTipText = "tooltip_int".GetStr(e.HoveredWord);
-                    else if (reg(REGEX_FLOAT))
-                        e.ToolTipText = "tooltip_float".GetStr(e.HoveredWord);
-                    else if (reg(REGEX_LABEL_DECL, true))
-                        e.ToolTipText = "tooltip_label".GetStr();
-                    else if (reg(REGEX_FUNC, true))
-                        e.ToolTipText = "tooltip_func".GetStr();
-                    else if (reg(REGEX_TODO))
+                    if (reg(REGEX_TODO))
                     {
                         e.ToolTipText = "tooltip_todo".GetStr();
                         e.ToolTipIcon = ToolTipIcon.Warning;
                     }
-                    else if (reg(REGEX_END_FUNC, true))
-                        e.ToolTipText = "tooltip_endfunc".GetStr();
-                    else if (reg(REGEX_STOKEN))
-                        e.ToolTipText = $"{e.HoveredWord}-token\n << TODO >>";
-                    else if (reg(REGEX_OPREF))
-                        e.ToolTipText = ""; /////////////////////////////////////////////// TODO ///////////////////////////////////////////////
-                    else if (reg(REGEX_INSTR))
+                    else if (reg(REGEX_ADDR))
                     {
-                        OPCode opc = OPCodes.CodesByToken.FirstOrDefault(_ => _.Key.ToLower() == token.Trim()).Value;
-
-                        if (opc != null)
-                            e.ToolTipText = "tooltip_instr".GetStr(opc.Token, opc);
-                        else
-                            e.ToolTipText = "token".GetStr(token);
+                        tooltip.Icon = autocomp_images["address"];
+                        e.ToolTipText = "tooltip_addr".GetStr(e.HoveredWord);
                     }
-                    else if (reg(REGEX_KWORD))
+                    else if (reg(REGEX_PARAM))
+                    {
+                        // tooltip.Icon =;
+                        e.ToolTipText = "tooltip_param".GetStr(e.HoveredWord);
+                    }
+                    else if (reg(REGEX_STOKEN))
+                    {
+                        tooltip.Icon = autocomp_images["directive"];
+                        e.ToolTipText = $"{e.HoveredWord}-token\n << TODO >>";
+                    }
+                    else if (reg(REGEX_FLOAT))
+                    {
+                        // tooltip.Icon =;
+                        e.ToolTipText = "tooltip_float".GetStr(e.HoveredWord);
+                    }
+                    else if (reg(REGEX_INT))
+                    {
+                        // tooltip.Icon =;
+                        e.ToolTipText = "tooltip_int".GetStr(e.HoveredWord);
+                    }
+                    else if (reg(REGEX_LABEL_DECL, true))
+                    {
+                        tooltip.Icon = autocomp_images["label"];
+                        e.ToolTipText = "tooltip_label".GetStr();
+                    }
+                    else if (reg(REGEX_FUNC, true))
+                    {
+                        tooltip.Icon = autocomp_images["function"];
+                        e.ToolTipText = "tooltip_func".GetStr();
+                    }
+                    else if (reg(REGEX_END_FUNC, true))
+                    {
+                        tooltip.Icon = autocomp_images["function"];
+                        e.ToolTipText = "tooltip_endfunc".GetStr();
+                    }
+                    else if (reg(REGEX_OPREF))
+                    {
+                        e.ToolTipText = ""; /////////////////////////////////////////////// TODO ///////////////////////////////////////////////
+                    }
+                    else if (!reg(REGEX_INSTR) && reg(REGEX_KWORD))
+                    {
+                        tooltip.Icon = autocomp_images["keyword"];
                         e.ToolTipText = "tooltip_keyword".GetStr(e.HoveredWord);
+                    }
                     else
                     {
-                        var func = functions.Where(_ => _.Name.ToLower() == token.Trim()).ToArray();
-                        var label = labels.Where(_ => _.Name.ToLower() == token.Trim()).ToArray();
+                        MCPUFunctionMetadata[] func = functions.Where(_ => _.Name.ToLower() == token.Trim()).ToArray();
+                        MCPULabelMetadata[] label = labels.Where(_ => _.Name.ToLower() == token.Trim()).ToArray();
 
                         if (func.Length > 0)
-                            e.ToolTipText = "tooltip_funcref".GetStr(token, func[0].DefinedLine);
+                        {
+                            tooltip.Icon = autocomp_images["function"];
+                            e.ToolTipText = "tooltip_funcref".GetStr(token, func[0].DefinedLine + 1);
+                        }
                         else if (label.Length > 0)
-                            e.ToolTipText = "tooltip_labelref".GetStr(token, label[0].DefinedLine);
+                        {
+                            tooltip.Icon = autocomp_images["label"];
+                            e.ToolTipText = "tooltip_labelref".GetStr(token, label[0].DefinedLine + 1);
+                        }
+                        else if (reg(REGEX_INSTR))
+                        {
+                            OPCode opc = OPCodes.CodesByToken.FirstOrDefault(_ => _.Key.ToLower() == token.Trim()).Value;
+
+                            tooltip.Icon = autocomp_images["opcode"];
+                            e.ToolTipText = opc == null ? "tooltip_token".GetStr(token) : "tooltip_instr".GetStr(opc.Token, opc);
+                        }
                         else
                         {
                             e.ToolTipIcon = ToolTipIcon.Warning;

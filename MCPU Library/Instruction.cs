@@ -94,7 +94,15 @@ namespace MCPU
             }
         }
 
-        public static bool operator ==(OPCode o1, OPCode o2) => !(o1 is null) && (o1?.Number == o2?.Number);
+        public static bool operator ==(OPCode o1, OPCode o2)
+        {
+            if (o1?.Equals(o2) ?? false)
+                return true;
+            if (o1 is null ^ o2 is null)
+                return false;
+            else
+                return o1?.Number == o2?.Number;
+        }
 
         public static bool operator !=(OPCode o1, OPCode o2) => !(o1 == o2);
 
