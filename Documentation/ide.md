@@ -48,7 +48,7 @@ The editor's autocompletion-menu can be accessed by pressing the keyboard combin
 <br/>
 ![][ide04]
 <br/>
-The context menu contains a list of all known instructions, defined functions or labels and a few other useful token. The selected item can be inserted by the press of the key <kbd>Tab</kbd> or <kbd>Enter</kbd>.  
+The context menu contains a list of all known instructions, defined functions or labels and a few other useful token. The selected item can be inserted by the press of the key <kbd>Enter</kbd>.  
 The menu can be closed by pressing the <kbd>Esc</kbd>-key.
 
 (((TODO)))

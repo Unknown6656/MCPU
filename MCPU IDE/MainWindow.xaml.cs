@@ -163,7 +163,7 @@ namespace MCPU.IDE
 
             if (fctb.Lines[selend.iLine].Trim().Length > 0)
             {
-                selend = new Place(fctb.Lines[selend.iLine].Length - 1, selend.iLine);
+                selend = new Place(fctb.Lines[selend.iLine].Length, selend.iLine);
 
                 fctb.Selection = new Range(fctb, selend, selend);
             }
@@ -541,8 +541,8 @@ namespace MCPU.IDE
     {
         internal static Dictionary<string, string> snp { get; } = new Dictionary<string, string> {
             ["IF"] = $@"
-    CMP [{MCPUCompiler.TODO_TOKEN}] 0
-    JE _else
+    CMP [{MCPUCompiler.TODO_TOKEN}] ; check the condition
+    JZ _else
     
     ; condition is true
 
@@ -551,23 +551,39 @@ _else:
 
     ; condition is false
     
-_endif:",
+_endif:
+",
             ["WHILE"] = $@"
 _while:
-    CMP [{MCPUCompiler.TODO_TOKEN}] 0
-    JE _endwhle
+    CMP [{MCPUCompiler.TODO_TOKEN}] ; check the condition
+    JZ _endwhile
     
     ; while body
 
     JMP _while
-_endwhle:",
+_endwhile:
+",
             ["FOR"] = $@"
-    MOV [100h] [{MCPUCompiler.TODO_TOKEN}] ; start value
-    MOV [101h] [{MCPUCompiler.TODO_TOKEN}] ; end value
+    MOV [100h] {MCPUCompiler.TODO_TOKEN} ; start value
+    MOV [101h] {MCPUCompiler.TODO_TOKEN} ; end value
 _for:
     CMP [100h] [101h]
     JL _forend
     INCR [100h]
+
+    ; for body
+
+    JMP _for
+_forend:
+",
+            ["FORS"] = $@"
+    MOV [100h] {MCPUCompiler.TODO_TOKEN} ; start value
+    MOV [101h] {MCPUCompiler.TODO_TOKEN} ; end value
+    MOV [102h] {MCPUCompiler.TODO_TOKEN} ; step size
+_for:
+    CMP [100h] [101h]
+    JL _forend
+    ADD [100h] [102h]
 
     ; for body
 

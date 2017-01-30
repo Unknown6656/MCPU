@@ -175,17 +175,22 @@ namespace MCPU.IDE
 
             style_opt = new OptimizableStyle(fctb.BackColor, .55);
 
-            autocomp = new AutocompleteMenu(fctb);
-            autocomp.ToolTip = new DarkTooltip();
-            autocomp.ToolTip.BackColor = fctb.BackColor;
-            autocomp.ToolTip.ForeColor = fctb.ForeColor;
-            autocomp.BackColor = fctb.BackColor;
-            autocomp.ForeColor = fctb.ForeColor;
-            autocomp.ImageList = new ImageList();
-            autocomp.AllowTabKey = true;
-            autocomp.AppearInterval = 50;
+            autocomp = new AutocompleteMenu(fctb)
+            {
+                AllowTabKey = false,
+                ToolTip = new DarkTooltip
+                {
+                    BackColor = fctb.BackColor,
+                    ForeColor = fctb.ForeColor
+                },
+                BackColor = fctb.BackColor,
+                ForeColor = fctb.ForeColor,
+                ImageList = new ImageList(),
+                AppearInterval = 50,
+                MinFragmentLength = 0
+            };
 
-            foreach (var kvp in autocomp_images)
+            foreach (KeyValuePair<string, Bitmap> kvp in autocomp_images)
                 autocomp.ImageList.Images.Add(kvp.Key, kvp.Value);
 
             std_autocompitems = (from kvp in OPCodes.CodesByToken
@@ -228,10 +233,11 @@ namespace MCPU.IDE
 
             // autocomp.Items.MinimumSize = new Size(200, 300);
             autocomp.Items.Width = 500;
-            autocomp.MinFragmentLength = 0;
 
-            refr_timer = new Timer();
-            refr_timer.Interval = 50;
+            refr_timer = new Timer
+            {
+                Interval = 50
+            };
             refr_timer.Tick += (s, a) => fctb.Invalidate();
             refr_timer.Start();
         }
