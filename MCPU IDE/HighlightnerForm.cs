@@ -291,7 +291,8 @@ namespace MCPU.IDE
                     return;
                 else
                 {
-                    bool reg(string pat, bool lln = false) => (m = Regex.Match(e.HoveredWord, lln ? line : pat, RegexOptions.IgnoreCase)).Success;
+                    bool reg(string pat, bool lln = false) => (m = Regex.Match(lln ? line : e.HoveredWord, pat, RegexOptions.IgnoreCase)).Success
+                                                           || (m = Regex.Match(lln ? line : e.HoveredWord, TrimStart(TrimEnd(pat, @"\b"), @"\b"), RegexOptions.IgnoreCase)).Success;
                     string token = e.HoveredWord.ToLower();
 
                     if (reg(REGEX_ADDR))
@@ -306,6 +307,11 @@ namespace MCPU.IDE
                         e.ToolTipText = "tooltip_label".GetStr();
                     else if (reg(REGEX_FUNC, true))
                         e.ToolTipText = "tooltip_func".GetStr();
+                    else if (reg(REGEX_TODO))
+                    {
+                        e.ToolTipText = "TODO\nThis line indicates, that the code is unfinished";
+                        e.ToolTipIcon = ToolTipIcon.Info;
+                    }
                     else if (reg(REGEX_END_FUNC, true))
                         e.ToolTipText = "tooltip_endfunc".GetStr();
                     else if (reg(REGEX_STOKEN))
@@ -405,6 +411,26 @@ namespace MCPU.IDE
 
             if (sender != null)
                 Parent.changed = true;
+        }
+
+        internal static string TrimStart(string target, string trimString)
+        {
+            string result = target;
+
+            while (result.StartsWith(trimString))
+                result = result.Substring(trimString.Length);
+
+            return result;
+        }
+
+        internal static string TrimEnd(string target, string trimString)
+        {
+            string result = target;
+
+            while (result.EndsWith(trimString))
+                result = result.Substring(0, result.Length - trimString.Length);
+
+            return result;
         }
 
         public new void Dispose()
