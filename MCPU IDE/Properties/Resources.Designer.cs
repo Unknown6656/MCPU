@@ -121,16 +121,23 @@ namespace MCPU.IDE.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap autocomp_snippet {
+            get {
+                object obj = ResourceManager.GetObject("autocomp_snippet", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &lt;ResourceDictionary xmlns=&quot;http://schemas.microsoft.com/winfx/2006/xaml/presentation&quot;
         ///                    xmlns:x=&quot;http://schemas.microsoft.com/winfx/2006/xaml&quot;
         ///                    xmlns:s=&quot;clr-namespace:System;assembly=mscorlib&quot;&gt;
-        ///    &lt;s:String x:Key=&quot;lang_iso&quot;&gt;ENG&lt;/s:String&gt;
-        ///    &lt;s:String x:Key=&quot;lang_code&quot;&gt;en-GB&lt;/s:String&gt;
-        ///    &lt;s:String x:Key=&quot;lang_name&quot;&gt;English&lt;/s:String&gt;
-        ///
-        ///    &lt;s:String x:Key=&quot;global_abbrv_ln&quot;&gt;Ln.&lt;/s:String&gt;
-        ///    &lt;s:String x:Key=&quot;global_abbrv_ch&quot;&gt;Ch.&lt;/s:String&gt;
-        ///    &lt;s:String x:Key [rest of string was truncated]&quot;;.
+        ///    &lt;s:String xml:space=&quot;preserve&quot; x:Key=&quot;lang_iso&quot;&gt;ENG&lt;/s:String&gt;
+        ///    &lt;s:String xml:space=&quot;preserve&quot; x:Key=&quot;lang_code&quot;&gt;en-GB&lt;/s:String&gt;
+        ///    &lt;s:String xml:space=&quot;preserve&quot; x:Key=&quot;lang_name&quot;&gt;English&lt;/s:String&gt;
+        ///    &lt;s:String xml:space=&quot;preserve&quot; x:Key=&quot;global_error_in&quot;&gt;Error o [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string en_GB {
             get {

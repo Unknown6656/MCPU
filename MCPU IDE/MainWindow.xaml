@@ -26,7 +26,6 @@
         <CommandBinding Command="local:Commands.Copy" Executed="mie_copy"/>
         <CommandBinding Command="local:Commands.Paste" Executed="mie_paste"/>
         <CommandBinding Command="local:Commands.Delete" Executed="mie_delete"/>
-        <CommandBinding Command="local:Commands.InsertSnippet" Executed="mie_insert_snippet"/>
         <CommandBinding Command="local:Commands.SelectAll" Executed="mie_select_all"/>
         <CommandBinding Command="local:Commands.ZoomIn" Executed="mie_zoom_in_Click"/>
         <CommandBinding Command="local:Commands.ZoomOut" Executed="mie_zoom_out_Click"/>
@@ -79,7 +78,7 @@
                 <MenuItem Header="{DynamicResource mw_edit_delete}" Command="local:Commands.Delete" Icon="{DynamicResource menu_delete}"/>
                 <MenuItem Header="{DynamicResource mw_edit_select}" Command="local:Commands.SelectAll"/>
                 <Separator/>
-                <MenuItem Header="{DynamicResource mw_edit_insert}" Command="local:Commands.InsertSnippet"/>
+                <MenuItem x:Name="mie_ins_snp" Header="{DynamicResource mw_edit_insert}"/>
                 <Separator/>
                 <MenuItem Header="{DynamicResource mw_edit_search}" Command="local:Commands.Search"/>
                 <MenuItem Header="{DynamicResource mw_edit_replace}" Command="local:Commands.Replace"/>

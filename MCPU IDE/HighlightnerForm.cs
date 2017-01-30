@@ -38,6 +38,7 @@ namespace MCPU.IDE
 
         public static OptimizableStyle style_opt;
         public static readonly ErrorStyle style_error = new ErrorStyle();
+        public static readonly ABKStyle style_abk = new ABKStyle(new SolidBrush(Color.FromArgb(unchecked((int)0xff2E80EE))), FontStyle.Regular);
         public static readonly FadeStyle style_todo = new FadeStyle(Color.GreenYellow, Color.DarkGreen, 1000);
         public static readonly TextStyle style_param = CreateStyle(0x92CAF4, FontStyle.Regular);
         public static readonly TextStyle style_addr = CreateStyle(0xEFF284, FontStyle.Regular);
@@ -54,6 +55,7 @@ namespace MCPU.IDE
         {
             [style_comments] = REGEX_COMMENT,
             [style_todo] = REGEX_TODO,
+            // [style_abk] = @"\babk\b",
             [style_stoken] = REGEX_STOKEN,
             [style_param] = REGEX_PARAM,
             [style_opcref] = REGEX_OPREF,
@@ -72,6 +74,7 @@ namespace MCPU.IDE
             ["function"] = Properties.Resources.autocomp_function,
             ["label"] = Properties.Resources.autocomp_label,
             ["keyword"] = Properties.Resources.autocomp_keyword,
+            ["snippet"] = Properties.Resources.autocomp_snippet,
         };
 
         public new event EventHandler<TextChangedEventArgs> TextChanged;
@@ -309,8 +312,8 @@ namespace MCPU.IDE
                         e.ToolTipText = "tooltip_func".GetStr();
                     else if (reg(REGEX_TODO))
                     {
-                        e.ToolTipText = "TODO\nThis line indicates, that the code is unfinished";
-                        e.ToolTipIcon = ToolTipIcon.Info;
+                        e.ToolTipText = "tooltip_todo".GetStr();
+                        e.ToolTipIcon = ToolTipIcon.Warning;
                     }
                     else if (reg(REGEX_END_FUNC, true))
                         e.ToolTipText = "tooltip_endfunc".GetStr();
@@ -353,6 +356,7 @@ namespace MCPU.IDE
         internal void UpdateAutocomplete()
         {
             autocomp.Items.SetAutocompleteItems((from f in functions ?? new MCPUFunctionMetadata[0]
+                                                 orderby f.Name ascending
                                                  select new AutocompleteItem
                                                  {
                                                      Text = f.Name,
@@ -361,12 +365,22 @@ namespace MCPU.IDE
                                                      ImageIndex = GetImageIndex("function"),
                                                  })
                                          .Concat(from l in labels ?? new MCPULabelMetadata[0]
+                                                 orderby l.Name ascending
                                                  select new AutocompleteItem
                                                  {
                                                      Text = l.Name,
                                                      MenuText = l.Name,
                                                      ToolTipText = "autocomp_label".GetStr(l.Name, l, l.DefinedLine),
                                                      ImageIndex = GetImageIndex("label"),
+                                                 })
+                                         .Concat(from s in Snippets.Names
+                                                 orderby s ascending
+                                                 select new AutocompleteItem
+                                                 {
+                                                     Text = Snippets.snp[s],
+                                                     MenuText = s.ToLower(),
+                                                     ToolTipText = "autocomp_snippet".GetStr(s),
+                                                     ImageIndex = GetImageIndex("snippet"),
                                                  })
                                          .Concat(std_autocompitems)
                                          .OrderBy(_ => _.Text));
@@ -507,6 +521,38 @@ namespace MCPU.IDE
                     interpolate(ForeColor1.B, ForeColor2.B)
                 ));
             base.Draw(gr, position, range);
+        }
+    }
+
+    public sealed class ABKStyle
+        : TextStyle
+    {
+        public ABKStyle(Brush foreBrush, FontStyle fontStyle)
+            : base(foreBrush, null, fontStyle)
+        {
+        }
+
+        public override void Draw(Graphics gr, Point position, Range range)
+        {
+            foreach (Place p in range)
+            {
+                int time = (int)(DateTime.Now.TimeOfDay.TotalMilliseconds / 2);
+                int φ1 = (int)(time % 360L);
+                int φ2 = (int)((time - (p.iChar - range.Start.iChar) * 20) % 360L) * 2;
+                int x = position.X + (p.iChar - range.Start.iChar) * range.tb.CharWidth;
+                Range r = range.tb.GetRange(p, new Place(p.iChar + 1, p.iLine));
+                Point point = new Point(x, position.Y + 5 + (int)(5 * Math.Sin(Math.PI * φ2 / 180)));
+
+                gr.ResetTransform();
+                gr.TranslateTransform(point.X + (range.tb.CharWidth / 2), point.Y + (range.tb.CharHeight / 2));
+                gr.RotateTransform(φ1);
+                gr.ScaleTransform(0.8f, 0.8f);
+                gr.TranslateTransform(-range.tb.CharWidth / 2, -range.tb.CharHeight / 2);
+
+                base.Draw(gr, new Point(0, 0), r);
+            }
+
+            gr.ResetTransform();
         }
     }
 }

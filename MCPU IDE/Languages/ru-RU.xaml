@@ -58,12 +58,14 @@
     <s:String xml:space="preserve" x:Key="tooltip_uinstr">Инструкция {0}&#10;Для получения дополнительной информации посетите GitHub-страницу проекта (Меню &gt; Помогите &gt; Посмотреть на GitHub).</s:String>
     <s:String xml:space="preserve" x:Key="tooltip_keyword">Ключевое слово '{0}'&#10;Выражение '{0}' является зарезервированным ключевым словом.</s:String>
     <s:String xml:space="preserve" x:Key="tooltip_unknown">Неизвестный лексема '{0}'&#10;Выражение или маркер '{0}' не содержит никакой информации.</s:String>
+    <s:String xml:space="preserve" x:Key="tooltip_todo">TODO&#10;Эта строка указывает на то, что код является незавершенной.</s:String>
     <s:String xml:space="preserve" x:Key="autocomp_func">Функция {0}&#10;Функция {1}, который был определен на линии {2}</s:String>
     <s:String xml:space="preserve" x:Key="autocomp_label">Этикетка '{0}'&#10;Метка {1}, который был определен на линии {2}</s:String>
     <s:String xml:space="preserve" x:Key="autocomp_kernel">.kernel директива&#10;Предоставляет текущие привилегии ядра процессора</s:String>
     <s:String xml:space="preserve" x:Key="autocomp_user">.user директива&#10;Предоставляет текущие пользовательские привилегии процессора</s:String>
     <s:String xml:space="preserve" x:Key="autocomp_main">Главная точка входа&#10;Главная точка входа приложения</s:String>
     <s:String xml:space="preserve" x:Key="autocomp_instr">инструкция '{0}'&#10;Инструкция по монтажу {1}</s:String>
+    <s:String xml:space="preserve" x:Key="autocomp_snippet">Отрывок '{0}'&#10;Фрагмент кода '{0}'</s:String>
     <s:String xml:space="preserve" x:Key="mw_title">MCPU Интегрированная Среда Развития</s:String>
     <s:String xml:space="preserve" x:Key="mw_file">_ФАЙЛ</s:String>
     <s:String xml:space="preserve" x:Key="mw_file_new">_Новый</s:String>
@@ -81,7 +83,8 @@
     <s:String xml:space="preserve" x:Key="mw_edit_paste">_Вставить</s:String>
     <s:String xml:space="preserve" x:Key="mw_edit_delete">_Удалить</s:String>
     <s:String xml:space="preserve" x:Key="mw_edit_select">_Выбрать все</s:String>
-    <s:String xml:space="preserve" x:Key="mw_edit_insert">Вставка _сниппета ...</s:String>
+    <s:String xml:space="preserve" x:Key="mw_edit_insert">Вставка _фрагмент ...</s:String>
+    <s:String xml:space="preserve" x:Key="mw_edit_insert_p">Вставка фрагмент '{0}'</s:String>
     <s:String xml:space="preserve" x:Key="mw_edit_search">Поиск ...</s:String>
     <s:String xml:space="preserve" x:Key="mw_edit_replace">Замещать ...</s:String>
     <s:String xml:space="preserve" x:Key="mw_edit_bm_create">Создать закладку</s:String>

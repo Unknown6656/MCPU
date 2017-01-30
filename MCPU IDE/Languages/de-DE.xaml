@@ -58,12 +58,14 @@
     <s:String xml:space="preserve" x:Key="tooltip_uinstr">Instruktion {0}&#10;Besuchen Sie die GitHub-Seite des Projektes für mehr informationen über diese Instruktion (Menu &gt; Hilfe &gt; GitHub-Projekt besuchen).</s:String>
     <s:String xml:space="preserve" x:Key="tooltip_keyword">Schlüsselwort '{0}'&#10;Der Ausdruck '{0}' ist ein reserviertes Schlüsselwort.</s:String>
     <s:String xml:space="preserve" x:Key="tooltip_unknown">Unbekannter Ausdruck '{0}'&#10;Über den Ausdruck '{0}' sind leider derzeitig keine Informationen vorhanden.</s:String>
+    <s:String xml:space="preserve" x:Key="tooltip_todo">TODO&#10;Diese Zeile weist darauf hin, dass das aktuelle Codesegment noch nicht fertiggestellt wurde.</s:String>
     <s:String xml:space="preserve" x:Key="autocomp_func">Funktion {0}&#10;Die Funktion {1}, welche in Zeile {2} definiert wurde</s:String>
     <s:String xml:space="preserve" x:Key="autocomp_label">Sprungmarke '{0}'&#10;Die Sprungmarke {1}, welche in Zeile {2} definiert wurde</s:String>
     <s:String xml:space="preserve" x:Key="autocomp_kernel">.kernel-Directive&#10;Gibt dem Prozessor Kernel-Privilegien</s:String>
     <s:String xml:space="preserve" x:Key="autocomp_user">.user-Directive&#10;Gibt dem Prozessor User-Privilegien</s:String>
     <s:String xml:space="preserve" x:Key="autocomp_main">Haupteinstiegspunkt&#10;Represäntiert den Haupteinstiegspunkt des Programms</s:String>
     <s:String xml:space="preserve" x:Key="autocomp_instr">Instruktion '{0}'&#10;Die Assembler-Instruktion {1}</s:String>
+    <s:String xml:space="preserve" x:Key="autocomp_snippet">Codeausschnitt '{0}'&#10;Der Code-Ausschnitt '{0}'</s:String>
     <s:String xml:space="preserve" x:Key="mw_title">MCPU Entwicklungsumgebung</s:String>
     <s:String xml:space="preserve" x:Key="mw_file">_DATEI</s:String>
     <s:String xml:space="preserve" x:Key="mw_file_new">_Neu</s:String>
@@ -82,6 +84,7 @@
     <s:String xml:space="preserve" x:Key="mw_edit_delete">Ent_fernen</s:String>
     <s:String xml:space="preserve" x:Key="mw_edit_select">A_lles auswählen</s:String>
     <s:String xml:space="preserve" x:Key="mw_edit_insert">A_usschnitt einfügen ...</s:String>
+    <s:String xml:space="preserve" x:Key="mw_edit_insert_p">Ausschnitt '{0}' einfügen</s:String>
     <s:String xml:space="preserve" x:Key="mw_edit_search">Suchen ...</s:String>
     <s:String xml:space="preserve" x:Key="mw_edit_replace">Ersetzen ...</s:String>
     <s:String xml:space="preserve" x:Key="mw_edit_bm_create">Lesezeichen erstellen</s:String>

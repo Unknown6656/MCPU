@@ -62,7 +62,7 @@ namespace MCPU.Instructions
     #endregion
     #region 00004...0007 FUNCTION CALLING
 
-    [OPCodeNumber(0x0004), RequiresPrivilege]
+    [OPCodeNumber(0x0004), RequiresPrivilege, Keyword]
     public sealed class abk
         : OPCode
     {

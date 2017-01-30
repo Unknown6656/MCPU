@@ -9,6 +9,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Data;
 using System.Diagnostics;
+using System.Reflection;
 using System.Threading;
 using Microsoft.Win32;
 using System.Windows;
@@ -24,7 +25,6 @@ using MCPU;
 using FastColoredTextBoxNS;
 
 using WinForms = System.Windows.Forms;
-using System.Reflection;
 
 namespace MCPU.IDE
 {
@@ -135,7 +135,40 @@ namespace MCPU.IDE
 
             OptimizableLines = null;
 
+            UpdateSnippetMenu();
             Compile(fctb.Text, true);
+        }
+
+        private void UpdateSnippetMenu()
+        {
+            mie_ins_snp.Items.Clear();
+
+            foreach (string snippet in Snippets.Names)
+            {
+                MenuItem subitem = new MenuItem();
+
+                subitem.Click += (s, a) => insertsnippet(Snippets.snp[snippet]);
+                subitem.Header = "mw_edit_insert_p".GetStr(snippet);
+
+                mie_ins_snp.Items.Add(subitem);
+            }
+        }
+
+        private void insertsnippet(string code)
+        {
+            Place selend = fctb.Selection.End;
+
+            if (fctb.SelectionLength > 0)
+                fctb.Selection = new Range(fctb, selend, selend);
+
+            if (fctb.Lines[selend.iLine].Trim().Length > 0)
+            {
+                selend = new Place(fctb.Lines[selend.iLine].Length - 1, selend.iLine);
+
+                fctb.Selection = new Range(fctb, selend, selend);
+            }
+
+            fctb.InsertText($"\n{code}");
         }
 
         private void Window_Closing(object sender, CancelEventArgs e)
@@ -349,6 +382,8 @@ namespace MCPU.IDE
 
             fctb_host.Error = fctb_host.Error;
 
+            UpdateSnippetMenu();
+
             // TODO : refresh other stuff 
         }
 
@@ -379,11 +414,6 @@ namespace MCPU.IDE
         private void mie_redo(object sender, ExecutedRoutedEventArgs e) => fctb.Redo();
 
         private void mie_cut(object sender, ExecutedRoutedEventArgs e) => fctb.Cut();
-
-        private void mie_insert_snippet(object sender, ExecutedRoutedEventArgs e)
-        {
-
-        }
 
         private void mie_search(object sender, ExecutedRoutedEventArgs e) => fctb.ProcessKey(WinForms.Keys.F | WinForms.Keys.Control);
 
@@ -531,27 +561,22 @@ _while:
 
     JMP _while
 _endwhle:",
+            ["FOR"] = $@"
+    MOV [100h] [{MCPUCompiler.TODO_TOKEN}] ; start value
+    MOV [101h] [{MCPUCompiler.TODO_TOKEN}] ; end value
+_for:
+    CMP [100h] [101h]
+    JL _forend
+    INCR [100h]
+
+    ; for body
+
+    JMP _for
+_forend:
+",
         };
 
         public static string[] Names => snp.Keys.ToArray();
-
-        public static string GetSnippet(string name)
-        {
-            try
-            {
-                bool isempty(string s) => (s ?? "").Trim().Length == 0;
-
-                return string.Join("\n", snp[name].Split('\n')
-                                                  .SkipWhile(isempty)
-                                                  .Reverse()
-                                                  .SkipWhile(isempty)
-                                                  .Reverse());
-            }
-            catch
-            {
-                return "";
-            }
-        }
     }
 
     public static class Commands
@@ -577,7 +602,6 @@ _endwhle:",
         public static readonly RoutedUICommand Delete = create(nameof(Delete), Key.Delete, ModifierKeys.None);
         public static readonly RoutedUICommand Undo = create(nameof(Undo), Key.Z);
         public static readonly RoutedUICommand Redo = create(nameof(Redo), Key.Y);
-        public static readonly RoutedUICommand InsertSnippet = create(nameof(InsertSnippet), Key.K);
         public static readonly RoutedUICommand Compile = create(nameof(Compile), Key.F5, ModifierKeys.None);
         public static readonly RoutedUICommand Start = create(nameof(Start), Key.F6, ModifierKeys.None);
         public static readonly RoutedUICommand Next = create(nameof(Next), Key.F5, ModifierKeys.Shift);
