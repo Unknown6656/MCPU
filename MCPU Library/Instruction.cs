@@ -98,7 +98,7 @@ namespace MCPU
         {
             if (o1?.Equals(o2) ?? false)
                 return true;
-            if (o1 is null ^ o2 is null)
+            if ((o1 is null) ^ (o2 is null))
                 return false;
             else
                 return o1?.Number == o2?.Number;
