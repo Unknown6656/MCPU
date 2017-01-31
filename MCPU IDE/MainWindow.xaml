@@ -78,7 +78,7 @@
                 <MenuItem Header="{DynamicResource mw_edit_delete}" Command="local:Commands.Delete" Icon="{DynamicResource menu_delete}"/>
                 <MenuItem Header="{DynamicResource mw_edit_select}" Command="local:Commands.SelectAll"/>
                 <Separator/>
-                <MenuItem Header="{DynamicResource mw_edit_insert}"/>
+                <MenuItem x:Name="mie_ins_snp" Header="{DynamicResource mw_edit_insert}"/>
                 <Separator/>
                 <MenuItem Header="{DynamicResource mw_edit_search}" Command="local:Commands.Search"/>
                 <MenuItem Header="{DynamicResource mw_edit_replace}" Command="local:Commands.Replace"/>
@@ -121,6 +121,7 @@
             <Label x:Name="lb_ins" Content="{DynamicResource mw_INS}" Style="{StaticResource st_stat}"/>
             <Label x:Name="lb_pos" Content="Ln. ---- Ch. --- : Ln. ---- Ch. ---" Style="{StaticResource st_stat}"/>
             <Label x:Name="lb_err" Content="Error in Ln. ----" Style="{StaticResource st_stat}"/>
+            <Label x:Name="lb_opt" Content="---- optimizable lines found" Style="{StaticResource st_stat}"/>
         </StatusBar>
         <WindowsFormsHost>
             <WindowsFormsHost.Child>

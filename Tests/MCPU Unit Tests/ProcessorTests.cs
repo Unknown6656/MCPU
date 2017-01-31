@@ -342,7 +342,7 @@ end func
         [TestMethod]
         public void Test_17()
         {
-            int duration = 400;
+            const int duration = 400;
             Stopwatch sw = new Stopwatch();
 
             sw.Start();
@@ -506,6 +506,26 @@ end func
 ");
             for (int i = 0; i < 0xff; i++)
                 IsValue(i, (i - offs < size) && (i >= offs) ? 0 : i + 1);
+        }
+
+        [TestMethod]
+        public void Test_24()
+        {
+            Execute($@"
+    .main
+    MOV [0] {Processor.IO_COUNT - 1}
+loop:
+    MOV [1] [0]
+    AND [1] fh
+    IO [0] 0
+    OUT [0] [1]
+    IO [0] 1
+    DECR [0]
+    CMP [0]
+    JPOS loop
+");
+            for (int i = 0; i < Processor.IO_COUNT; i++)
+                IsTrue(proc.IO[i] == (IODirection.In, (byte)(i & 0xf)));
         }
     }
 }

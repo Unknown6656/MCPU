@@ -13,6 +13,7 @@ using System.Threading;
 using System.Windows;
 using System.Data;
 using System.Linq;
+using System.Xml;
 using System.IO;
 using System;
 
@@ -21,7 +22,6 @@ using MCPU.Compiler;
 using static System.Math;
 
 using Settings = MCPU.IDE.Properties.Settings;
-using System.Xml;
 
 namespace MCPU.IDE
 {
@@ -31,9 +31,10 @@ namespace MCPU.IDE
     public partial class App
         : Application
     {
-        internal static readonly (string, int, int) DEFAULT_SETTINGS = (LanguageExtensions.DEFAULT_LANG,
-                                                                        0x00100000, // 4 MB
-                                                                        0x00020000); // 512 KB
+        internal static readonly (string, int, int, bool) DEFAULT_SETTINGS = (LanguageExtensions.DEFAULT_LANG,
+                                                                              0x00100000, // 4 MB
+                                                                              0x00020000, // 512 KB
+                                                                              false);
         internal static Dictionary<string, string> def_compiler_table = typeof(MCPUCompiler).GetField("__defstrtable", BindingFlags.Static | BindingFlags.NonPublic)
                                                                                             .GetValue(null) as Dictionary<string, string>;
         internal static List<(string, string)> available_languages = new List<(string, string)>();
@@ -54,7 +55,7 @@ namespace MCPU.IDE
 
             base.OnStartup(args);
         }
-        
+
         internal static void AddResources()
         {
             Assembly asm = typeof(App).Assembly;
@@ -105,8 +106,11 @@ namespace MCPU.IDE
             Settings.Default.Language = Settings.Default?.Language ?? DEFAULT_SETTINGS.Item1;
             Settings.Default.MemorySize = Max(512, Min(Processor.MAX_MEMSZ, Settings.Default?.MemorySize ?? DEFAULT_SETTINGS.Item2));
             Settings.Default.CallStackSize = Max(512, Min(Processor.MAX_STACKSZ, Settings.Default?.MemorySize ?? DEFAULT_SETTINGS.Item3));
+            Settings.Default.OptimizeCode = Settings.Default?.OptimizeCode ?? DEFAULT_SETTINGS.Item4;
             Settings.Default.Save();
             Settings.Default.Reload();
+
+            MCPUCompiler.OptimizationEnabled = Settings.Default.OptimizeCode;
         }
 
         /// <summary>
@@ -161,7 +165,7 @@ namespace MCPU.IDE
                 MCPUCompiler.ResetLanguage();
         }
     }
-    
+
     /// <summary>
     /// Contains basic language management extension methods
     /// </summary>

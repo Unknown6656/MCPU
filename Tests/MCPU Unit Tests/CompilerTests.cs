@@ -195,7 +195,7 @@ end:   §### ERROR
 
         [TestMethod]
         public void Test_22() => CompileExpectError(@"
-func ___main   §### ERROR
+func ____main   §### ERROR
 end func
     
     .main
@@ -224,8 +224,10 @@ loop:
 pool:
     JMP loop
 ");
-            Instruction[] optimized = MCPUCompiler.Optimize(res.Instructions);
-            
+            int ln = 0;
+            (Instruction[], int[]) optimized = MCPUCompiler.Optimize((from i in res.Instructions
+                                                                      select (i, ln++)).ToArray());
+
             // TODO : Assertions ?
         }
 

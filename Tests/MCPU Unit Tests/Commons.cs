@@ -93,9 +93,13 @@ namespace MCPU.Testing
 
         public static void CompileExpectError(string code, string message)
         {
-            MCPUCompilerException ex = CompileExpectError(code);
+            string exmsg = CompileExpectError(code).Message;
+            bool comp = ApproximateFormatStringEqual(exmsg, message);
 
-            IsTrue(ApproximateFormatStringEqual(ex.Message, message));
+            if (!comp)
+                ConsoleExtensions.Diff(exmsg, message);
+
+            IsTrue(comp);
         }
 
         public static MCPUCompilerResult Compile(string code) => MCPUCompiler.Compile(code).AsA;

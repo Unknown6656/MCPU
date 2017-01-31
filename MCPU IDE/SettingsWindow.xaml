@@ -57,6 +57,7 @@
                 <Label Content="{DynamicResource global_bytes}" Padding="2,0" Width="85" Foreground="{DynamicResource FG}" Canvas.Left="105" Canvas.Top="99" Height="22"/>
             </Canvas>
         </GroupBox>
+        <CheckBox Content="{DynamicResource sw_optcode}" Foreground="{DynamicResource FG}" x:Name="cb_optcode" Canvas.Left="275" Canvas.Top="174" Width="205"/>
         <Button Content="{DynamicResource global_cancel}" Canvas.Left="380" Canvas.Top="211" Width="100" Height="20" Click="Button_cancel_Click"/>
         <Button Content="{DynamicResource global_reset}" Canvas.Left="170" Canvas.Top="211" Width="100" Height="20" Click="Button_reset_Click"/>
         <Button Content="{DynamicResource global_ok}" Canvas.Left="275" Canvas.Top="211" Width="100" Height="20" Click="Button_save_Click"/>

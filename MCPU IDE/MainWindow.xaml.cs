@@ -9,6 +9,8 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Data;
 using System.Diagnostics;
+using System.Reflection;
+using System.Threading;
 using Microsoft.Win32;
 using System.Windows;
 using System.Linq;
@@ -16,16 +18,16 @@ using System.Text;
 using System.IO;
 using System;
 
+using MCPU.Compiler;
+using MCPU.IDE;
+using MCPU;
+
 using FastColoredTextBoxNS;
 
 using WinForms = System.Windows.Forms;
 
 namespace MCPU.IDE
 {
-    using MCPU.Compiler;
-    using MCPU.IDE;
-    using MCPU;
-
     public partial class MainWindow
         : Window
         , ILanguageSensitiveWindow
@@ -33,6 +35,7 @@ namespace MCPU.IDE
         internal FastColoredTextBox fctb => fctb_host.fctb;
         internal ProcessorWindow watcher;
         internal readonly Setter st_stat;
+        internal Thread bg_comp;
         internal Processor proc;
         internal IntPtr handle;
         internal bool changed;
@@ -55,6 +58,16 @@ namespace MCPU.IDE
             }
         }
 
+        public int[] OptimizableLines
+        {
+            get => fctb_host.OptimizableLines;
+            set
+            {
+                lb_opt.Content = "global_opt".GetStr((value ?? new int[0]).Length);
+
+                statbar.InvalidateVisual();
+            }
+        }
 
         ~MainWindow() => DisposeProcessor();
 
@@ -90,6 +103,23 @@ namespace MCPU.IDE
             // fctb.TextChanged += (o, a) => new Task(() => Compile(fctb.Text, true)).Start();
             fctb.SelectionChanged += Fctb_SelectionChanged;
             fctb.OnTextChanged(); // update control after loading
+            fctb_host.TextChanged += (o, a) =>
+            {
+                if (bg_comp?.IsAlive ?? false)
+                    bg_comp.Abort();
+
+                bg_comp = new Thread(() =>
+                {
+                    try
+                    {
+                        this.Dispatcher.Invoke(() => Compile(fctb.Text, true));
+                    }
+                    catch
+                    {
+                    }
+                });
+                bg_comp.Start();
+            };
 
             Fctb_SelectionChanged(null, null);
             global_insert(null, null);
@@ -103,7 +133,42 @@ namespace MCPU.IDE
             fctb.Select();
             fctb.Focus();
 
+            OptimizableLines = null;
+
+            UpdateSnippetMenu();
             Compile(fctb.Text, true);
+        }
+
+        private void UpdateSnippetMenu()
+        {
+            mie_ins_snp.Items.Clear();
+
+            foreach (string snippet in Snippets.Names)
+            {
+                MenuItem subitem = new MenuItem();
+
+                subitem.Click += (s, a) => insertsnippet(Snippets.snp[snippet]);
+                subitem.Header = "mw_edit_insert_p".GetStr(snippet);
+
+                mie_ins_snp.Items.Add(subitem);
+            }
+        }
+
+        private void insertsnippet(string code)
+        {
+            Place selend = fctb.Selection.End;
+
+            if (fctb.SelectionLength > 0)
+                fctb.Selection = new Range(fctb, selend, selend);
+
+            if (fctb.Lines[selend.iLine].Trim().Length > 0)
+            {
+                selend = new Place(fctb.Lines[selend.iLine].Length, selend.iLine);
+
+                fctb.Selection = new Range(fctb, selend, selend);
+            }
+
+            fctb.InsertText($"\n{code}");
         }
 
         private void Window_Closing(object sender, CancelEventArgs e)
@@ -291,12 +356,13 @@ namespace MCPU.IDE
 
                 fctb_host.labels = cmpres.Labels;
                 fctb_host.functions = cmpres.Functions;
+                fctb_host.OptimizableLines = cmpres.OptimizedLines;
                 fctb_host.UpdateAutocomplete();
 
                 if (!silent)
                 {
                     proc.Instructions = cmpres.Instructions;
-                    
+
                     watcher.Proc_InstructionExecuted(proc, null);
                 }
             }
@@ -315,6 +381,8 @@ namespace MCPU.IDE
             Fctb_SelectionChanged(fctb, null);
 
             fctb_host.Error = fctb_host.Error;
+
+            UpdateSnippetMenu();
 
             // TODO : refresh other stuff 
         }
@@ -469,6 +537,64 @@ namespace MCPU.IDE
         #endregion
     }
 
+    public static class Snippets
+    {
+        internal static Dictionary<string, string> snp { get; } = new Dictionary<string, string> {
+            ["IF"] = $@"
+    CMP [{MCPUCompiler.TODO_TOKEN}] ; check the condition
+    JZ _else
+    
+    ; condition is true
+
+    JMP _endif
+_else:
+
+    ; condition is false
+    
+_endif:
+",
+            ["WHILE"] = $@"
+_while:
+    CMP [{MCPUCompiler.TODO_TOKEN}] ; check the condition
+    JZ _endwhile
+    
+    ; while body
+
+    JMP _while
+_endwhile:
+",
+            ["FOR"] = $@"
+    MOV [100h] {MCPUCompiler.TODO_TOKEN} ; start value
+    MOV [101h] {MCPUCompiler.TODO_TOKEN} ; end value
+_for:
+    CMP [100h] [101h]
+    JL _forend
+    INCR [100h]
+
+    ; for body
+
+    JMP _for
+_forend:
+",
+            ["FORS"] = $@"
+    MOV [100h] {MCPUCompiler.TODO_TOKEN} ; start value
+    MOV [101h] {MCPUCompiler.TODO_TOKEN} ; end value
+    MOV [102h] {MCPUCompiler.TODO_TOKEN} ; step size
+_for:
+    CMP [100h] [101h]
+    JL _forend
+    ADD [100h] [102h]
+
+    ; for body
+
+    JMP _for
+_forend:
+",
+        };
+
+        public static string[] Names => snp.Keys.ToArray();
+    }
+
     public static class Commands
     {
         private static RoutedUICommand create(string name, Key key, ModifierKeys mod = ModifierKeys.Control) =>
@@ -511,4 +637,3 @@ namespace MCPU.IDE
         public static readonly RoutedUICommand ProcessorInfo = create(nameof(ProcessorInfo), Key.F8, ModifierKeys.None);
     }
 }
-
