@@ -190,7 +190,7 @@ namespace MCPU.IDE
                 ForeColor = fctb.ForeColor,
                 ImageList = new ImageList(),
                 AppearInterval = 50,
-                MinFragmentLength = 0
+                MinFragmentLength = 1
             };
 
             foreach (KeyValuePair<string, Bitmap> kvp in autocomp_images)
@@ -256,15 +256,9 @@ namespace MCPU.IDE
 
         private int GetImageIndex(string name) => autocomp.ImageList.Images.IndexOfKey(name);
 
-        private void HighlightnerForm_SizeChanged(object sender, EventArgs e)
-        {
-            docmap.Width = 100;
-        }
+        private void HighlightnerForm_SizeChanged(object sender, EventArgs e) => docmap.Width = 100;
 
-        private void HighlightnerForm_Load(object sender, EventArgs e)
-        {
-            fctb.OnSyntaxHighlight(new TextChangedEventArgs(fctb.Range));
-        }
+        private void HighlightnerForm_Load(object sender, EventArgs e) => fctb.OnSyntaxHighlight(new TextChangedEventArgs(fctb.Range));
 
         private void Fctb_KeyDown(object sender, KeyEventArgs e)
         {
@@ -274,7 +268,8 @@ namespace MCPU.IDE
 
                 cursor.Offset(0, fctb.CharHeight);
 
-                autocomp.Show(fctb, cursor);
+                // autocomp.Show(fctb, cursor);
+                autocomp.Show(true);
 
                 e.Handled = true;
             }
