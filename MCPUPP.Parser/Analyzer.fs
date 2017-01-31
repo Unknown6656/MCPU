@@ -66,7 +66,7 @@ let TypeOfDeclaration = function
 
 type SymbolTable(program) as self =
     inherit Dictionary<IdentifierRef, VariableDeclaration>(HashIdentity.Reference)
-
+    
     let WhileStatementStack = Stack<WhileStatement>()
     let SymbolScopeStack = SymbolScopeStack()
     let rec ScanDeclaration = function
@@ -78,7 +78,6 @@ type SymbolTable(program) as self =
             List.iter (SymbolScopeStack.AddDeclaration) locdecl
             List.iter ScanStatement stat
             SymbolScopeStack.Pop()
-            |> ignore
         and ScanStatement = function
                             | ExpressionStatement es -> match es with
                                                         | Expression e -> ScanExpression e
@@ -115,31 +114,30 @@ type SymbolTable(program) as self =
                              | PointerValueAssignmentExpression (i, e) ->
                                  AddIdentifierMapping i
                                  ScanExpression e
+                             | ArraySizeExpression i
                              | IdentifierExpression i
+                             | RawAddressOfExpression i
+                             | ArrayDeletionExpression i
                              | PointerValueIdentifierExpression i
                              | PointerAddressIdentifierExpression i -> AddIdentifierMapping i
                              | ArrayAssignmentExpression (i, e1, e2) ->
                                  AddIdentifierMapping i
                                  ScanExpression e1
                                  ScanExpression e2
-                             | FunctionCallExpression (_, args) ->
-                                 args
-                                 |> List.iter ScanExpression
-                             | LiteralExpression _ -> ()
+                             | FunctionCallExpression (_, args) -> List.iter ScanExpression args
                              | UnaryExpression (_, e)
                              | ArrayAllocationExpression (_, e) ->
                                  ScanExpression e
+                             | BinaryExpression (e1, _, e2) ->
+                                 ScanExpression e1
+                                 ScanExpression e2
                              |_ -> ()
-        
         SymbolScopeStack.Push()
-        param
-        |> Array.iter SymbolScopeStack.AddDeclaration
+        Array.iter (SymbolScopeStack.AddDeclaration) param
         ScanBlockStatement blockstat
         SymbolScopeStack.Pop()
-        |> ignore
     do
-        program
-        |> List.iter ScanDeclaration
+        List.iter ScanDeclaration program
 
     member x.GetIdentifierType idref =
         if self.ContainsKey idref then
