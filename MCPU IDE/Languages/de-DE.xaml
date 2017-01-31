@@ -59,10 +59,8 @@
     <s:String xml:space="preserve" x:Key="tooltip_keyword">Schlüsselwort '{0}'&#10;Der Ausdruck '{0}' ist ein reserviertes Schlüsselwort.</s:String>
     <s:String xml:space="preserve" x:Key="tooltip_unknown">Unbekannter Ausdruck '{0}'&#10;Über den Ausdruck '{0}' sind leider derzeitig keine Informationen vorhanden.</s:String>
     <s:String xml:space="preserve" x:Key="tooltip_todo">TODO&#10;Diese Zeile weist darauf hin, dass das aktuelle Codesegment noch nicht fertiggestellt wurde.</s:String>
-
-    <s:String xml:space="preserve" x:Key="tooltip_constant">Compiler constant '{0}'&#10;The expression '{0}' is a compile-time defined constant with the value '{1}' (or floating-point value '{2}').</s:String>
-    <s:String xml:space="preserve" x:Key="autocomp_constant">Compiler constant '{0}'&#10;The compile-time constant '{0}' with the value&#10;'{1}' (or floating-point value '{2}').</s:String>
-
+    <s:String xml:space="preserve" x:Key="tooltip_constant">Compilerkonstante '{0}'&#10;Der Ausdruck '{0}' ist eine zur Compile-Zeit definierte Konstante mit dem Wert '{1}' (bzw. Gleitkomma-wert '{2}').</s:String>
+    <s:String xml:space="preserve" x:Key="autocomp_constant">Compilerkonstante '{0}'&#10;Die Compilerkonstante '{0}' mit dem Wert&#10;'{1}' (bzw. Gleitkomma-wert '{2}').</s:String>
     <s:String xml:space="preserve" x:Key="autocomp_func">Funktion {0}&#10;Die Funktion {1}, welche in Zeile {2} definiert wurde</s:String>
     <s:String xml:space="preserve" x:Key="autocomp_label">Sprungmarke '{0}'&#10;Die Sprungmarke {1}, welche in Zeile {2} definiert wurde</s:String>
     <s:String xml:space="preserve" x:Key="autocomp_kernel">.kernel-Directive&#10;Gibt dem Prozessor Kernel-Privilegien</s:String>

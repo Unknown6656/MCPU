@@ -35,10 +35,8 @@
     <s:String xml:space="preserve" x:Key="tooltip_keyword">Keyword '{0}'&#10;The expression '{0}' is a reserved keyword.</s:String>
     <s:String xml:space="preserve" x:Key="tooltip_unknown">Unknown token '{0}'&#10;The expression or token '{0}' does not contain any information.</s:String>
     <s:String xml:space="preserve" x:Key="tooltip_todo">TODO&#10;This line indicates, that the code is unfinished.</s:String>
-
     <s:String xml:space="preserve" x:Key="tooltip_constant">Compiler constant '{0}'&#10;The expression '{0}' is a compile-time defined constant with the value '{1}' (or floating-point value '{2}').</s:String>
     <s:String xml:space="preserve" x:Key="autocomp_constant">Compiler constant '{0}'&#10;The compile-time constant '{0}' with the value&#10;'{1}' (or floating-point value '{2}').</s:String>
-
     <s:String xml:space="preserve" x:Key="autocomp_func">Function {0}&#10;The function {1} which has been defined on line {2}</s:String>
     <s:String xml:space="preserve" x:Key="autocomp_label">Label '{0}'&#10;The label {1} which has been defined on line {2}</s:String>
     <s:String xml:space="preserve" x:Key="autocomp_kernel">.kernel directive&#10;Grants the current processor kernel privileges</s:String>
