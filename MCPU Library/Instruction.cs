@@ -710,7 +710,7 @@ namespace MCPU
                     return ptr;
             }
         }
-        
+
         public static implicit operator int(FloatIntUnion un) => un.I;
         public static implicit operator float(FloatIntUnion un) => un.F;
         public static implicit operator FloatIntUnion(int val) => new FloatIntUnion { I = val };

@@ -75,7 +75,25 @@ namespace MCPU.Compiler
         /// Represents the IEEE-754 representation of the mathematical constant φ
         /// </summary>
         public static readonly int FC_φ = (FloatIntUnion)1.61803398874989;
-
+        public static readonly Dictionary<string, string> Constants = new Dictionary<string, string>
+        {
+            ["line"] = null,
+            ["i_max"] = int.MaxValue.ToString(),
+            ["i_min"] = int.MinValue.ToString(),
+            ["nan"] = float.NaN.ToString(),
+            ["f_max"] = float.MaxValue.ToString(),
+            ["f_min"] = float.MinValue.ToString(),
+            ["f_pinf"] = float.PositiveInfinity.ToString(),
+            ["f_ninf"] = float.NegativeInfinity.ToString(),
+            ["epsilon"] = float.Epsilon.ToString(),
+            ["τ"] = FC_τ.ToString(),
+            ["tau"] = FC_τ.ToString(),
+            ["π"] = FC_π.ToString(),
+            ["pi"] = FC_π.ToString(),
+            ["φ"] = FC_φ.ToString(),
+            ["phi"] = FC_φ.ToString(),
+            ["e"] = FC_e.ToString(),
+        };
         internal static readonly string[] __reserved = (from opc in OPCodes.CodesByID
                                                         where opc.Value.IsKeyword
                                                         select opc.Value.Token.ToLower()).Concat(new string[] { "func", "end", MAIN_FUNCTION_NAME, "line", "epsilon", "tau", "phi", "e", "pi", "i_max", "f_max", "i_min", "f_min", "f_pinf", "f_ninf", "nan" }).ToArray();
@@ -174,7 +192,7 @@ namespace MCPU.Compiler
                             case "i_min":
                                 return int.MinValue;
                             case "line":
-                                return (linenr + 1);
+                                return linenr + 1;
                             default:
                                 if (arg.EndsWith("h"))
                                     return int.Parse(arg.Remove(arg.Length - 1), NumberStyles.HexNumber);

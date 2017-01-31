@@ -27,10 +27,11 @@ namespace MCPU.IDE
         internal const string REGEX_ADDR = @"(\bk)?\[{1,2}(?:.+)\]{1,2}";
         internal const string REGEX_PARAM = @"\$[0-9]+\b";
         internal const string REGEX_COMMENT = @"\;.*$";
+        internal static readonly string REGEX_CONSTANT = $@"\b({string.Join("|", MCPUCompiler.Constants.Keys)})\b";
         internal static readonly string REGEX_TODO = $@"\b{MCPUCompiler.TODO_TOKEN}\b";
         internal static readonly string REGEX_INT = $@"\b({MCPUCompiler.INTEGER_CORE})\b";
         internal static readonly string REGEX_FLOAT = $@"\b({MCPUCompiler.FLOAT_CORE})\b";
-        internal static readonly string REGEX_KWORD = $@"({REGEX_FUNC}|{REGEX_END_FUNC}|\b({string.Join("|", MCPUCompiler.ReservedKeywords)}|{MCPUCompiler.MAIN_FUNCTION_NAME})\b)";
+        internal static readonly string REGEX_KWORD = $@"({REGEX_FUNC}|{REGEX_END_FUNC}|\b({string.Join("|", MCPUCompiler.ReservedKeywords.Union(MCPUCompiler.Constants.Keys))}|{MCPUCompiler.MAIN_FUNCTION_NAME})\b)";
         internal static readonly string REGEX_INSTR = $@"\b({string.Join("|", from o in OPCodes.CodesByToken select o.Key)})\b";
         internal static readonly string REGEX_OPREF = $@"\<\s*({REGEX_INSTR})\s*\>";
 
@@ -68,6 +69,8 @@ namespace MCPU.IDE
         };
         private static readonly Dictionary<string, Bitmap> autocomp_images = new Dictionary<string, Bitmap>
         {
+            ["opref"] = Properties.Resources.autocomp_instrref,
+            ["constant"] = Properties.Resources.autocomp_constant,
             ["opcode"] = Properties.Resources.autocomp_instruction,
             ["address"] = Properties.Resources.autocomp_address,
             ["directive"] = Properties.Resources.autocomp_directive,
@@ -322,6 +325,11 @@ namespace MCPU.IDE
                         // tooltip.Icon =;
                         e.ToolTipText = "tooltip_param".GetStr(e.HoveredWord);
                     }
+                    else if (reg(REGEX_CONSTANT))
+                    {
+                        tooltip.Icon = autocomp_images["constant"];
+                        e.ToolTipText = "tooltip_constant".GetStr(e.HoveredWord, MCPUCompiler.Constants[e.HoveredWord.Trim().ToLower()] ?? (e.Place.iLine + 1).ToString());
+                    }
                     else if (reg(REGEX_STOKEN))
                     {
                         tooltip.Icon = autocomp_images["directive"];
@@ -329,12 +337,12 @@ namespace MCPU.IDE
                     }
                     else if (reg(REGEX_FLOAT))
                     {
-                        // tooltip.Icon =;
+                        tooltip.Icon = autocomp_images["constant"];
                         e.ToolTipText = "tooltip_float".GetStr(e.HoveredWord);
                     }
                     else if (reg(REGEX_INT))
                     {
-                        // tooltip.Icon =;
+                        tooltip.Icon = autocomp_images["constant"];
                         e.ToolTipText = "tooltip_int".GetStr(e.HoveredWord);
                     }
                     else if (reg(REGEX_LABEL_DECL, true))
@@ -354,6 +362,7 @@ namespace MCPU.IDE
                     }
                     else if (reg(REGEX_OPREF))
                     {
+                        tooltip.Icon = autocomp_images["opref"];
                         e.ToolTipText = ""; /////////////////////////////////////////////// TODO ///////////////////////////////////////////////
                     }
                     else if (!reg(REGEX_INSTR) && reg(REGEX_KWORD))
@@ -397,35 +406,41 @@ namespace MCPU.IDE
 
         internal void UpdateAutocomplete()
         {
-            autocomp.Items.SetAutocompleteItems((from f in functions ?? new MCPUFunctionMetadata[0]
-                                                 orderby f.Name ascending
-                                                 select new AutocompleteItem
-                                                 {
-                                                     Text = f.Name,
-                                                     MenuText = f.Name,
-                                                     ToolTipText = "autocomp_func".GetStr(f.Name, f, f.DefinedLine),
-                                                     ImageIndex = GetImageIndex("function"),
-                                                 })
-                                         .Concat(from l in labels ?? new MCPULabelMetadata[0]
-                                                 orderby l.Name ascending
-                                                 select new AutocompleteItem
-                                                 {
-                                                     Text = l.Name,
-                                                     MenuText = l.Name,
-                                                     ToolTipText = "autocomp_label".GetStr(l.Name, l, l.DefinedLine),
-                                                     ImageIndex = GetImageIndex("label"),
-                                                 })
-                                         .Concat(from s in Snippets.Names
-                                                 orderby s ascending
-                                                 select new AutocompleteItem
-                                                 {
-                                                     Text = Snippets.snp[s],
-                                                     MenuText = s.ToLower(),
-                                                     ToolTipText = "autocomp_snippet".GetStr(s),
-                                                     ImageIndex = GetImageIndex("snippet"),
-                                                 })
-                                         .Concat(std_autocompitems)
-                                         .OrderBy(_ => _.Text));
+            autocomp.Items.SetAutocompleteItems(
+                (from s in Snippets.Names
+                 orderby s ascending
+                 select new AutocompleteItem
+                 {
+                     Text = Snippets.snp[s],
+                     MenuText = s.ToLower(),
+                     ToolTipText = "autocomp_snippet".GetStr(s),
+                     ImageIndex = GetImageIndex("snippet"),
+                 }).Concat((from f in functions ?? new MCPUFunctionMetadata[0]
+                            select new AutocompleteItem
+                            {
+                                Text = f.Name,
+                                MenuText = f.Name,
+                                ToolTipText = "autocomp_func".GetStr(f.Name, f, f.DefinedLine),
+                                ImageIndex = GetImageIndex("function"),
+                            })
+                    .Concat(from l in labels ?? new MCPULabelMetadata[0]
+                            select new AutocompleteItem
+                            {
+                                Text = l.Name,
+                                MenuText = l.Name,
+                                ToolTipText = "autocomp_label".GetStr(l.Name, l, l.DefinedLine),
+                                ImageIndex = GetImageIndex("label"),
+                            })
+                    .Concat(from kvp in MCPUCompiler.Constants
+                            select new AutocompleteItem
+                            {
+                                Text = kvp.Key,
+                                MenuText = kvp.Key,
+                                ToolTipText = "autocomp_constant".GetStr(kvp.Key, kvp.Value ?? ""),
+                                ImageIndex = GetImageIndex("constant"),
+                            })
+                    .Concat(std_autocompitems)
+                    .OrderBy(_ => _.MenuText)));
             autocomp.Items.Invalidate();
         }
 

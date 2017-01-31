@@ -73,6 +73,16 @@ namespace MCPU.IDE.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap autocomp_constant {
+            get {
+                object obj = ResourceManager.GetObject("autocomp_constant", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap autocomp_directive {
             get {
                 object obj = ResourceManager.GetObject("autocomp_directive", resourceCulture);
@@ -86,6 +96,16 @@ namespace MCPU.IDE.Properties {
         internal static System.Drawing.Bitmap autocomp_function {
             get {
                 object obj = ResourceManager.GetObject("autocomp_function", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap autocomp_instrref {
+            get {
+                object obj = ResourceManager.GetObject("autocomp_instrref", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
