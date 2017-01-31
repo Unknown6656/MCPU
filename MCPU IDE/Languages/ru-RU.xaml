@@ -60,8 +60,8 @@
     <s:String xml:space="preserve" x:Key="tooltip_unknown">Неизвестный лексема '{0}'&#10;Выражение или маркер '{0}' не содержит никакой информации.</s:String>
     <s:String xml:space="preserve" x:Key="tooltip_todo">TODO&#10;Эта строка указывает на то, что код является незавершенной.</s:String>
 
-    <s:String xml:space="preserve" x:Key="tooltip_constant">Compiler constant '{0}'&#10;The expression '{0}' is a compile-time defined constant with the value '{1}'.</s:String>
-    <s:String xml:space="preserve" x:Key="autocomp_constant">Compiler constant '{0}'&#10;The compile-time constant '{0}' with the value '{1}'.</s:String>
+    <s:String xml:space="preserve" x:Key="tooltip_constant">Compiler constant '{0}'&#10;The expression '{0}' is a compile-time defined constant with the value '{1}' (or floating-point value '{2}').</s:String>
+    <s:String xml:space="preserve" x:Key="autocomp_constant">Compiler constant '{0}'&#10;The compile-time constant '{0}' with the value&#10;'{1}' (or floating-point value '{2}').</s:String>
 
     <s:String xml:space="preserve" x:Key="autocomp_func">Функция {0}&#10;Функция {1}, который был определен на линии {2}</s:String>
     <s:String xml:space="preserve" x:Key="autocomp_label">Этикетка '{0}'&#10;Метка {1}, который был определен на линии {2}</s:String>

@@ -30,11 +30,11 @@ namespace MCPU.Compiler
         /// <summary>
         /// Floating-point matching pattern
         /// </summary>
-        public const string FLOAT_CORE = @"((\+|\-|)([0-9]+\.[0-9]*|[0-9]*\.[0-9]+)(e(\+|\-|)[0-9]+)?[fd]?|pi|e|phi|tau|π|τ)";
+        public const string FLOAT_CORE = @"((\+|\-|)([0-9]+\.[0-9]*|[0-9]*\.[0-9]+)(e(\+|\-|)[0-9]+)?[fd]?|pi|e|phi|tau|π|τ|φ|f_(min|max|(n|p)inf)|nan)";
         /// <summary>
         /// Integer matching pattern
         /// </summary>
-        public const string INTEGER_CORE = @"(\-?(0x[0-9a-f]+|[0-9a-f]+h|[0-9]+|0o[01]+|0b[0-7]+)|true|false|null)";
+        public const string INTEGER_CORE = @"(\-?(0x[0-9a-f]+|[0-9a-f]+h|[0-9]+|0o[01]+|0b[0-7]+)|true|false|null|line|i_(min|max))";
         /// <summary>
         /// Argument core matching pattern
         /// </summary>

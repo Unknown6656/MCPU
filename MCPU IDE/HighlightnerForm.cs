@@ -327,8 +327,16 @@ namespace MCPU.IDE
                     }
                     else if (reg(REGEX_CONSTANT))
                     {
+                        string str = MCPUCompiler.Constants[e.HoveredWord.Trim().ToLower()];
+                        FloatIntUnion fiu = e.Place.iLine + 1;
+
+                        if (int.TryParse(str, out int ival))
+                            fiu = ival;
+                        else if (float.TryParse(str, out float fval))
+                            fiu = fval;
+
                         tooltip.Icon = autocomp_images["constant"];
-                        e.ToolTipText = "tooltip_constant".GetStr(e.HoveredWord, MCPUCompiler.Constants[e.HoveredWord.Trim().ToLower()] ?? (e.Place.iLine + 1).ToString());
+                        e.ToolTipText = "tooltip_constant".GetStr(e.HoveredWord, fiu.I, fiu.F);
                     }
                     else if (reg(REGEX_STOKEN))
                     {
@@ -432,13 +440,23 @@ namespace MCPU.IDE
                                 ImageIndex = GetImageIndex("label"),
                             })
                     .Concat(from kvp in MCPUCompiler.Constants
-                            select new AutocompleteItem
+                            select new Func<AutocompleteItem>(delegate
                             {
-                                Text = kvp.Key,
-                                MenuText = kvp.Key,
-                                ToolTipText = "autocomp_constant".GetStr(kvp.Key, kvp.Value ?? ""),
-                                ImageIndex = GetImageIndex("constant"),
-                            })
+                                FloatIntUnion fiu = 0;
+
+                                if (int.TryParse(kvp.Value, out int ival))
+                                    fiu = ival;
+                                else if (float.TryParse(kvp.Value, out float fval))
+                                    fiu = fval;
+
+                                return new AutocompleteItem
+                                {
+                                    Text = kvp.Key,
+                                    MenuText = kvp.Key,
+                                    ToolTipText = "autocomp_constant".GetStr(kvp.Key, fiu.I, fiu.F),
+                                    ImageIndex = GetImageIndex("constant"),
+                                };
+                            }).Invoke())
                     .Concat(std_autocompitems)
                     .OrderBy(_ => _.MenuText)));
             autocomp.Items.Invalidate();
