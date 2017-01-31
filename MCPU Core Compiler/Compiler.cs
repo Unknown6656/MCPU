@@ -519,10 +519,9 @@ namespace MCPU.Compiler
                     case "e":
                         return FC_e;
                     default:
-                        float f = float.Parse(s.Replace('.', ',')
-                                               .Replace('f', 'd')
-                                               .Replace("d", ""));
-                        return *((int*)&f);
+                        return (FloatIntUnion)float.Parse(s//.Replace('.', ',')
+                                                           .Replace('f', 'd')
+                                                           .Replace("d", ""));
                 }
             }
         }

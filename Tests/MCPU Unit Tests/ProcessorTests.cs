@@ -423,7 +423,7 @@ end func
             IsTrue(proc[3] != 0);
         }
 
-        [TestMethod, AppVeyorSkip]
+        [TestMethod] // [AppVeyorSkip]
         public void Test_21()
         {
             RequireFloatUnion();
@@ -442,7 +442,7 @@ end func
             );
         }
 
-        [TestMethod, AppVeyorSkip]
+        [TestMethod] // [AppVeyorSkip]
         public void Test_22()
         {
             RequireFloatUnion();
