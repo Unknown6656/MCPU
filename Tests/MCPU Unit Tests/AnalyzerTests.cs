@@ -464,10 +464,32 @@ void main(void)
 }
 ", "IVAL_BOP");
 
+        [TestMethod]
+        public void Test_39() => ExpectAnalyzerFailure(@"
+void main(void)
+{
+    int[] arr;
+    int res;
+
+    res = arr >> 42;
+}
+", "IVAL_BOP");
+
+        [TestMethod]
+        public void Test_40() => ExpectAnalyzerFailure(@"
+void main(void)
+{
+    int[] arr;
+    int res;
+    float y;
+
+    res = arr <= y;
+}
+", "IVAL_BOP");
+
         /*
          * TO TEST:
-         
-            "IVAL_BOP"
+         * 
             "ERR_LEXER"
             "ERR_PARSER"
             "ARRAY_EXPECTED"

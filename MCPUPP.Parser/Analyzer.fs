@@ -295,7 +295,8 @@ type ExpressionTypeDictionary(program, ftable : FunctionTable, stable : SymbolTa
                              if t1.IsArray then fail()
                              else ScalarType Int
                          | Add | Subtract ->
-                             if t1.IsPointer && t2.IsPointer then fail()
+                             if t1.IsArray || t2.IsArray then fail()
+                             elif t1.IsPointer && t2.IsPointer then fail()
                              elif t1.IsPointer && t2 <> ScalarType Int then fail()
                              elif t2.IsPointer && t1 <> ScalarType Int then fail()
                              elif t1.IsPointer then t1
@@ -303,10 +304,14 @@ type ExpressionTypeDictionary(program, ftable : FunctionTable, stable : SymbolTa
                              elif (t1 = ScalarType Float) || (t2 = ScalarType Float) then ScalarType Float
                              else t2
                          | Multiply | Divide | Modulus | Power ->
-                             if (t1 = ScalarType Float) || (t2 = ScalarType Float) then ScalarType Float
+                             if t1.IsArray || t2.IsArray then fail()
+                             elif t1.IsPointer || t2.IsPointer then fail()
+                             elif (t1 = ScalarType Float) || (t2 = ScalarType Float) then ScalarType Float
                              else t2
                          | RotateLeft | RotateRight | ShiftLeft | ShiftRight ->
-                             if (t2 <> ScalarType Int) || (t1 <> ScalarType Int) then fail()
+                             if t1.IsArray || t2.IsArray then fail()
+                             elif t1.IsPointer || t2.IsPointer then fail()
+                             elif (t2 <> ScalarType Int) || (t1 <> ScalarType Int) then fail()
                              else ScalarType Int
                 | UnaryExpression (op, e) ->
                     let e = ScanExpression e
