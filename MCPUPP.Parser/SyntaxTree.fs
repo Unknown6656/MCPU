@@ -13,13 +13,13 @@ type IdentifierRef (name : string) =
     member x.Identifier = name
     override x.ToString() =
         x.Identifier
-    override x.Equals obj =
-        if (obj <> null) && (obj :? IdentifierRef) then
-            (obj :?> IdentifierRef).Identifier = x.Identifier
-        else
-            false
-    override x.GetHashCode () = x.Identifier.GetHashCode()
-    static member (=) (i1 : IdentifierRef, i2 : IdentifierRef) = i1.Equals i2
+    //override x.Equals obj =
+    //    if (obj <> null) && (obj :? IdentifierRef) then
+    //        (obj :?> IdentifierRef).Identifier = x.Identifier
+    //    else
+    //        false
+    //override x.GetHashCode () = x.Identifier.GetHashCode()
+    //static member (=) (i1 : IdentifierRef, i2 : IdentifierRef) = i1.Equals i2
 type VariableDeclaration =
     | ArrayDeclaration of VariableType * Identifier
     | ScalarDeclaration of VariableType * Identifier

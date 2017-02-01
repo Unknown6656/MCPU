@@ -2,6 +2,7 @@
 
 open MCPU.MCPUPP.Parser.SyntaxTree
 open MCPU.Compiler
+
 open System.Collections.Generic
 open System.Linq
 open System
@@ -132,6 +133,7 @@ type SymbolTable(program) as self =
                                  ScanExpression e1
                                  ScanExpression e2
                              |_ -> ()
+        
         SymbolScopeStack.Push()
         Array.iter (SymbolScopeStack.AddDeclaration) param
         ScanBlockStatement blockstat
@@ -361,7 +363,11 @@ type ExpressionTypeDictionary(program, ftable : FunctionTable, stable : SymbolTa
                         raise <| Errors.ArrayExpected()
                     ScalarType Int
                 | RawAddressOfExpression _ -> ScalarType Int
-            self.Add (expr, ExpressionType)
+            if self.ContainsKey expr then
+                if self.[expr] <> ExpressionType then
+                    raise <| null // TODO
+            else
+                self.Add (expr, ExpressionType)
             ExpressionType
         ScanBlockStatement blockstat
     do
