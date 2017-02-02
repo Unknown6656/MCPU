@@ -301,8 +301,7 @@ namespace MCPU.IDE
                     return;
                 else
                 {
-                    bool reg(string pat, bool lln = false) => (m = Regex.Match(lln ? line : e.HoveredWord, pat, RegexOptions.IgnoreCase)).Success
-                                                           || (m = Regex.Match(lln ? line : e.HoveredWord, TrimStart(TrimEnd(pat, @"\b"), @"\b"), RegexOptions.IgnoreCase)).Success;
+                    bool reg(string pat, bool lln = false) => (m = Regex.Match(lln ? line : e.HoveredWord, pat, RegexOptions.IgnoreCase)).Success;
                     string token = e.HoveredWord.ToLower();
 
                     if (reg(REGEX_TODO))
