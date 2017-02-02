@@ -14,7 +14,7 @@ namespace MCPU
     /// <param name="p">MCPU processor</param>
     /// <param name="args">Instruction arguments</param>
     public delegate void ProcessingDelegate(Processor p, params InstructionArgument[] args);
-    
+
 
     /// <summary>
     /// Represents an OP code
@@ -64,6 +64,12 @@ namespace MCPU
         }
 
         /// <summary>
+        /// Calculates the hash code of the current object
+        /// </summary>
+        /// <returns>A hash code for the current object</returns>
+        public override int GetHashCode() => Number ^ Token.GetHashCode() ^ RequiredArguments ^ Process.GetHashCode();
+
+        /// <summary>
         /// Returns the string representation of the current OP code
         /// </summary>
         /// <returns>String representation</returns>
@@ -73,6 +79,7 @@ namespace MCPU
         /// Creates a new OP code
         /// </summary>
         /// <param name="argc">Argument count</param>
+        /// <param name="del">The delegate executed during the OP code processing</param>
         public OPCode(int argc, ProcessingDelegate del)
         {
             Type t = GetType();
@@ -98,7 +105,7 @@ namespace MCPU
         {
             if (o1?.Equals(o2) ?? false)
                 return true;
-            if (o1 is null ^ o2 is null)
+            if ((o1 is null) ^ (o2 is null))
                 return false;
             else
                 return o1?.Number == o2?.Number;

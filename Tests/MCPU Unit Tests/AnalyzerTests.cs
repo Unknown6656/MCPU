@@ -190,7 +190,7 @@ int main(void)
 
     return i & f;
 }
-", "IVAL_BOP");
+", "IVAL_CAST");
 
         [TestMethod]
         public void Test_14() => ExpectAnalyzerFailure(@"
@@ -441,7 +441,7 @@ void main(void)
 
     f &= i;
 }
-", "IVAL_BOP");
+", "IVAL_CAST");
 
         [TestMethod]
         public void Test_37() => ExpectAnalyzerFailure(@"
@@ -451,11 +451,45 @@ void main(void)
 
     f ^= -42.0;
 }
+", "IVAL_CAST");
+
+        [TestMethod]
+        public void Test_38() => ExpectAnalyzerFailure(@"
+void main(void)
+{
+    float* f;
+    float r;
+
+    r = 42.0 ^^ f;
+}
+", "IVAL_BOP");
+
+        [TestMethod]
+        public void Test_39() => ExpectAnalyzerFailure(@"
+void main(void)
+{
+    int[] arr;
+    int res;
+
+    res = arr >> 42;
+}
+", "IVAL_BOP");
+
+        [TestMethod]
+        public void Test_40() => ExpectAnalyzerFailure(@"
+void main(void)
+{
+    int[] arr;
+    int res;
+    float y;
+
+    res = arr <= y;
+}
 ", "IVAL_BOP");
 
         /*
          * TO TEST:
-         
+         * 
             "ERR_LEXER"
             "ERR_PARSER"
             "ARRAY_EXPECTED"

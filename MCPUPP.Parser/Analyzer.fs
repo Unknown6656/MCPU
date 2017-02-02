@@ -2,6 +2,7 @@
 
 open MCPU.MCPUPP.Parser.SyntaxTree
 open MCPU.Compiler
+
 open System.Collections.Generic
 open System.Linq
 open System
@@ -66,7 +67,7 @@ let TypeOfDeclaration = function
 
 type SymbolTable(program) as self =
     inherit Dictionary<IdentifierRef, VariableDeclaration>(HashIdentity.Reference)
-
+    
     let WhileStatementStack = Stack<WhileStatement>()
     let SymbolScopeStack = SymbolScopeStack()
     let rec ScanDeclaration = function
@@ -78,7 +79,6 @@ type SymbolTable(program) as self =
             List.iter (SymbolScopeStack.AddDeclaration) locdecl
             List.iter ScanStatement stat
             SymbolScopeStack.Pop()
-            |> ignore
         and ScanStatement = function
                             | ExpressionStatement es -> match es with
                                                         | Expression e -> ScanExpression e
@@ -115,31 +115,31 @@ type SymbolTable(program) as self =
                              | PointerValueAssignmentExpression (i, e) ->
                                  AddIdentifierMapping i
                                  ScanExpression e
+                             | ArraySizeExpression i
                              | IdentifierExpression i
+                             | RawAddressOfExpression i
+                             | ArrayDeletionExpression i
                              | PointerValueIdentifierExpression i
                              | PointerAddressIdentifierExpression i -> AddIdentifierMapping i
                              | ArrayAssignmentExpression (i, e1, e2) ->
                                  AddIdentifierMapping i
                                  ScanExpression e1
                                  ScanExpression e2
-                             | FunctionCallExpression (_, args) ->
-                                 args
-                                 |> List.iter ScanExpression
-                             | LiteralExpression _ -> ()
+                             | FunctionCallExpression (_, args) -> List.iter ScanExpression args
                              | UnaryExpression (_, e)
                              | ArrayAllocationExpression (_, e) ->
                                  ScanExpression e
+                             | BinaryExpression (e1, _, e2) ->
+                                 ScanExpression e1
+                                 ScanExpression e2
                              |_ -> ()
         
         SymbolScopeStack.Push()
-        param
-        |> Array.iter SymbolScopeStack.AddDeclaration
+        Array.iter (SymbolScopeStack.AddDeclaration) param
         ScanBlockStatement blockstat
         SymbolScopeStack.Pop()
-        |> ignore
     do
-        program
-        |> List.iter ScanDeclaration
+        List.iter ScanDeclaration program
 
     member x.GetIdentifierType idref =
         if self.ContainsKey idref then
@@ -295,7 +295,8 @@ type ExpressionTypeDictionary(program, ftable : FunctionTable, stable : SymbolTa
                              if t1.IsArray then fail()
                              else ScalarType Int
                          | Add | Subtract ->
-                             if t1.IsPointer && t2.IsPointer then fail()
+                             if t1.IsArray || t2.IsArray then fail()
+                             elif t1.IsPointer && t2.IsPointer then fail()
                              elif t1.IsPointer && t2 <> ScalarType Int then fail()
                              elif t2.IsPointer && t1 <> ScalarType Int then fail()
                              elif t1.IsPointer then t1
@@ -303,10 +304,14 @@ type ExpressionTypeDictionary(program, ftable : FunctionTable, stable : SymbolTa
                              elif (t1 = ScalarType Float) || (t2 = ScalarType Float) then ScalarType Float
                              else t2
                          | Multiply | Divide | Modulus | Power ->
-                             if (t1 = ScalarType Float) || (t2 = ScalarType Float) then ScalarType Float
+                             if t1.IsArray || t2.IsArray then fail()
+                             elif t1.IsPointer || t2.IsPointer then fail()
+                             elif (t1 = ScalarType Float) || (t2 = ScalarType Float) then ScalarType Float
                              else t2
                          | RotateLeft | RotateRight | ShiftLeft | ShiftRight ->
-                             if (t2 <> ScalarType Int) || (t1 <> ScalarType Int) then fail()
+                             if t1.IsArray || t2.IsArray then fail()
+                             elif t1.IsPointer || t2.IsPointer then fail()
+                             elif (t2 <> ScalarType Int) || (t1 <> ScalarType Int) then fail()
                              else ScalarType Int
                 | UnaryExpression (op, e) ->
                     let e = ScanExpression e
@@ -363,7 +368,11 @@ type ExpressionTypeDictionary(program, ftable : FunctionTable, stable : SymbolTa
                         raise <| Errors.ArrayExpected()
                     ScalarType Int
                 | RawAddressOfExpression _ -> ScalarType Int
-            self.Add (expr, ExpressionType)
+            if self.ContainsKey expr then
+                if self.[expr] <> ExpressionType then
+                    raise <| null // TODO
+            else
+                self.Add (expr, ExpressionType)
             ExpressionType
         ScanBlockStatement blockstat
     do

@@ -65,60 +65,6 @@ namespace MCPU
 
         private static int InnerMain(string[] args)
         {
-            var mcppp = @"
-int* test;
-
-void main(int[] arr)
-{
-    int f;
-    float* ptr;
-
-    __asm ""
-        .kernel
-        NOP
-        MOV k[44]  [[$0]] __test
-__test:
-        HALT
-    "";
-}
-".Trim();
-
-            try
-            {
-                var ast = Lexer.parse(mcppp);
-
-                WriteLine(SyntaxTreeExtensions.ToDebugString(ast));
-            }
-            catch (Exception ex)
-            {
-                if (ex is ParseException pex)
-                    WriteLine($"{pex.FoundToken}\n{string.Join(", ", pex.ExpectedTokens)}");
-                else if (ex is LexerException lex)
-                {
-                    VisualizeError(lex, mcppp);
-                    ForegroundColor = ConsoleColor.White;
-                }
-
-                WriteLine();
-
-                do
-                {
-                    print(ex);
-
-                    ex = ex.InnerException;
-                }
-                while (ex != null);
-
-                void print(Exception _)
-                {
-                    WriteLine(_.Message);
-                    WriteLine(_.StackTrace);
-                }
-            }
-
-            ReadKey(false);
-            return 0;
-
             Processor proc = new Processor(64, 64, -559038737);
 
             proc.OnError += (p, ex) => {
@@ -128,24 +74,8 @@ __test:
             };
 
             var res = MCPUCompiler.Compile(@"
-func rec
-    wait $2
-    incr [0]
-    mov [[0]] [0]
-    add [[0]] $0
-    cmp [0] $1
-    jge dump
-    call rec $0 $1 $2
-dump:
-    syscall 1
-    halt
-end func
-    
     .main
-    .kernel
-    syscall 1
-    mov [0] 1
-    call rec 42 20h 10
+    MOV [0] 42.0
 ");
             var instr = res.AsA.Instructions;
             int line = 0;
@@ -159,6 +89,7 @@ end func
             WriteLine($"SP:  {proc.StackPointerAddress:x8}");
             WriteLine($"SSZ: {proc.StackSize * 4}");
 
+            Console.WriteLine(((FloatIntUnion)proc[0]).F);
             ReadKey(true);
 
             return 0;
