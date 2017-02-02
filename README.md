@@ -3,6 +3,22 @@ This project is a microprocessor emulator, which comes with its own instruction 
 It also comes with a higher-level programming language, named MCPU++, which can be executed on this microprocessor.
 The name **MCPU** stands for **M**inimalistic **C**entral **P**rocessing **U**nit, but can also be interpreted as **M**ine**c**raft **P**rocessing **U**nit, as the initial project was based on the idea to simulate a microprocessor inside the sandbox-game Minecraft.
 
+#### Build status (Windows 64Bit, VS 2017 RC)
+[<img src="https://ci.appveyor.com/api/projects/status/k9t9jqap2iemau3c/branch/master?svg=true&pendingText=master%20-%20pending&failingText=master%20-%20failed&passingText=master%20-%20passed" height="30"/>](https://ci.appveyor.com/project/Unknown6656/mcpu/branch/master)<br/>
+[<img src="https://ci.appveyor.com/api/projects/status/k9t9jqap2iemau3c/branch/dev?svg=true&pendingText=dev%20-%20pending&failingText=dev%20-%20failed&passingText=dev%20-%20passed" height="30"/>](https://ci.appveyor.com/project/Unknown6656/mcpu/branch/dev)<br/>
+[<img src="https://ci.appveyor.com/api/projects/status/k9t9jqap2iemau3c/branch/mcpu%2B%2B?svg=true&pendingText=mcpu%2B%2B%20-%20pending&failingText=mcpu%2B%2B%20-%20failed&passingText=mcpu%2B%2B%20-%20passed" height="30"/>](https://ci.appveyor.com/project/Unknown6656/mcpu/branch/mcpu%2B%2B)<br/>
+[<img src="https://img.shields.io/github/release/Unknown6656/MCPU.svg" height="30"/>](https://github.com/Unknown6656/MCPU/releases)
+
+#### Testing status (Windows 64Bit)
+[<img src="https://ci.appveyor.com/api/projects/status/fyvayfc9e82xh6eg/branch/master?svg=true&pendingText=master%20-%20pending&failingText=master%20-%20failed&passingText=master%20-%20passed" height="30"/>](https://ci.appveyor.com/project/Unknown6656/mcpu-he9wv/branch/master)<br/>
+[<img src="https://ci.appveyor.com/api/projects/status/fyvayfc9e82xh6eg/branch/dev?svg=true&pendingText=dev%20-%20pending&failingText=dev%20-%20failed&passingText=dev%20-%20passed" height="30"/>](https://ci.appveyor.com/project/Unknown6656/mcpu-he9wv/branch/dev)<br/>
+[<img src="https://ci.appveyor.com/api/projects/status/fyvayfc9e82xh6eg/branch/mcpu%2B%2B?svg=true&pendingText=mcpu%2B%2B%20-%20pending&failingText=mcpu%2B%2B%20-%20failed&passingText=mcpu%2B%2B%20-%20passed" height="30"/>](https://ci.appveyor.com/project/Unknown6656/mcpu-he9wv/branch/mcpu%2B%2B)
+
+#### Stats
+[<img src="https://img.shields.io/issuestats/i/github/Unknown6656/MCPU.svg" height="30"/>](https://github.com/Unknown6656/MCPU/issues)<br/>
+[<img src="https://img.shields.io/issuestats/p/github/Unknown6656/MCPU.svg" height="30"/>](https://github.com/Unknown6656/MCPU/pulls)<br/>
+[<img src="https://img.shields.io/github/downloads/Unknown6656/MCPU/total.svg" height="30"/><br/>](https://github.com/Unknown6656/MCPU/releases)
+
 ### Reference Manual
 
 * [Introduction](https://github.com/Unknown6656/MCPU/blob/documentation/Documentation/introduction.md)
@@ -14,15 +30,9 @@ The name **MCPU** stands for **M**inimalistic **C**entral **P**rocessing **U**ni
 
 ### TODO-List
 
-- [ ] IDE Documentation (!)
-- [x] Floating-point arithmetic
-- [x] Unit Tests
-- [x] Push releases (used [name generator](http://www.codenamegenerator.com/))
-- [x] Instruction serialization
-- [x] Instruction-space management
-- [x] Instruction optimization (NOP, empty statements etc.)
+- [ ] IDE Documentation (!) **(currently in progress)**
+- [ ] MCPU++ Documentation (!) **(currently in progress)**
 - [ ] Function inlining
-- [x] Kernel-space memory addressing
 - [ ] Asynchronous processor execution
 - [ ] Virtual Device support
 - [ ] String processing and support
@@ -34,3 +44,4 @@ The name **MCPU** stands for **M**inimalistic **C**entral **P**rocessing **U**ni
     - [x] auto-completition **(Nearly finished)**
     - [x] debugger **(currently in progress)**
     - [ ] refractoring
+    - [ ] MCPU++ editor
