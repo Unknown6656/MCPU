@@ -9,6 +9,8 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Data;
 using System.Diagnostics;
+using System.Reflection;
+using System.Threading;
 using Microsoft.Win32;
 using System.Windows;
 using System.Linq;
@@ -103,7 +105,42 @@ namespace MCPU.IDE
             fctb.Select();
             fctb.Focus();
 
+            OptimizableLines = null;
+
+            UpdateSnippetMenu();
             Compile(fctb.Text, true);
+        }
+
+        private void UpdateSnippetMenu()
+        {
+            mie_ins_snp.Items.Clear();
+
+            foreach (string snippet in Snippets.Names)
+            {
+                MenuItem subitem = new MenuItem();
+
+                subitem.Click += (s, a) => insertsnippet(Snippets.snp[snippet]);
+                subitem.Header = "mw_edit_insert_p".GetStr(snippet);
+
+                mie_ins_snp.Items.Add(subitem);
+            }
+        }
+
+        private void insertsnippet(string code)
+        {
+            Place selend = fctb.Selection.End;
+
+            if (fctb.SelectionLength > 0)
+                fctb.Selection = new Range(fctb, selend, selend);
+
+            if (fctb.Lines[selend.iLine].Trim().Length > 0)
+            {
+                selend = new Place(fctb.Lines[selend.iLine].Length, selend.iLine);
+
+                fctb.Selection = new Range(fctb, selend, selend);
+            }
+
+            fctb.InsertText($"\n{code}");
         }
 
         private void Window_Closing(object sender, CancelEventArgs e)
@@ -316,6 +353,8 @@ namespace MCPU.IDE
 
             fctb_host.Error = fctb_host.Error;
 
+            UpdateSnippetMenu();
+
             // TODO : refresh other stuff 
         }
 
@@ -467,6 +506,64 @@ namespace MCPU.IDE
         private void miw_procnfo(object sender, ExecutedRoutedEventArgs e) => watcher.Show();
 
         #endregion
+    }
+
+    public static class Snippets
+    {
+        internal static Dictionary<string, string> snp { get; } = new Dictionary<string, string> {
+            ["IF"] = $@"
+    CMP [{MCPUCompiler.TODO_TOKEN}] ; check the condition
+    JZ _else
+    
+    ; condition is true
+
+    JMP _endif
+_else:
+
+    ; condition is false
+    
+_endif:
+",
+            ["WHILE"] = $@"
+_while:
+    CMP [{MCPUCompiler.TODO_TOKEN}] ; check the condition
+    JZ _endwhile
+    
+    ; while body
+
+    JMP _while
+_endwhile:
+",
+            ["FOR"] = $@"
+    MOV [100h] {MCPUCompiler.TODO_TOKEN} ; start value
+    MOV [101h] {MCPUCompiler.TODO_TOKEN} ; end value
+_for:
+    CMP [100h] [101h]
+    JL _forend
+    INCR [100h]
+
+    ; for body
+
+    JMP _for
+_forend:
+",
+            ["FORS"] = $@"
+    MOV [100h] {MCPUCompiler.TODO_TOKEN} ; start value
+    MOV [101h] {MCPUCompiler.TODO_TOKEN} ; end value
+    MOV [102h] {MCPUCompiler.TODO_TOKEN} ; step size
+_for:
+    CMP [100h] [101h]
+    JL _forend
+    ADD [100h] [102h]
+
+    ; for body
+
+    JMP _for
+_forend:
+",
+        };
+
+        public static string[] Names => snp.Keys.ToArray();
     }
 
     public static class Commands

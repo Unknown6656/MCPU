@@ -258,5 +258,14 @@
     <Resource Include="Resources\menu_redo.png" />
     <Resource Include="Resources\menu_undo.png" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\autocomp_snippet.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\autocomp_constant.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\autocomp_instrref.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

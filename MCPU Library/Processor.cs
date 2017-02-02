@@ -851,6 +851,7 @@ namespace MCPU
         /// <param name="size">Userspace size</param>
         /// <param name="stacksize">Callstack size</param>
         /// <param name="cpuid">CPU ID</param>
+        /// <exception cref="OutOfMemoryException">Thrown if the givn memory size is to big</exception>
         public Processor(int size, int stacksize, int cpuid)
         {
             if (size > MAX_MEMSZ)
@@ -858,21 +859,21 @@ namespace MCPU
             if (stacksize > MAX_STACKSZ)
                 throw new OutOfMemoryException($"The (currently) maximum supported callstack size are {MAX_STACKSZ * 4} bytes.");
 
-            int raw_size = 4 * size + MEM_OFFS + stacksize * 4;
+            int raw_size = (4 * size) + MEM_OFFS + (stacksize * 4);
 
             raw = (byte*)Marshal.AllocHGlobal(raw_size);
 
             for (int i = 0; i < raw_size; i++)
                 raw[i] = 0;
 
-            IO = new IOPorts(raw);
+            IO = new IOPorts(this);
             Ticks = 0;
             Size = size;
             CPUID = cpuid;
             StackSize = 0;
             RawSize = raw_size;
             Instructions = new Instruction[0];
-
+            
             Contract.Assert(StackPointer == StackBasePointer);
         }
 
@@ -985,17 +986,19 @@ namespace MCPU
         : IEnumerable<IOPort>
     {
         private List<IOPort> plist;
-        internal IOPort* ports;
-
+        internal Processor proc;
+        
 
         /// <summary>
         /// Accesses the I/O-port at the given index
         /// </summary>
         /// <param name="port">I/O-port index</param>
         /// <returns>I/O-port</returns>
+        /// <exception cref="IndexOutOfRangeException">The I/O-port index is out of range</exception>
+        /// <exception cref="InvalidOperationException">A value has been written to a read-only I/O-port</exception>
         public IOPort this[int port]
         {
-            get => IsInRange(port) ? *((IOPort*)((byte*)ports + Processor.IO_OFFS + port))
+            get => IsInRange(port) ? *((IOPort*)(proc.raw + Processor.IO_OFFS + port))
                                    : throw new IndexOutOfRangeException($"The I/O-port index must be a positive value between 0 and {Processor.IO_OFFS}.");
             set
             {
@@ -1004,7 +1007,7 @@ namespace MCPU
                 if ((old.Direction == IODirection.In) && (value.Value != old.Value))
                     throw new InvalidOperationException($"The I/O-port no. {port} is set to read-only.");
                 else
-                    *((IOPort*)((byte*)ports + Processor.IO_OFFS + port)) = value;
+                    *((IOPort*)(proc.raw + Processor.IO_OFFS + port)) = value;
             }
         }
 
@@ -1054,7 +1057,7 @@ namespace MCPU
 
         internal bool IsInRange(int port) => (port >= 0) && (port < Processor.IO_COUNT);
 
-        internal IOPorts(void* ptr) => ports = (IOPort*)ptr;
+        internal IOPorts(Processor proc) => this.proc = proc;
     }
 
     /// <summary>

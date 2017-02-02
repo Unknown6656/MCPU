@@ -7,6 +7,7 @@ using static System.Math;
 namespace MCPU.Instructions
 {
 #pragma warning disable IDE1006 // DISABLE CLASS NAMING CONVENTION WARNING (THE INSTRUCTION NAMES DO NOT FOLLOW THE PASCAL CONVENTION)
+#pragma warning disable RCS1096
     
     [OPCodeNumber(0x0000)]
     public sealed class nop
@@ -61,7 +62,7 @@ namespace MCPU.Instructions
     #endregion
     #region 00004...0007 FUNCTION CALLING
 
-    [OPCodeNumber(0x0004), RequiresPrivilege]
+    [OPCodeNumber(0x0004), RequiresPrivilege, Keyword]
     public sealed class abk
         : OPCode
     {
@@ -70,7 +71,7 @@ namespace MCPU.Instructions
         {
         }
     }
-    
+
     [OPCodeNumber(0x0005), RequiresPrivilege, Keyword]
     public sealed class syscall
         : OPCode
@@ -101,7 +102,7 @@ namespace MCPU.Instructions
                     ReturnAddress = p.IP + 1,
                     Arguments = new int[_.Length - 1],
                 };
-        
+
                 for (int i = 0, l = _.Length - 1; i < l; i++)
                     call.Arguments[i] = _[i + 1].IsInstructionSpace ? (int)_[i + 1] : p.TranslateConstant(_[i + 1]);
 
@@ -197,7 +198,7 @@ namespace MCPU.Instructions
             : base(2, (p, _) => {
                 AssertNotInstructionSpace(0, _);
                 AssertAddress(1, _);
-                
+
                 *p.TranslateAddress(_[1]) = p.IO[p.TranslateConstant(_[0])].Value;
             })
         {
@@ -212,7 +213,7 @@ namespace MCPU.Instructions
             : base(2, (p, _) => {
                 AssertNotInstructionSpace(0, _);
                 AssertNotInstructionSpace(1, _);
-                
+
                 p.IO.SetValue(p.TranslateConstant(_[0]), (byte)(p.TranslateConstant(_[1]) & 0xff));
             })
         {
@@ -587,7 +588,7 @@ namespace MCPU.Instructions
         public jle()
             : base(1, (p, _) => {
                 AssertInstructionSpace(0, _);
-                
+
                 if (p.Flags.HasFlag(StatusFlags.Lower | StatusFlags.Equal))
                     p.MoveTo(_[0]);
                 else
@@ -689,7 +690,7 @@ namespace MCPU.Instructions
         public jz()
             : base(1, (p, _) => {
                 AssertInstructionSpace(0, _);
-                
+
                 if (p.Flags.HasFlag(StatusFlags.Zero2) & (p.Flags.HasFlag(StatusFlags.Unary) | p.Flags.HasFlag(StatusFlags.Zero1)))
                     p.MoveTo(_[0]);
                 else
@@ -814,7 +815,7 @@ namespace MCPU.Instructions
     }
 
     #region 0040...0049 STACK OPERATIONS
-    
+
     [OPCodeNumber(0x0040), RequiresPrivilege]
     public sealed class push
         : OPCode
@@ -854,7 +855,7 @@ namespace MCPU.Instructions
         public peek()
             : base(1, (p, _) => {
                 AssertAddress(0, _);
-                
+
                 int val = p.Peek();
 
                 *p.TranslateAddress(_[0]) = val;
@@ -1381,7 +1382,7 @@ namespace MCPU.Instructions
         public jpinf()
             : base(1, (p, _) => {
                 AssertInstructionSpace(0, _);
-                
+
                 if ((p.Flags.HasFlag(StatusFlags.Infinity2) & !p.Flags.HasFlag(StatusFlags.Sign2)) |
                     (!p.Flags.HasFlag(StatusFlags.Unary) & p.Flags.HasFlag(StatusFlags.Infinity1) & !p.Flags.HasFlag(StatusFlags.Sign1)))
                     p.MoveTo(_[0]);

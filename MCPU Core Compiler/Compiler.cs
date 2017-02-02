@@ -16,6 +16,10 @@ namespace MCPU.Compiler
     public static class MCPUCompiler
     {
         /// <summary>
+        /// The character sequence, which indicates a not yet implemented code snippet/token/segment
+        /// </summary>
+        public const string TODO_TOKEN = "__TODO__";
+        /// <summary>
         /// The character sequence which marks the start of a code comment
         /// </summary>
         public const string COMMENT_START = ";";
@@ -26,11 +30,11 @@ namespace MCPU.Compiler
         /// <summary>
         /// Floating-point matching pattern
         /// </summary>
-        public const string FLOAT_CORE = @"((\+|\-|)([0-9]+\.[0-9]*|[0-9]*\.[0-9]+)(e(\+|\-|)[0-9]+)?[fd]?|pi|e|phi|tau|π|τ)";
+        public const string FLOAT_CORE = @"((\+|\-|)([0-9]+\.[0-9]*|[0-9]*\.[0-9]+)(e(\+|\-|)[0-9]+)?[fd]?|pi|e|phi|tau|π|τ|φ|f_(min|max|(n|p)inf)|nan)";
         /// <summary>
         /// Integer matching pattern
         /// </summary>
-        public const string INTEGER_CORE = @"(\-?(0x[0-9a-f]+|[0-9a-f]+h|[0-9]+|0o[01]+|0b[0-7]+)|true|false|null)";
+        public const string INTEGER_CORE = @"(\-?(0x[0-9a-f]+|[0-9a-f]+h|[0-9]+|0o[01]+|0b[0-7]+)|true|false|null|line|i_(min|max))";
         /// <summary>
         /// Argument core matching pattern
         /// </summary>
@@ -71,7 +75,25 @@ namespace MCPU.Compiler
         /// Represents the IEEE-754 representation of the mathematical constant φ
         /// </summary>
         public static readonly int FC_φ = (FloatIntUnion)1.61803398874989;
-
+        public static readonly Dictionary<string, string> Constants = new Dictionary<string, string>
+        {
+            ["line"] = null,
+            ["i_max"] = int.MaxValue.ToString(),
+            ["i_min"] = int.MinValue.ToString(),
+            ["nan"] = float.NaN.ToString(),
+            ["f_max"] = float.MaxValue.ToString(),
+            ["f_min"] = float.MinValue.ToString(),
+            ["f_pinf"] = float.PositiveInfinity.ToString(),
+            ["f_ninf"] = float.NegativeInfinity.ToString(),
+            ["epsilon"] = float.Epsilon.ToString(),
+            ["τ"] = FC_τ.ToString(),
+            ["tau"] = FC_τ.ToString(),
+            ["π"] = FC_π.ToString(),
+            ["pi"] = FC_π.ToString(),
+            ["φ"] = FC_φ.ToString(),
+            ["phi"] = FC_φ.ToString(),
+            ["e"] = FC_e.ToString(),
+        };
         internal static readonly string[] __reserved = (from opc in OPCodes.CodesByID
                                                         where opc.Value.IsKeyword
                                                         select opc.Value.Token.ToLower()).Concat(new string[] { "func", "end", "___main" }).ToArray();
@@ -148,49 +170,34 @@ namespace MCPU.Compiler
             MCPUFunction curr_func = null;
             Match match;
 
-            (MCPUFunction[], MCPULabelMetadata[], int, string) Error(string message) => (null, null, linenr + 1, message);
-            MCPUFunction FindFirst(string name) => (from f in functions where f.Name == name select f).FirstOrDefault();
-            bool CheckGroup(string name, out string value) => (value = match.Groups[name].ToString().Trim()).Length > 0;
             unsafe int ParseFloatArg(string s)
-            {
-                switch (s)
-                {
-                    case "τ":
-                    case "tau":
-                        return FC_τ;
-                    case "π":
-                    case "pi":
-                        return FC_π;
-                    case "φ":
-                    case "phi":
-                        return FC_φ;
-                    case "e":
-                        return FC_e;
-                    default:
-                        float f = float.Parse(s.Replace('.', ',')
-                                               .Replace('f', 'd')
-                                               .Replace("d", ""));
-                        return *((int*)&f);
-                }
-            }
-            int ParseIntArg(string s)
             {
                 int intparse(string arg)
                 {
-                    if (arg.EndsWith("h"))
-                        return int.Parse(arg.Remove(arg.Length - 1), NumberStyles.HexNumber);
-                    else if (arg.StartsWith("0x"))
-                        return int.Parse(arg.Remove(0, 2), NumberStyles.HexNumber | NumberStyles.AllowHexSpecifier);
-                    else if (arg.StartsWith("0b"))
-                        return Convert.ToInt32(arg.Remove(0, 2), 2);
-                    else if (arg.StartsWith("0o"))
-                        return Convert.ToInt32(arg.Remove(0, 2), 8);
-                    else if ((arg == "null") & (arg == "false"))
-                        return 0;
-                    else if (arg == "true")
-                        return 1;
-                    else
-                        return int.Parse(arg);
+                    switch (arg)
+                    {
+                        case "i_max":
+                            return int.MaxValue;
+                        case "i_min":
+                            return int.MinValue;
+                        case "line":
+                            return linenr + 1;
+                        default:
+                            if (arg.EndsWith("h"))
+                                return int.Parse(arg.Remove(arg.Length - 1), NumberStyles.HexNumber);
+                            else if (arg.StartsWith("0x"))
+                                return int.Parse(arg.Remove(0, 2), NumberStyles.HexNumber | NumberStyles.AllowHexSpecifier);
+                            else if (arg.StartsWith("0b"))
+                                return Convert.ToInt32(arg.Remove(0, 2), 2);
+                            else if (arg.StartsWith("0o"))
+                                return Convert.ToInt32(arg.Remove(0, 2), 8);
+                            else if ((arg == "null") & (arg == "false"))
+                                return 0;
+                            else if (arg == "true")
+                                return 1;
+                            else
+                                return int.Parse(arg);
+                    }
                 }
 
                 bool isneg = false;
@@ -285,7 +292,7 @@ namespace MCPU.Compiler
                         {
                             bool inline = match.Groups["inline"]?.ToString()?.ToLower()?.Contains("inline") ?? false;
                             string name = match.Groups["name"].ToString().ToLower();
-                            (int, string, int) um = unmapped.FirstOrDefault(_ => _.Item2 == name);
+                            (int, string, int) um = unmapped.Find(_ => _.Item2 == name);
                             int tid;
 
                             if (name == MAIN_FUNCTION_NAME)
@@ -379,7 +386,7 @@ namespace MCPU.Compiler
                                                 if (val.Contains('[') || val.Contains(']'))
                                                     return Error(GetString("INVALID_ARG", arg));
 
-                                                var dic = functions.ToDictionary(_ => _.Name.ToLower(), _ => _.ID);
+                                                Dictionary<string, int> dic = functions.ToDictionary(_ => _.Name.ToLower(), _ => _.ID);
 
                                                 val = val.ToLower();
 
@@ -432,7 +439,45 @@ namespace MCPU.Compiler
                 return Error(GetString("LABEL_FUNC_NFOUND", unmapped.First().Item2));
             }
             else
-                return (functions.ToArray(), labelmeta.ToArray(), -1, "");
+                return (functions.ToArray(), labelmeta.ToArray(), ignore.ToArray(), -1, "");
+
+            (MCPUFunction[], MCPULabelMetadata[], int[], int, string) Error(string message) => (null, null, null, linenr + 1, message);
+            MCPUFunction FindFirst(string name) => (from f in functions where f.Name == name select f).FirstOrDefault();
+            bool CheckGroup(string name, out string value) => (value = match.Groups[name].ToString().Trim()).Length > 0;
+
+            unsafe int ParseFloatArg(string s)
+            {
+                switch (s)
+                {
+                    case "nan":
+                        return (FloatIntUnion)float.NaN;
+                    case "f_max":
+                        return (FloatIntUnion)float.MaxValue;
+                    case "f_min":
+                        return (FloatIntUnion)float.MinValue;
+                    case "f_pinf":
+                        return (FloatIntUnion)float.PositiveInfinity;
+                    case "f_ninf":
+                        return (FloatIntUnion)float.NegativeInfinity;
+                    case "epsilon":
+                        return (FloatIntUnion)float.Epsilon;
+                    case "τ":
+                    case "tau":
+                        return FC_τ;
+                    case "π":
+                    case "pi":
+                        return FC_π;
+                    case "φ":
+                    case "phi":
+                        return FC_φ;
+                    case "e":
+                        return FC_e;
+                    default:
+                        return (FloatIntUnion)float.Parse(s//.Replace('.', ',')
+                                                           .Replace('f', 'd')
+                                                           .Replace("d", ""));
+                }
+            }
         }
 
         /// <summary>
@@ -496,15 +541,40 @@ namespace MCPU.Compiler
                                 continue;
                             }
                         }
+                        
+                        bool canoptimize = false;
+                        int tailopt = (from t in (f.Instructions as IEnumerable<(Instruction, int)>).Reverse()
+                                       select t.Item1).TakeWhile(_ => f == mainf ? _ == HALT : _ == RET).Count();
+                        int fdiff = f == mainf ? 0 : 1;
 
-                        foreach (Instruction ins in f.Instructions)
-                            if (ins.OPCode is MCPUJumpLabel)
-                                jumptable[(ins.OPCode as MCPUJumpLabel).Value] = linenr;
+                        tailopt -= fdiff;
+
+                        if ((tailopt > 0) && OptimizationEnabled)
+                            for (int i = 0, l = f.Instructions.Last().Item2 - fdiff; i < tailopt; i++)
+                                rm.Add(l - i);
+
+                        foreach ((Instruction ins, int ol) in f.Instructions)
+                            if (ins.OPCode is MCPUJumpLabel jmpl)
+                            {
+                                jumptable[jmpl.Value] = linenr;
+                                unused_isl[jmpl.Value] = ol;
+                                canoptimize = false;
+                            }
                             else
                             {
-                                instr.Add(ins);
+                                if (canoptimize && OptimizationEnabled)
+                                    rm.Add(ol);
+                                else
+                                {
+                                    instr.Add((ins, ol));
 
-                                linenr++;
+                                    linenr++;
+                                }
+
+                                if ((ins.OPCode == RET) ||
+                                    (ins.OPCode == HALT) ||
+                                    (ins.OPCode == RESET))
+                                    canoptimize = true;
                             }
                     }
 
@@ -513,9 +583,19 @@ namespace MCPU.Compiler
                 for (int i = 0, l = cmp_instr.Length; i < l; i++)
                     for (int j = 0, k = cmp_instr[i].Arguments.Length; j < k; j++)
                         if (cmp_instr[i].Arguments[j].IsInstructionSpace)
+                        {
                             cmp_instr[i].Arguments[j].Value = jumptable[cmp_instr[i].Arguments[j].Value];
 
-                return (OptimizationEnabled ? Optimize(cmp_instr) : cmp_instr, metadata, labels);
+                            unused_isl.Remove(val);
+                        }
+
+                (Instruction[] inst, int[] opt_lines) = Optimize(cmp_instr);
+
+                return (inst, (from o in opt_lines.Union(rm)
+                                                  .Union(unused_isl.Values)
+                                                  .Except(ignored)
+                               where func.All(f => f.DefinedLine != o)
+                               select o).ToArray(), metadata, labels);
             }
             catch (Exception ex)
             when (!(ex is MCPUCompilerException))
@@ -557,16 +637,31 @@ namespace MCPU.Compiler
         {
             bool CanBeRemoved(Instruction i)
             {
-                bool In(params OPCode[] opc) => opc.Any(o => o == i);
+                try
+                {
+                    bool In(params OPCode[] opc) => opc.Any(o => o == i);
 
-                return (i == NOP)
-                    || (In(ADD, SUB, CLEAR, WAIT, OR, XOR, FSUB, FADD)  && i[1] == (0, ArgumentType.Constant))
-                    || (In(MUL, DIV, JMPREL)                            && i[1] == (1, ArgumentType.Constant))
-                    || (In(AND, NXOR)                                   && i[1] == (unchecked((int)0xffffffffu), ArgumentType.Constant))
-                    || (In(MOV, SWAP, OR, AND)                          && i[0] == i[1])
-                    || (In(FMUL, FDIV, FPOW, FROOT)                     && i[1] == ((FloatIntUnion)1f, ArgumentType.Constant))
-                    || (In(COPY)                                        && i[2] == (0, ArgumentType.Constant));
+                    if (i == EXEC)
+                        return CanBeRemoved((OPCodes.CodesByID[(ushort)i[0].Value], i.Arguments.Skip(1).ToArray()));
+                    else
+                        return (i == NOP)
+                            || (In(MOV, SWAP, OR, AND)                                          && i[0] == i[1])
+                            || (In(JMPREL)                                                      && i[0] == (1, ArgumentType.Constant))
+                            || (In(WAIT)                                                        && i[0] == (0, ArgumentType.Constant))
+                            || (In(ADD, SUB, CLEAR, OR, XOR, FSUB, FADD, ROL, ROR, SHL, SHR)    && i[1] == (0, ArgumentType.Constant))
+                            || (In(MUL, DIV)                                                    && i[1] == (1, ArgumentType.Constant))
+                            || (In(AND, NXOR)                                                   && i[1] == (unchecked((int)0xffffffffu), ArgumentType.Constant))
+                            || (In(FMUL, FDIV, FPOW, FROOT)                                     && i[1] == ((FloatIntUnion)1f, ArgumentType.Constant))
+                            || (In(COPY)                                                        && i[2] == (0, ArgumentType.Constant));
+                }
+                catch
+                {
+                    return false;
+                }
             }
+
+            if (!OptimizationEnabled)
+                return ((from i in instr select i.Item1).ToArray(), new int[0]);
 
             Dictionary<int, (int, bool)> offset_table = Enumerable.Range(0, instr.Length).ToDictionary(_ => _, _ => (0, false));
             List<Instruction> outp = new List<Instruction>();
