@@ -21,12 +21,12 @@ The name **MCPU** stands for **M**inimalistic **C**entral **P**rocessing **U**ni
 
 ### Reference Manual
 
-* [Introduction](https://github.com/Unknown6656/MCPU/blob/documentation/Documentation/introduction.md)
-* [MCPU Instruction set](https://github.com/Unknown6656/MCPU/blob/documentation/Documentation/instruction-set.md)
-* [MCPU Syscall table](https://github.com/Unknown6656/MCPU/blob/documentation/Documentation/syscalls.md)
-* [MCPU Assembly Language reference](https://github.com/Unknown6656/MCPU/blob/documentation/Documentation/language-reference.md)
-* [MCPU IDE Manual](https://github.com/Unknown6656/MCPU/blob/documentation/Documentation/ide.md)
-* [MCPU++ Language reference](https://github.com/Unknown6656/MCPU/blob/documentation/Documentation/mcpu++.md)
+* [Introduction](https://github.com/Unknown6656/MCPU/tree/master/Documentation/introduction.md)
+* [MCPU Instruction set](https://github.com/Unknown6656/MCPU/tree/master/Documentation/instruction-set.md)
+* [MCPU Syscall table](https://github.com/Unknown6656/MCPU/tree/mastern/Documentation/syscalls.md)
+* [MCPU Assembly Language reference](https://github.com/Unknown6656/MCPU/tree/master/Documentation/language-reference.md)
+* [MCPU IDE Manual](https://github.com/Unknown6656/MCPU/tree/master/Documentation/ide.md)
+* [MCPU++ Language reference](https://github.com/Unknown6656/MCPU/tree/master/Documentation/mcpu++.md)
 
 ### TODO-List
 
