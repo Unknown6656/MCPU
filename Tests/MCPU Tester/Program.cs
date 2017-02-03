@@ -65,34 +65,72 @@ namespace MCPU
 
         private static int InnerMain(string[] args)
         {
-            Processor proc = new Processor(64, 64, -559038737);
+            {
+                const string code = @"
+void main(void)
+{
+    int i;
+    int j;
+    int k;
 
-            proc.OnError += (p, ex) => {
-                ForegroundColor = ConsoleColor.Red;
-                WriteLine($"WELL FUGG :D\n{ex.Message}\n{ex.StackTrace}");
-                ForegroundColor = ConsoleColor.White;
-            };
+    i = 315;
+    j = 88;
+    k = 42;
 
-            var res = MCPUCompiler.Compile(@"
+    while (k > 0)
+        j += k % 2;
+    
+    iprint(i);
+    iprint(j);
+    iprint(k);
+    iprint(i ^ k);
+    iprint(i ^ j);
+    iprint(k ^ j);
+}
+";
+                var prog = Lexer.parse(code);
+                var res = Analyzer.Analyze(prog);
+
+                WriteLine(prog.ToDebugString());
+                WriteLine(string.Join("\n", from et in res.ExpressionTypes
+                                            select $"{et.Key} : {et.Value}"));
+                WriteLine(string.Join("\n", from et in res.SymbolTable
+                                            orderby et.Key.Identifier ascending
+                                            select $"{et.Key} : {et.Value}"));
+
+                ReadKey(true);
+                return 0;
+            }
+            {
+                Processor proc = new Processor(64, 64, -559038737);
+
+                proc.OnError += (p, ex) => {
+                    ForegroundColor = ConsoleColor.Red;
+                    WriteLine($"WELL FUGG :D\n{ex.Message}\n{ex.StackTrace}");
+                    ForegroundColor = ConsoleColor.White;
+                };
+
+                var res = MCPUCompiler.Compile(@"
     .main
     MOV [0] 42.0
 ");
-            var instr = res.AsA.Instructions;
-            int line = 0;
+                var instr = res.AsA.Instructions;
+                int line = 0;
 
-            foreach (var i in instr)
-                WriteLine($"{line++:d3}: {i}");
+                foreach (var i in instr)
+                    WriteLine($"{line++:d3}: {i}");
 
-            proc.ProcessWithoutReset(instr);
+                proc.ProcessWithoutReset(instr);
 
-            WriteLine($"SBP: {proc.StackBaseAddress:x8}");
-            WriteLine($"SP:  {proc.StackPointerAddress:x8}");
-            WriteLine($"SSZ: {proc.StackSize * 4}");
+                WriteLine($"SBP: {proc.StackBaseAddress:x8}");
+                WriteLine($"SP:  {proc.StackPointerAddress:x8}");
+                WriteLine($"SSZ: {proc.StackSize * 4}");
 
-            Console.WriteLine(((FloatIntUnion)proc[0]).F);
-            ReadKey(true);
+                Console.WriteLine(((FloatIntUnion)proc[0]).F);
+                ReadKey(true);
 
-            return 0;
+                return 0;
+            }
         }
     }
 }

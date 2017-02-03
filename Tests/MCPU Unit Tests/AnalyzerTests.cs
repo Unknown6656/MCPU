@@ -15,6 +15,8 @@ using MCPU.MCPUPP.Parser;
 using MCPU.MCPUPP.Tests;
 using MCPU.Compiler;
 
+using Piglet.Parser;
+
 using Program = Microsoft.FSharp.Collections.FSharpList<MCPU.MCPUPP.Parser.SyntaxTree.Declaration>;
 
 namespace MCPU.Testing
@@ -486,6 +488,61 @@ void main(void)
     res = arr <= y;
 }
 ", "IVAL_BOP");
+
+        [TestMethod]
+        public void Test_41() => ExpectNoFailure(@"
+void main(void)
+{
+    {
+        int i;
+        {
+            float f;
+        }
+    }
+    {
+        int* i;
+        float[] f;
+    }
+}
+");
+
+        [TestMethod]
+        public void Test_42() => Throws<ParseException>(() => ExpectNoFailure(@"
+___RANDOM_STRING__
+θτ€φ¶σθ
+"));
+
+        [TestMethod]
+        public void Test_43() => ExpectAnalyzerFailure(@"
+void main(void)
+{
+    int i;
+
+    delete i;
+}
+", "ARRAY_EXPECTED");
+
+        [TestMethod]
+        public void Test_44() => ExpectAnalyzerFailure(@"
+void main(void)
+{
+    float* f;
+    int sz;
+
+    sz = f.length;
+}
+", "ARRAY_EXPECTED");
+
+        [TestMethod]
+        public void Test_45() => ExpectAnalyzerFailure(@"
+void main(void)
+{
+    float i;
+    int sz;
+
+    sz = i.length;
+}
+", "ARRAY_EXPECTED");
 
         /*
          * TO TEST:
