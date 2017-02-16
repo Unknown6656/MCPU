@@ -7,6 +7,8 @@ open System.Collections.Generic
 open System.Linq
 open System
 
+let EntryPointName = "main"
+
 type SymbolScope(parent : SymbolScope option) =
     let mutable list = List.empty<VariableDeclaration>
     let IdentifierFromDecl = function
@@ -33,7 +35,7 @@ type SymbolScopeStack() =
     
     member x.CurrentScope = stack.Peek()
     member x.Pop() = stack.Pop() |> ignore
-    member x.Push() = stack.Push((SymbolScope << Some) x.CurrentScope)
+    member x.Push() = (stack.Push << SymbolScope << Some) x.CurrentScope
     member x.AddDeclaration decl = x.CurrentScope.AddDeclaration decl
     
 type VariableCoverType =
@@ -164,7 +166,7 @@ type FunctionTableEntry =
         ReturnType     : VariableType;
         ParameterTypes : SymbolVariableType list;
     }
-     
+
 type PredefinedFunction = string * VariableType * SymbolVariableType list
 
 // BUILD IN METHODS
@@ -200,11 +202,22 @@ type FunctionTable(program) as self =
 type ExpressionTypeDictionary(program, ftable : FunctionTable, stable : SymbolTable) as self =
     inherit Dictionary<Expression, SymbolVariableType>(HashIdentity.Reference)
     
+    let checkvartype = function
+                       | ArrayDeclaration (t, _)
+                       | ScalarDeclaration (t, _)
+                       | PointerDeclaration (t, _) -> 
+                            match t with
+                            | Unit -> raise <| Errors.InvalidVariableType Unit
+                            | _ -> ()
     let rec ScanDeclaration = function
-                              | FunctionDeclaration x -> ScanFunctionDeclaration x
+                              | FunctionDeclaration x ->
+                                  ScanFunctionDeclaration x
+                                  let _, _, p, _ = x
+                                  Array.iter checkvartype p
                               | _ -> ()
     and ScanFunctionDeclaration (rettype, _, _, blockstat) =
-        let rec ScanBlockStatement (_, stats) =
+        let rec ScanBlockStatement (vars, stats) =
+            List.iter checkvartype vars
             List.iter ScanStatement stats
         and ScanStatement = function
                             | ExpressionStatement es -> match es with
@@ -385,10 +398,41 @@ type AnalyzerResult =
         ExpressionTypes : ExpressionTypeDictionary
     }
 
+//let MaxArraySize (block : Statement, id : IdentifierRef) =
+//    let exstat = Expression >> ExpressionStatement
+//    let rec scanstatement = function
+//                            | BlockStatement (_, s) -> maxmap s
+//                            | ExpressionStatement e ->
+//                                match e with
+//                                | Expression e ->
+//                                    match e with
+//                                    | ArrayAllocationExpression (_, e) ->
+//                                        ()
+//                                    | UnaryExpression (_, e)
+//                                    | ArrayIdentifierExpression (_, e)
+//                                    | ScalarAssignmentExpression (_, e)
+//                                    | PointerAssignmentExpression (_, e)
+//                                    | PointerValueAssignmentExpression (_, e) ->
+//                                        (exstat >> scanstatement) e
+//                                    |
+//                                | Nop -> 0
+//                            | IfStatement (e, s1, s2) -> maxmap [ 
+//                                                                    exstat e
+//                                                                    s1
+//                                                                    (match s2 with
+//                                                                     | Some x -> x
+//                                                                     | None -> ExpressionStatement Nop)
+//                                                                ]
+//                            | WhileStatement (e, s) -> List.max [ scanstatement s; (scanstatement << exstat) e ]
+//                            | ReturnStatement (Some e) -> (scanstatement << exstat) e
+//                            | _ -> 0
+//    and maxmap = (List.map scanstatement) >> List.max
+//    ()
+
 let Analyze program =
     let stable = SymbolTable program
     let ftable = FunctionTable program
-    if not (ftable.ContainsKey "main") then
+    if not (ftable.ContainsKey EntryPointName) then
         raise <| Errors.MissingEntryPoint()
     let exprt = ExpressionTypeDictionary(program, ftable, stable)
     {

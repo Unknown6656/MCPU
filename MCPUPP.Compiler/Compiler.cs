@@ -16,6 +16,7 @@ using MCPU.MCPUPP.Parser;
 using MCPU.Compiler;
 using MCPU;
 
+using BlockStatement = System.Tuple<Microsoft.FSharp.Collections.FSharpList<MCPU.MCPUPP.Parser.SyntaxTree.VariableDeclaration>, Microsoft.FSharp.Collections.FSharpList<MCPU.MCPUPP.Parser.SyntaxTree.Statement>>;
 using Program = Microsoft.FSharp.Collections.FSharpList<MCPU.MCPUPP.Parser.SyntaxTree.Declaration>;
 
 using static MCPU.MCPUPP.Parser.Analyzer;
@@ -196,6 +197,59 @@ end func
                                                                              let cnt = tl.Contains(MCPUCompiler.COMMENT_START) ? tl.Remove(tl.IndexOf(MCPUCompiler.COMMENT_START)).Trim() : tl
                                                                              select (cnt.EndsWith(":") ? "" : "    ") + tl).ToArray();
 
+        public string Compile(Program prog)
+        {
+            AnalyzerResult res = Analyzer.Analyze(prog);
+            IEnumerable<VariableDeclaration> globals = from decl in prog
+                                                       where decl.IsGlobalVarDecl
+                                                       select (decl as Declaration.GlobalVarDecl).Item;
+            List<Variable> global_refs = new List<Variable>();
+
+            foreach (VariableDeclaration decl in globals)
+                // REFRACTOR THE FOLLOWING 20 LINES!
+                if (decl is VariableDeclaration.ScalarDeclaration sdecl)
+                    global_refs.Add(new Variable
+                    {
+                        Name = sdecl.Item2,
+                        Type = sdecl.Item1.IsFloat ? VariableType.Float : VariableType.Int,
+                        Size = 1
+                    });
+                else if (decl is VariableDeclaration.PointerDeclaration pdecl)
+                    global_refs.Add(new Variable
+                    {
+                        Name = pdecl.Item2,
+                        Type = (pdecl.Item1.IsFloat ? VariableType.Float : VariableType.Int) | VariableType.Pointer,
+                        Size = 1
+                    });
+                else if (decl is VariableDeclaration.ArrayDeclaration adecl)
+                    global_refs.Add(new Variable {
+                        Name = adecl.Item2,
+                        Type = (adecl.Item1.IsFloat ? VariableType.Float : VariableType.Int) | VariableType.Array,
+                        Size = 2
+                    });
+
+            string maincall = GenerateFunctionCall(new MainFunctionCallInformation
+            {
+                GlobalSize = global_refs.Sum(_ => _.Size),
+                LocalSize = (from decl in prog
+                             where decl.IsFunctionDeclaration
+                             let fdecl = (decl as Declaration.FunctionDeclaration).Item
+                             where fdecl.Item2 == Analyzer.EntryPointName
+                             select GetFunctionSize(decl as Declaration.FunctionDeclaration)).First()
+            });
+
+            throw new NotImplementedException();
+
+            int GetFunctionSize(Declaration.FunctionDeclaration func)
+            {
+                int GetBlockSize(BlockStatement block) => (from st in block.Item2
+                                                           where st.IsBlockStatement
+                                                           select GetBlockSize((st as Statement.BlockStatement).Item)).Max() + block.Item1.Sum(_ => _.IsArrayDeclaration ? 2 : 1);
+
+                return GetBlockSize(func.Item.Item4);
+            }
+        }
+
         /// <summary>
         /// Generates the precompiled MCPU++ code for a function header
         /// </summary>
@@ -222,7 +276,7 @@ end func
         /// <param name="nfo">Callee information</param>
         /// <param name="argv">Function arguments</param>
         /// <returns>Function call code</returns>
-        public string GenerateFunctionCall(Union<MCPUPPFunctionCallInformation, MCPUPPMainFunctionCallInformation> nfo, params InstructionArgument[] argv)
+        public string GenerateFunctionCall(Union<FunctionCallInformation, MainFunctionCallInformation> nfo, params InstructionArgument[] argv)
         {
             if (nfo.IsA)
             {
@@ -418,7 +472,7 @@ end func
     /// Represents a basic MCPU++ function call information structure
     /// </summary>
     [Serializable]
-    public struct MCPUPPFunctionCallInformation
+    public struct FunctionCallInformation
     {
         /// <summary>
         /// The called function's name
@@ -434,7 +488,7 @@ end func
     /// Represents a basic MCPU++ main function call information structure
     /// </summary>
     [Serializable]
-    public struct MCPUPPMainFunctionCallInformation
+    public struct MainFunctionCallInformation
     {
         /// <summary>
         /// The global variable section size
@@ -444,5 +498,66 @@ end func
         /// The main function's local size
         /// </summary>
         public int LocalSize { set; get; }
+    }
+
+    /// <summary>
+    /// Represents an internal MCPU++ variable reference
+    /// </summary>
+    [Serializable]
+    public struct Variable
+    {
+        /// <summary>
+        /// The variable's name (as declared in the MCPU++ code)
+        /// </summary>
+        public string Name { set; get; }
+        /// <summary>
+        /// The variable type
+        /// </summary>
+        public VariableType Type { set; get; }
+        /// <summary>
+        /// Returns, whether the current variable is a floating-point variable
+        /// </summary>
+        public bool IsFloat => Type.HasFlag(VariableType.Float);
+        /// <summary>
+        /// Returns, whether the current variable is an array
+        /// </summary>
+        public bool IsArray => Type.HasFlag(VariableType.Array);
+        /// <summary>
+        /// Returns, whether the current variable is a pointer
+        /// </summary>
+        public bool IsPointer => Type.HasFlag(VariableType.Pointer);
+        /// <summary>
+        /// The variable's raw size (in 4-byte blocks)
+        /// </summary>
+        public int Size { set; get; }
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    [Serializable, Flags]
+    public enum VariableType
+        : byte
+    {
+        /// <summary>
+        /// 
+        /// </summary>
+        Int = 0x00,
+        /// <summary>
+        /// 
+        /// </summary>
+        Float = 0x01,
+        /// <summary>
+        /// 
+        /// </summary>
+        Pointer = 0x40,
+        /// <summary>
+        /// 
+        /// </summary>
+        Array = 0x80,
+        /// <summary>
+        /// 
+        /// </summary>
+        Undefined = Pointer | Array,
     }
 }

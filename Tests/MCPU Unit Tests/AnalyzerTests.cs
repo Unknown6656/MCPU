@@ -544,6 +544,57 @@ void main(void)
 }
 ", "ARRAY_EXPECTED");
 
+        [TestMethod]
+        public void Test_46() => ExpectAnalyzerFailure(@"
+float i;
+
+void main(void)
+{
+    int i;
+}
+", "VARIABLE_EXISTS");
+
+        [TestMethod]
+        public void Test_47() => ExpectAnalyzerFailure(@"
+int[] i;
+
+void main(void)
+{
+    int[] i;
+}
+", "VARIABLE_EXISTS");
+
+        [TestMethod]
+        public void Test_48() => ExpectAnalyzerFailure(@"
+void main(void)
+{
+    void[] arr;
+}
+", "IVAL_VARTYPE");
+
+        [TestMethod]
+        public void Test_49() => ExpectAnalyzerFailure(@"
+void main(void)
+{
+    void v;
+}
+", "IVAL_VARTYPE");
+
+        [TestMethod]
+        public void Test_50() => ExpectAnalyzerFailure(@"
+void main(void)
+{
+    void* ptr;
+}
+", "IVAL_VARTYPE");
+
+        [TestMethod]
+        public void Test_51() => ExpectAnalyzerFailure(@"
+void main(void kek)
+{
+}
+", "IVAL_VARTYPE");
+
         /*
          * TO TEST:
          * 

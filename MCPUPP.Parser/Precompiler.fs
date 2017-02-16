@@ -4,6 +4,6 @@ open MCPU.MCPUPP.Parser.SyntaxTree
 open System
 
 
-do  
+do
     // TODO ?
     ()
