@@ -211,9 +211,9 @@ type ExpressionTypeDictionary(program, ftable : FunctionTable, stable : SymbolTa
                             | _ -> ()
     let rec ScanDeclaration = function
                               | FunctionDeclaration x ->
-                                  ScanFunctionDeclaration x
                                   let _, _, p, _ = x
                                   Array.iter checkvartype p
+                                  ScanFunctionDeclaration x
                               | _ -> ()
     and ScanFunctionDeclaration (rettype, _, _, blockstat) =
         let rec ScanBlockStatement (vars, stats) =

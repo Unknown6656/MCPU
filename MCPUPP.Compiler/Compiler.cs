@@ -16,6 +16,8 @@ using MCPU.MCPUPP.Parser;
 using MCPU.Compiler;
 using MCPU;
 
+// bunch o' alias ---- I'm never doing F#/C# interop again -_-
+using FunctionDeclaration = System.Tuple<MCPU.MCPUPP.Parser.SyntaxTree.VariableType, string, MCPU.MCPUPP.Parser.SyntaxTree.VariableDeclaration[], System.Tuple<Microsoft.FSharp.Collections.FSharpList<MCPU.MCPUPP.Parser.SyntaxTree.VariableDeclaration>, Microsoft.FSharp.Collections.FSharpList<MCPU.MCPUPP.Parser.SyntaxTree.Statement>>>;
 using BlockStatement = System.Tuple<Microsoft.FSharp.Collections.FSharpList<MCPU.MCPUPP.Parser.SyntaxTree.VariableDeclaration>, Microsoft.FSharp.Collections.FSharpList<MCPU.MCPUPP.Parser.SyntaxTree.Statement>>;
 using Program = Microsoft.FSharp.Collections.FSharpList<MCPU.MCPUPP.Parser.SyntaxTree.Declaration>;
 
@@ -203,50 +205,59 @@ end func
             IEnumerable<VariableDeclaration> globals = from decl in prog
                                                        where decl.IsGlobalVarDecl
                                                        select (decl as Declaration.GlobalVarDecl).Item;
+            IEnumerable<FunctionDeclaration> functions = from decl in prog
+                                                         where decl.IsFunctionDeclaration
+                                                         select (decl as Declaration.FunctionDeclaration).Item;
             List<Variable> global_refs = new List<Variable>();
 
             foreach (VariableDeclaration decl in globals)
                 // REFRACTOR THE FOLLOWING 20 LINES!
                 if (decl is VariableDeclaration.ScalarDeclaration sdecl)
-                    global_refs.Add(new Variable
-                    {
-                        Name = sdecl.Item2,
-                        Type = sdecl.Item1.IsFloat ? VariableType.Float : VariableType.Int,
-                        Size = 1
-                    });
+                    AddGlobalVariable(sdecl.Item1.IsFloat ? VariableType.Float : VariableType.Int, 1, sdecl.Item2);
                 else if (decl is VariableDeclaration.PointerDeclaration pdecl)
-                    global_refs.Add(new Variable
-                    {
-                        Name = pdecl.Item2,
-                        Type = (pdecl.Item1.IsFloat ? VariableType.Float : VariableType.Int) | VariableType.Pointer,
-                        Size = 1
-                    });
+                    AddGlobalVariable((pdecl.Item1.IsFloat ? VariableType.Float : VariableType.Int) | VariableType.Pointer, 1, pdecl.Item2);
                 else if (decl is VariableDeclaration.ArrayDeclaration adecl)
-                    global_refs.Add(new Variable {
-                        Name = adecl.Item2,
-                        Type = (adecl.Item1.IsFloat ? VariableType.Float : VariableType.Int) | VariableType.Array,
-                        Size = 2
-                    });
+                    AddGlobalVariable((adecl.Item1.IsFloat ? VariableType.Float : VariableType.Int) | VariableType.Array, 2, adecl.Item2);
 
-            string maincall = GenerateFunctionCall(new MainFunctionCallInformation
+            MainFunctionCallInformation mainfunc = new MainFunctionCallInformation
             {
                 GlobalSize = global_refs.Sum(_ => _.Size),
-                LocalSize = (from decl in prog
-                             where decl.IsFunctionDeclaration
-                             let fdecl = (decl as Declaration.FunctionDeclaration).Item
-                             where fdecl.Item2 == Analyzer.EntryPointName
-                             select GetFunctionSize(decl as Declaration.FunctionDeclaration)).First()
-            });
+                LocalSize = (from func in functions
+                             where func.Item2 == Analyzer.EntryPointName
+                             select GetFunctionSize(func)).First()
+            };
+            FunctionCallInformation[] funcs = (from func in functions
+                                               where func.Item2 != Analyzer.EntryPointName
+                                               select new FunctionCallInformation
+                                               {
+                                                   LocalSize = GetFunctionSize(func),
+                                                   Name = func.Item2
+                                               }).Concat(new FunctionCallInformation[] { mainfunc }).ToArray();
+
+            string maincall = GenerateFunctionCall(mainfunc);
 
             throw new NotImplementedException();
 
-            int GetFunctionSize(Declaration.FunctionDeclaration func)
-            {
-                int GetBlockSize(BlockStatement block) => (from st in block.Item2
-                                                           where st.IsBlockStatement
-                                                           select GetBlockSize((st as Statement.BlockStatement).Item)).Max() + block.Item1.Sum(_ => _.IsArrayDeclaration ? 2 : 1);
+            void AddGlobalVariable(VariableType type, int size, string name) =>
+                 global_refs.Add(new Variable
+                 {
+                     Name = name,
+                     Type = type,
+                     Size = size
+                 });
 
-                return GetBlockSize(func.Item.Item4);
+            int GetFunctionSize(FunctionDeclaration func)
+            {
+                int GetBlockSize(BlockStatement block)
+                {
+                    IEnumerable<int> bs = from st in block.Item2
+                                          where st.IsBlockStatement
+                                          select GetBlockSize((st as Statement.BlockStatement).Item);
+
+                    return (bs.Any() ? bs.Max() : 0) + block.Item1.Sum(_ => _.IsArrayDeclaration ? 2 : 1);
+                }
+
+                return GetBlockSize(func.Item4);
             }
         }
 
@@ -265,8 +276,8 @@ func {funcname}
         /// </summary>
         /// <param name="returnval">The function's return argument/value</param>
         /// <returns>Function footer</returns>
-        public string InnerFunctionFooter(InstructionArgument returnval) => $@"
-    mov [{F_RET}] {returnval.ToShortString()}
+        public string InnerFunctionFooter(InstructionArgument? returnval = null) => $@"
+    mov [{F_RET}] {(returnval ?? new InstructionArgument { Type = ArgumentType.Address, Value = F_RET }).ToShortString()}
 end func
 ";
 
@@ -322,6 +333,7 @@ end func
     mov [{F_LOF}] {TMP_SZ}
     add [{F_LOF}] [{F_GSZ}]
     call {MAIN_FUNCTION_NAME}
+    .user
     halt
 ";
         }
@@ -498,6 +510,13 @@ end func
         /// The main function's local size
         /// </summary>
         public int LocalSize { set; get; }
+
+
+        public static implicit operator FunctionCallInformation(MainFunctionCallInformation main) => new FunctionCallInformation
+        {
+            LocalSize = main.LocalSize,
+            Name = MCPUPPCompiler.MAIN_FUNCTION_NAME
+        };
     }
 
     /// <summary>
