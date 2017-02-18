@@ -175,6 +175,13 @@ end func
         public string GetUniqueID() => $"{new Guid():N}_{idc++:x}";
 
         /// <summary>
+        /// Returns the unique label ID associated with the given intermediate label
+        /// </summary>
+        /// <param name="label">Intermediate label</param>
+        /// <returns>Unique label ID</returns>
+        public string GetUniqueID(int label) => $"label_{label:x8}";
+
+        /// <summary>
         /// Formats the given code snippet's indentation
         /// </summary>
         /// <param name="code">Code snippet</param>

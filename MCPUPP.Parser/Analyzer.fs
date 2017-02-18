@@ -177,8 +177,22 @@ let PredefinedFunctions : PredefinedFunction list = [
         ("fscan", Float, [])
         ("halt", Unit, [])
         ("wait", Unit, [ { Type = Int; Cover = Scalar; } ])
-
-        // TODO: add sine, cosine, log etc.
+        ("sin", Float, [ { Type = Float; Cover = Scalar; } ])
+        ("cos", Float, [ { Type = Float; Cover = Scalar; } ])
+        ("tan", Float, [ { Type = Float; Cover = Scalar; } ])
+        ("sinh", Float, [ { Type = Float; Cover = Scalar; } ])
+        ("cosh", Float, [ { Type = Float; Cover = Scalar; } ])
+        ("tanh", Float, [ { Type = Float; Cover = Scalar; } ])
+        ("asin", Float, [ { Type = Float; Cover = Scalar; } ])
+        ("acos", Float, [ { Type = Float; Cover = Scalar; } ])
+        ("atan", Float, [ { Type = Float; Cover = Scalar; } ])
+        ("atan2", Float, [ { Type = Float; Cover = Scalar; }; { Type = Float; Cover = Scalar; } ])
+        ("log", Float, [ { Type = Float; Cover = Scalar; }; { Type = Float; Cover = Scalar; } ])
+        ("ln", Float, [ { Type = Float; Cover = Scalar; } ])
+        ("exp", Float, [ { Type = Float; Cover = Scalar; } ])
+        ("round", Float, [ { Type = Float; Cover = Scalar; } ])
+        ("ceil", Float, [ { Type = Float; Cover = Scalar; } ])
+        ("float", Float, [ { Type = Float; Cover = Scalar; } ])
     ]
 
 type FunctionTable(program) as self =
