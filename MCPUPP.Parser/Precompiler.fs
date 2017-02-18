@@ -31,8 +31,14 @@ type IMInstruction =
     | Stloc of int
     | Ldarg of int
     | Starg of int
+    | Ldlen
+    | Ldelem of VariableType
+    | Stelem of VariableType
+    | Ldptr of VariableType
+    | Stptr of VariableType
     | Ldfld of IMVariable
     | Stfld of IMVariable
+    | Nop
     | Cmp
     | FCmp
     | Jmp of IMLabel
@@ -176,11 +182,11 @@ type IMMethodBuilder (analyzerres : AnalyzerResult, mapping : VariableMappingDic
         lblndx <- lblndx + 1
         res
     
-    let ProcessIdentifierStore id = function
-                                    | FieldScope v -> [Ldfld v]
-                                    | ArgumentScope i -> [Ldarg i]
-                                    | LocalScope i -> [Ldloc i]
-                                   <| LookupIMVariableScope id
+    let ProcessIdentifierLoad id = function
+                                   | FieldScope v -> [Ldfld v]
+                                   | ArgumentScope i -> [Ldarg i]
+                                   | LocalScope i -> [Ldloc i]
+                                  <| LookupIMVariableScope id
 
     let ProcessIdentifierStore id = function
                                     | FieldScope v -> [Stfld v]
@@ -188,17 +194,68 @@ type IMMethodBuilder (analyzerres : AnalyzerResult, mapping : VariableMappingDic
                                     | LocalScope i -> [Stloc i]
                                    <| LookupIMVariableScope id
 
-    let rec ProcessExpr = function
-                          | ScalarAssignmentExpression(i, e) -> List.concat [
-                                                                                ProcessExpr e
-                                                                                [Dup]
-                                                                                ProcessIdentifierStore i
-                                                                            ]
-    and ProcessBinExpr l op r = List.concat [
-                                                ProcessExpr l
-                                                ProcessExpr r
-                                                ProcessBinOp op
-                                            ]
+    let rec ProcessExpr expr =  match expr with
+                                | ScalarAssignmentExpression (i, e) ->
+                                    [
+                                        ProcessExpr e
+                                        [Dup]
+                                        ProcessIdentifierStore i
+                                    ]
+                                | ArrayAssignmentExpression (i, e1, e2) as ae ->
+                                    [
+                                        ProcessIdentifierLoad i
+                                        ProcessExpr e1
+                                        ProcessExpr e2
+                                        [
+                                            Dup
+                                            Stloc arrassgnloc.[ae]
+                                            Stelem (analyzerres.SymbolTable.GetIdentifierType i).Type
+                                            Ldloc arrassgnloc.[ae]
+                                        ]
+                                    ]
+                                | ArraySizeExpression i ->
+                                    [
+                                        ProcessIdentifierLoad i
+                                        [Ldlen]
+                                    ]
+                                | ArrayIdentifierExpression (i, e) ->
+                                    [
+                                        ProcessIdentifierLoad i
+                                        ProcessExpr e
+                                        [Ldelem (analyzerres.SymbolTable.GetIdentifierType i).Type]
+                                    ]
+                                | IdentifierExpression i -> [ProcessIdentifierLoad i]
+                                | RawAddressOfExpression i ->
+                                    [
+                                    ]
+                                | PointerAddressIdentifierExpression i ->
+                                    [
+                                    ]
+                                | PointerValueIdentifierExpression i ->
+                                    [
+                                    ]
+                                | PointerAssignmentExpression (i, e) ->
+                                    [
+                                    ]
+                                | PointerValueAssignmentExpression (i, e) ->
+                                    [
+                                    ]
+                                | FunctionCallExpression (i, a) ->
+                                    [
+                                            
+                                    ]
+                                | BinaryExpression (e1, op, e2) -> ProcessBinExpr e1 op e2
+                                | UnaryExpression (op, e) ->
+                                    [
+                                        ProcessExpr e
+                                        ProcessUnOp op
+                                    ]
+                                |> List.concat
+    and ProcessBinExpr l op r = [
+                                    ProcessExpr l
+                                    ProcessExpr r
+                                    ProcessBinOp op
+                                ]
     and ProcessBinOp = function
                        | BinaryOperator.And -> [And]
                        | BinaryOperator.Or -> [Or]
@@ -257,7 +314,13 @@ type IMMethodBuilder (analyzerres : AnalyzerResult, mapping : VariableMappingDic
                                                          Bool
                                                      ]
                        | _ as op -> raise <| Errors.InvalidOperator op
-
+    and ProcessUnOp = function
+                      | LogicalNegate -> [Not]
+                      | Negate -> [Neg]
+                      | Identity -> [Nop]
+                      | IntConvert -> [IFcast]
+                      | FloatConvert -> [FIcast]
+                      | BooleanConvert -> [Bool]
 
     do
         ()
