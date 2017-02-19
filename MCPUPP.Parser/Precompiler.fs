@@ -9,8 +9,8 @@ open System
 
 type IMVariable =
     {
-        Type : Type
         Name : string
+        Type : SymbolVariableType
     }
 
 type IMLabel = int
@@ -134,6 +134,12 @@ type IMMethod =
         Locals : IMVariable list
         Body : IMInstruction list
     }
+    member x.Signature =
+        sprintf "%s %s(%s)" <| string x.ReturnType
+                            <| x.Name
+                            <| String.Join(", ", x.Parameters
+                                                 |> List.map (fun p -> sprintf "%s %s" <| p.Name
+                                                                                       <| p.Type.ToString()))
 
 type IMProgram =
     {
@@ -156,20 +162,26 @@ let TypeOf = function
 let CreateIMVariable = function
                        | ScalarDeclaration (t, i) ->
                             {
-                                Type = TypeOf t
+                                Type = {
+                                            Type = t
+                                            Cover = Scalar
+                                       }
                                 Name = i
                             }
                        | ArrayDeclaration (t, i) ->
                             {
-                                Type = (TypeOf t).MakeArrayType()
+                                Type = {
+                                            Type = t
+                                            Cover = VariableCoverType.Array
+                                       }
                                 Name = i
                             }
                        | PointerDeclaration (t, i) ->
                             {
-                                Type = (function
-                                        | Unit -> typeof<IntPtr>
-                                        | Int -> typeof<nativeptr<int>>
-                                        | Float -> typeof<nativeptr<float32>>) t
+                                Type = {
+                                            Type = t
+                                            Cover = Pointer
+                                       }
                                 Name = i
                             }
 
@@ -476,7 +488,7 @@ type IMMethodBuilder (analyzerres : AnalyzerResult, mapping : VariableMappingDic
                        | ScalarAssignmentExpression (_, e) -> FromExpr e
                        | ArrayAssignmentExpression (i, e1, e2) as ae ->
                             let v = {
-                                        Type = TypeOf (analyzerres.SymbolTable.GetIdentifierType i).Type
+                                        Type = analyzerres.SymbolTable.GetIdentifierType i
                                         Name = "arrassgntmp_" + string locndx
                                     }
                             arrassgnloc.Add(ae, locndx)
@@ -533,5 +545,6 @@ type IMBuilder (analyzerres) =
             Fields = vardecl
             Methods = funcdecl
         }
+
 do
     ()

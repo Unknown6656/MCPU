@@ -77,10 +77,10 @@ namespace MCPU
 int lelz;
 float[] u;
 
-void f1()
-{
-    u = new float[12];
-}
+//void f1()
+//{
+//    u = new float[12];
+//}
 
 void main(void)
 {

@@ -54,6 +54,18 @@ type SymbolVariableType =
     member x.IsArray = x.Cover = Array
     member x.IsScalar = x.Cover = Scalar
     member x.IsPointer = x.Cover = Pointer
+    member x.CLRType =
+        if x.IsPointer then
+            match x.Type with
+            | Int -> typeof<nativeptr<int>>
+            | Float -> typeof<nativeptr<float32>>
+            | Unit -> typeof<IntPtr>
+        else
+            let res = match x.Type with
+                      | Int -> typeof<int>
+                      | Float -> typeof<float32>
+                      | Unit -> typeof<Void>
+            if x.IsArray then res.MakeArrayType() else res
     override x.ToString() =
         x.Type.ToString() + (match x.Cover with
                              | Pointer -> "*"

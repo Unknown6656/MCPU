@@ -21,6 +21,8 @@ using FunctionDeclaration = System.Tuple<MCPU.MCPUPP.Parser.SyntaxTree.VariableT
 using BlockStatement = System.Tuple<Microsoft.FSharp.Collections.FSharpList<MCPU.MCPUPP.Parser.SyntaxTree.VariableDeclaration>, Microsoft.FSharp.Collections.FSharpList<MCPU.MCPUPP.Parser.SyntaxTree.Statement>>;
 using Program = Microsoft.FSharp.Collections.FSharpList<MCPU.MCPUPP.Parser.SyntaxTree.Declaration>;
 
+using static MCPU.MCPUPP.Parser.Precompiler.IMInstruction;
+using static MCPU.MCPUPP.Parser.Precompiler;
 using static MCPU.MCPUPP.Parser.Analyzer;
 
 namespace MCPU.MCPUPP.Compiler
@@ -112,33 +114,33 @@ func MOVO                   ; mov [[dst]+offs₁] [[src]+offs₂] <==> call MOVD
     pop [{F_CC - 1}]
 end func
 
-func SY_PUSH
+func SY_PUSH                ; push $0 onto the SYA-stack
     mov [[{F_SYP}]] $0
     incr [{F_SYP}]
 end func
 
-func SY_PUSHL
+func SY_PUSHL               ; push local № $0 onto the SYA-stack
     call MOVSO {F_CC} {F_LOF} $0
     call SY_PUSH [[{F_CC}]]
 end func
 
-func SY_PUSHG
+func SY_PUSHG               ; push global № $0 onto the SYA-stack
     mov [{F_CC}] {TMP_SZ}
     add [{F_CC}] $0
     call SY_PUSH [[{F_CC}]]
 end func
 
-func SY_POP
+func SY_POP                 ; pop from SYA-stack into $0
     decr [{F_SYP}]
     mov [$0] [[{F_SYP}]]
 end func
 
-func SY_POPL
+func SY_POPL                ; pop from SYA-stack into local № $0
     call MOVSO {F_CC} {F_LOF} $0
     call SY_POP [{F_CC}]
 end func
 
-func SY_POPG
+func SY_POPG                ; pop from SYA-stack into global № $0
     mov [{F_CC}] {TMP_SZ}
     add [{F_CC}] $0
     call SY_POP [{F_CC}]
@@ -206,65 +208,65 @@ end func
                                                                              let cnt = tl.Contains(MCPUCompiler.COMMENT_START) ? tl.Remove(tl.IndexOf(MCPUCompiler.COMMENT_START)).Trim() : tl
                                                                              select (cnt.EndsWith(":") ? "" : "    ") + tl).ToArray();
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="prog"></param>
+        /// <returns></returns>
         public string Compile(Program prog)
         {
-            AnalyzerResult res = Analyzer.Analyze(prog);
-            IEnumerable<VariableDeclaration> globals = from decl in prog
-                                                       where decl.IsGlobalVarDecl
-                                                       select (decl as Declaration.GlobalVarDecl).Item;
-            IEnumerable<FunctionDeclaration> functions = from decl in prog
-                                                         where decl.IsFunctionDeclaration
-                                                         select (decl as Declaration.FunctionDeclaration).Item;
-            List<Variable> global_refs = new List<Variable>();
+            AnalyzerResult res = Analyze(prog);
 
-            foreach (VariableDeclaration decl in globals)
-                // REFRACTOR THE FOLLOWING 20 LINES!
-                if (decl is VariableDeclaration.ScalarDeclaration sdecl)
-                    AddGlobalVariable(sdecl.Item1.IsFloat ? VariableType.Float : VariableType.Int, 1, sdecl.Item2);
-                else if (decl is VariableDeclaration.PointerDeclaration pdecl)
-                    AddGlobalVariable((pdecl.Item1.IsFloat ? VariableType.Float : VariableType.Int) | VariableType.Pointer, 1, pdecl.Item2);
-                else if (decl is VariableDeclaration.ArrayDeclaration adecl)
-                    AddGlobalVariable((adecl.Item1.IsFloat ? VariableType.Float : VariableType.Int) | VariableType.Array, 2, adecl.Item2);
+            IMBuilder builder = new IMBuilder(res);
+            IMProgram preproc = builder.BuildClass(prog);
 
-            MainFunctionCallInformation mainfunc = new MainFunctionCallInformation
-            {
-                GlobalSize = global_refs.Sum(_ => _.Size),
-                LocalSize = (from func in functions
-                             where func.Item2 == Analyzer.EntryPointName
-                             select GetFunctionSize(func)).First()
-            };
-            FunctionCallInformation[] funcs = (from func in functions
-                                               where func.Item2 != Analyzer.EntryPointName
-                                               select new FunctionCallInformation
-                                               {
-                                                   LocalSize = GetFunctionSize(func),
-                                                   Name = func.Item2
-                                               }).Concat(new FunctionCallInformation[] { mainfunc }).ToArray();
+            string instr = GenerateInstructions(prog, res, builder, preproc);
 
-            string maincall = GenerateFunctionCall(mainfunc);
 
             throw new NotImplementedException();
+        }
 
-            void AddGlobalVariable(VariableType type, int size, string name) =>
-                 global_refs.Add(new Variable
-                 {
-                     Name = name,
-                     Type = type,
-                     Size = size
-                 });
+        /// <summary>
+        /// Returns the MCPU++ internal function name of the given intermediate method
+        /// </summary>
+        /// <param name="m">Intermediate method</param>
+        /// <returns>MCPU++ internal function name</returns>
+        public string FunctionName(IMMethod m) => m.Name == EntryPointName ? MAIN_FUNCTION_NAME : $"{FUNCTION_PREFIX}{m.Name}";
 
-            int GetFunctionSize(FunctionDeclaration func)
+        internal string GenerateInstructions(Program prog, AnalyzerResult res, IMBuilder builder, IMProgram preproc)
+        {
+            IMMethod[] funcs = preproc.Methods.ToArray();
+            IMMethod entrypoint = funcs.First(_ => _.Name == EntryPointName);
+            StringBuilder sb = new StringBuilder();
+
+            foreach (IMMethod m in funcs)
             {
-                int GetBlockSize(BlockStatement block)
-                {
-                    IEnumerable<int> bs = from st in block.Item2
-                                          where st.IsBlockStatement
-                                          select GetBlockSize((st as Statement.BlockStatement).Item);
+                sb.AppendLine($"func {FunctionName(m)}      ; {m.Signature}");
 
-                    return (bs.Any() ? bs.Max() : 0) + block.Item1.Sum(_ => _.IsArrayDeclaration ? 2 : 1);
-                }
+                foreach (IMInstruction instr in m.Body)
+                    GenerateInstruction(instr, m);
 
-                return GetBlockSize(func.Item4);
+                sb.AppendLine($"end func     ; end of method '{m.Name}'");
+            }
+
+            sb.Append(GenerateFunctionCall(new MainFunctionCallInformation
+            {
+                GlobalSize = preproc.Fields.Sum(_ => _.Type.IsArray ? 2 : 1),
+                LocalSize = GetFunctionSize(entrypoint)
+            }));
+
+            return sb.ToString();
+
+            int GetFunctionSize(IMMethod func) => func.Locals.Sum(_ => _.Type.IsArray ? 2 : 1);
+        }
+
+        internal string GenerateInstruction(IMInstruction instr, IMMethod func)
+        {
+            switch (instr.Tag)
+            {
+                case IMInstruction.Tags.Nop:
+                default:
+                    return "nop";
             }
         }
 
