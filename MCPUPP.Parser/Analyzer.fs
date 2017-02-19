@@ -2,10 +2,10 @@
 
 open MCPU.MCPUPP.Parser.SyntaxTree
 open MCPU.Compiler
-
 open System.Collections.Generic
 open System.Linq
 open System
+
 
 let EntryPointName = "main"
 
@@ -402,15 +402,65 @@ type ExpressionTypeDictionary(program, ftable : FunctionTable, stable : SymbolTa
                 self.Add (expr, ExpressionType)
             ExpressionType
         ScanBlockStatement blockstat
+
     do
         program
         |> List.iter ScanDeclaration
+
+    member x.Functions = ftable
+    member x.Program = program
+    member x.Symbols = stable
+
+type FunctionSignature =
+    {
+        Name : string
+        ReturnType : VariableType
+        Parameters : SymbolVariableType list
+    }
+    
+let Convert p =
+    let (i, r, v) = p
+    {
+        Name = i
+        ReturnType = r
+        Parameters = v
+    }
 
 type AnalyzerResult =
     {
         SymbolTable : SymbolTable
         ExpressionTypes : ExpressionTypeDictionary
     }
+    member x.UserFunctions = [
+                                for func in x.ExpressionTypes.Program do
+                                    match func with
+                                    | FunctionDeclaration (r, i, p, _) as func ->
+                                        yield (i, r, [ for p in p ->
+                                                            match p with
+                                                            | ArrayDeclaration (t, _) -> {
+                                                                                            Cover = Array
+                                                                                            Type = t
+                                                                                         }
+                                                            | ScalarDeclaration (t, _) -> {
+                                                                                              Cover = Scalar
+                                                                                              Type = t
+                                                                                          }
+                                                            | PointerDeclaration (t, _) -> {
+                                                                                               Cover = Pointer
+                                                                                               Type = t
+                                                                                           }
+                                                     ])
+                                               |> Convert
+                                    | _ -> ()
+                             ]
+    member x.Function = Seq.map <| fun k ->
+                                        let v = x.ExpressionTypes.Functions.[k]
+                                        {
+                                            Name = k
+                                            ReturnType = v.ReturnType
+                                            Parameters = v.ParameterTypes
+                                        }
+                                <| x.ExpressionTypes.Functions.Keys
 
 //let MaxArraySize (block : Statement, id : IdentifierRef) =
 //    let exstat = Expression >> ExpressionStatement
