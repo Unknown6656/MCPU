@@ -235,16 +235,21 @@ end func
 
         internal string GenerateInstructions(Program prog, AnalyzerResult res, IMBuilder builder, IMProgram preproc)
         {
+            Dictionary<string, int> globals = new Dictionary<string, int>();
+            StringBuilder sb = new StringBuilder();
+
             IMMethod[] funcs = preproc.Methods.ToArray();
             IMMethod entrypoint = funcs.First(_ => _.Name == EntryPointName);
-            StringBuilder sb = new StringBuilder();
+
+            foreach (IMVariable field in preproc.Fields)
+                globals[field.Name] = globals.Count;
 
             foreach (IMMethod m in funcs)
             {
                 sb.AppendLine($"func {FunctionName(m)}      ; {m.Signature}");
 
                 foreach (IMInstruction instr in m.Body)
-                    GenerateInstruction(instr, m);
+                    GenerateInstruction(instr, m, globals);
 
                 sb.AppendLine($"end func     ; end of method '{m.Name}'");
             }
@@ -260,14 +265,29 @@ end func
             int GetFunctionSize(IMMethod func) => func.Locals.Sum(_ => _.Type.IsArray ? 2 : 1);
         }
 
-        internal string GenerateInstruction(IMInstruction instr, IMMethod func)
+        internal string GenerateInstruction(IMInstruction instr, IMMethod func, Dictionary<string, int> globals)
         {
             switch (instr.Tag)
             {
-                case IMInstruction.Tags.Nop:
-                default:
+                // TODO : generate for all instructions
+
+                case Tags.Halt:
+                    return "halt";
+                case Tags.Nop:
                     return "nop";
+                default:
+                    switch (instr)
+                    {
+                        // TODO : generate for all instructions
+
+                        case Ldfld fld: return $"call SY_PUSHG {globals[fld.Item.Name]}";
+                        case Ldloc loc: return $"call SY_PUSHL {loc.Item}";
+                        default:
+                            return "nop";
+                    }
             }
+
+            // string gen_1_1(string inner) => 
         }
 
         /// <summary>

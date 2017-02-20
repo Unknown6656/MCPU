@@ -1412,6 +1412,20 @@ namespace MCPU.Instructions
 
     #endregion
 
+    [OPCodeNumber(0xfffd)]
+    public sealed unsafe class interrupt
+        : OPCode
+    {
+        public interrupt()
+            : base(1, (p, _) => {
+                AssertConstant(0, _);
+
+                p.SetInformationFlag(InformationFlags.InterruptEnable, _[0] != 0);
+            })
+        {
+        }
+    }
+
     [OPCodeNumber(0xfffe), RequiresPrivilege, Keyword]
     public sealed unsafe class exec
         : OPCode

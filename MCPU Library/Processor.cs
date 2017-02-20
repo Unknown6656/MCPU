@@ -464,10 +464,17 @@ namespace MCPU
                             Halt();
                 }
                 else
-                    Halt(); // TODO : ?
+                    Halt();
             }
             catch (Exception ex)
             {
+                if (InformationFlags.HasFlag(InformationFlags.InterruptEnable))
+                {
+
+                    // TODO : interrupt service handler
+
+                }
+
                 if (ex is MCPUProcessingException mcpupex)
                     throw mcpupex;
                 else
@@ -517,7 +524,8 @@ namespace MCPU
             IsRunning = true;
 
             MCPUProcessingException res;
-            Task<MCPUProcessingException> t = new Task<MCPUProcessingException>(delegate {
+            Task<MCPUProcessingException> t = new Task<MCPUProcessingException>(delegate
+            {
                 try
                 {
                     while (IsRunning)
@@ -1214,6 +1222,10 @@ namespace MCPU
         /// Indicates, that the processor is currently running
         /// </summary>
         Running = 0b0100_0000_0000_0000,
+        /// <summary>
+        /// Indicates, that the interrupt handling is currently enabled
+        /// </summary>
+        InterruptEnable = 0b0010_0000_0000_0000,
         /// <summary>
         /// Represents no flag
         /// </summary>

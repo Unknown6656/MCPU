@@ -20,8 +20,8 @@ namespace MCPU.IDE
         : UserControl
         , IDisposable
     {
-        internal const string REGEX_STOKEN = @"\.(user|inline|kernel|main)\b";
-        internal const string REGEX_FUNC = @"^(?:\s*\.inline)?\s*func\s+(?:\w+)";
+        internal const string REGEX_STOKEN = @"\.(user|inline|kernel|main|enable|disable)\b";
+        internal const string REGEX_FUNC = @"^(?:\s*(\.inline|interrupt))?\s*func\s+(?:\w+)";
         internal const string REGEX_END_FUNC = @"^\s*end\s+func\b";
         internal const string REGEX_LABEL_DECL = @"^\s*\w+\:";
         internal const string REGEX_ADDR = @"(\bk)?\[{1,2}(?:.+)\]{1,2}";
@@ -210,26 +210,40 @@ namespace MCPU.IDE
                                 .Concat(new AutocompleteItem[]
                                 {
                                     new AutocompleteItem
-                                     {
-                                         Text = ".main",
-                                         MenuText = ".main",
-                                         ToolTipText = "autocomp_main".GetStr(),
-                                         ImageIndex = GetImageIndex("directive"),
-                                     },
+                                    {
+                                        Text = ".main",
+                                        MenuText = ".main",
+                                        ToolTipText = "autocomp_main".GetStr(),
+                                        ImageIndex = GetImageIndex("directive"),
+                                    },
                                     new AutocompleteItem
-                                     {
-                                         Text = ".kernel",
-                                         MenuText = ".kernel",
-                                         ToolTipText = "autocomp_kernel".GetStr(),
-                                         ImageIndex = GetImageIndex("directive"),
-                                     },
+                                    {
+                                        Text = ".kernel",
+                                        MenuText = ".kernel",
+                                        ToolTipText = "autocomp_kernel".GetStr(),
+                                        ImageIndex = GetImageIndex("directive"),
+                                    },
                                     new AutocompleteItem
-                                     {
-                                         Text = ".user",
-                                         MenuText = ".user",
-                                         ToolTipText = "autocomp_user".GetStr(),
-                                         ImageIndex = GetImageIndex("directive"),
-                                     },
+                                    {
+                                        Text = ".user",
+                                        MenuText = ".user",
+                                        ToolTipText = "autocomp_user".GetStr(),
+                                        ImageIndex = GetImageIndex("directive"),
+                                    },
+                                    new AutocompleteItem
+                                    {
+                                        Text = ".enable",
+                                        MenuText = ".enable",
+                                        ToolTipText = "autocomp_enable".GetStr(),
+                                        ImageIndex = GetImageIndex("directive"),
+                                    },
+                                    new AutocompleteItem
+                                    {
+                                        Text = ".disable",
+                                        MenuText = ".disable",
+                                        ToolTipText = "autocomp_disable".GetStr(),
+                                        ImageIndex = GetImageIndex("directive"),
+                                    },
                                 }).ToArray();
 
             UpdateAutocomplete();

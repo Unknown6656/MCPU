@@ -8,6 +8,8 @@ using System;
 
 using static MCPU.OPCodes;
 
+using ErrorData = System.ValueTuple<MCPU.Compiler.MCPUFunction[], MCPU.Compiler.MCPULabelMetadata[], int[], int, string>;
+
 namespace MCPU.Compiler
 {
     /// <summary>
@@ -54,7 +56,7 @@ namespace MCPU.Compiler
         /// <summary>
         /// Matches function declarations
         /// </summary>
-        public static readonly Regex FUNC_REGEX = new Regex($@"((?<inline>\.inline)\s+|\b)func\s+{NAME_REGEX_CORE}\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        public static readonly Regex FUNC_REGEX = new Regex($@"((?<inline>\.inline)\s+|(?<int>\.interrupt)\s+|\b)func\s+{NAME_REGEX_CORE}\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         /// <summary>
         /// Matches function endings
         /// </summary>
@@ -96,7 +98,7 @@ namespace MCPU.Compiler
         };
         internal static readonly string[] __reserved = (from opc in OPCodes.CodesByID
                                                         where opc.Value.IsKeyword
-                                                        select opc.Value.Token.ToLower()).Concat(new string[] { "func", "end", MAIN_FUNCTION_NAME, "line", "epsilon", "tau", "phi", "e", "pi", "i_max", "f_max", "i_min", "f_min", "f_pinf", "f_ninf", "nan" }).ToArray();
+                                                        select opc.Value.Token.ToLower()).Concat(new string[] { "func", "end", MAIN_FUNCTION_NAME, "line", "epsilon", "tau", "phi", "e", "pi", "i_max", "f_max", "i_min", "f_min", "f_pinf", "f_ninf", "nan", "interrupt" }).ToArray();
         internal static readonly Dictionary<string, string> __defstrtable = new Dictionary<string, string>
         {
             ["JMP_INSIDE_FUNC"] = "A jump label may only be used inside a function or after the '.main'-token.",
@@ -111,7 +113,7 @@ namespace MCPU.Compiler
             ["MISSING_FUNC_DECL"] = "A function declaration must precede an 'END FUNC'-token.",
             ["INSTR_OUTSIDE_MAIN"] = "An instruction may only be used inside a function or after the '.main'-token.",
             ["INSTR_NFOUND"] = "The instruction '{0}' could not be found.",
-            ["DONT_USE_KERNEL"] = "The instruction 'KERNEL' should not be used directly. Use '.kernel' or '.user' instead.",
+            ["DONT_USE_KERNEL"] = "The instruction 'kernel' should not be used directly. Use '.kernel' or '.user' instead.",
             ["ARGTYPE_NDET"] = "The type of the argument '{0}' could not be determined.",
             ["INVALID_ARG"] = "Invalid argument '{0}' given.",
             ["LABEL_FUNC_NFOUND"] = "The label or function '{0}' could not be found.",
@@ -124,6 +126,9 @@ namespace MCPU.Compiler
             ["COULDNT_TRANSLATE_EXEC"] = "The 'exec'-expression could not be translated.",
             ["INVALID_RET"] = "The 'ret'-instruction cannot be used after the '.main'-token due to a StackUnderflow during runtime. Consider the usage of 'halt'.",
             ["INVALID_MAIN_TOKEN"] = "The '.main'-token cannot be used inside a method or after an other '.main'-token.",
+            ["TOKEN_NOT_ENOUGH_ARGS"] = "The token '.{0}' requires at least {1} argument(s).",
+            ["TOKEN_UNKNOWN_SWITCH"] = "The switch '{0}' is either unknown or cannot be used using the '.enable'/'.disable'-token.",
+            ["DONT_USE_INTERRUPT"] = "The instruction 'interrupt' should not be used directly. Use '.enable interrupt' or '.disable interrupt' instead."
         };
         internal static Dictionary<string, string> __strtable;
 
@@ -276,7 +281,12 @@ namespace MCPU.Compiler
                 if ((line = line.Trim()).Length > 0)
                 {
                     if (line.StartsWith(".") && !line.ToLower().StartsWith(".inline"))
-                        switch (line = line.Remove(0, 1).Trim().ToLower())
+                    {
+                        line = line.Remove(0, 1).Trim().ToLower();
+
+                        string[] args = (line + " ").Split(' ').Skip(1).Select(_ => _.Trim()).ToArray();
+
+                        switch (line)
                         {
                             case "main":
                                 if (is_func != 0)
@@ -295,9 +305,35 @@ namespace MCPU.Compiler
                                 curr_func.Instructions.Add(((KERNEL, new InstructionArgument[] { 0 }), linenr));
 
                                 continue;
+                            case "enable" when (is_func != 0):
+                            case "disable" when (is_func != 0):
+                                ErrorData? err = EnableDisable(line == "enable");
+
+                                if (err == null)
+                                    continue;
+                                else
+                                    return err.Value;
                             default:
                                 return Error(GetString(is_func != -1 ? "TOKEN_NOT_PARSED" : "TOKEN_INSIDE_FUNC", line));
                         }
+
+                        ErrorData? EnableDisable(bool enable)
+                        {
+                            if (args.Length == 0)
+                                return Error(GetString("TOKEN_NOT_ENOUGH_ARGS", enable ? "enable" : "disable", 1));
+
+                            switch (args[0])
+                            {
+                                case "interrupt":
+                                    curr_func.Instructions.Add(((INTERRUPT, new InstructionArgument[] { 1 }), linenr));
+
+                                    return null;
+                                    // TODO : more options?
+                                default:
+                                    return Error(GetString("TOKEN_UNKNOWN_SWITCH", args[0] ?? ""));
+                            }
+                        }
+                    }
                     else if ((match = FUNC_REGEX.Match(line)).Success)
                         if (is_func == 1)
                             return Error(GetString("FUNC_NOT_NESTED"));
@@ -306,6 +342,7 @@ namespace MCPU.Compiler
                         else
                         {
                             bool inline = match.Groups["inline"]?.ToString()?.ToLower()?.Contains("inline") ?? false;
+                            bool interrupt = match.Groups["int"]?.ToString()?.ToLower()?.Contains("interrupt") ?? false;
                             string name = match.Groups["name"].ToString().ToLower();
                             (int, string, int) um = unmapped.Find(_ => _.Item2 == name);
                             int tid;
@@ -325,6 +362,8 @@ namespace MCPU.Compiler
                             }
                             else
                                 tid = ++id;
+
+                            // TODO : interrupt handler processing
 
                             curr_func = new MCPUFunction(name, (NOP, linenr))
                             {
@@ -357,8 +396,6 @@ namespace MCPU.Compiler
 
                             if (!CodesByToken.ContainsKey(token))
                                 return Error(GetString("INSTR_NFOUND", token));
-                            else if (token == "kernel")
-                                return Error(GetString("DONT_USE_KERNEL"));
 
                             foreach (string arg in (line = line.Remove(match.Index, match.Length).Trim()).Split(' ', ','))
                                 if ((arg ?? "").Trim().Length > 0)
@@ -451,6 +488,11 @@ namespace MCPU.Compiler
 
                             OPCode opc = CodesByToken[token];
 
+                            if (opc == INTERRUPT)
+                                return Error(GetString("DONT_USE_INTERRUPT"));
+                            else if (opc == KERNEL)
+                                return Error(GetString("DONT_USE_KERNEL"));
+
                             while (opc == EXEC)
                                 try
                                 {
@@ -485,7 +527,7 @@ namespace MCPU.Compiler
             else
                 return (functions.ToArray(), labelmeta.ToArray(), ignore.ToArray(), -1, "");
 
-            (MCPUFunction[], MCPULabelMetadata[], int[], int, string) Error(string message) => (null, null, null, linenr + 1, message);
+            ErrorData Error(string message) => (null, null, null, linenr + 1, message);
 
             MCPUFunction FindFirst(string name) => (from f in functions where f.Name == name select f).FirstOrDefault();
 
