@@ -73,6 +73,7 @@ namespace MCPU
         public const int MAX_MEMSZ = 0x10000000; // 1GB of memory
         public const int MAX_STACKSZ = 0x400000; // 16MB of stack space
 #endif
+        internal Dictionary<byte, int> interrupt_table = new Dictionary<byte, int>();
         internal TextWriter stdout = Console.Out;
         internal bool disposed = false;
         internal byte* raw;
@@ -468,12 +469,7 @@ namespace MCPU
             }
             catch (Exception ex)
             {
-                if (InformationFlags.HasFlag(InformationFlags.InterruptEnable))
-                {
-
-                    // TODO : interrupt service handler
-
-                }
+                Interrupt(0); // TODO : call appropriate interrupt number
 
                 if (ex is MCPUProcessingException mcpupex)
                     throw mcpupex;
@@ -549,6 +545,16 @@ namespace MCPU
                 OnError?.Invoke(this, res);
 
             Halt();
+        }
+
+        /// <summary>
+        /// Invokes the interrupt handler with the given interrupt code
+        /// </summary>
+        /// <param name="code">Interrupt code</param>
+        public void Interrupt(byte code)
+        {
+            if (InformationFlags.HasFlag(InformationFlags.InterruptEnable) && (interrupt_table?.ContainsKey(code) ?? false))
+                ProcessWithoutReset((OPCodes.CALL, new InstructionArgument[] { interrupt_table[code] }));
         }
 
         /// <summary>

@@ -315,8 +315,7 @@ namespace MCPU.IDE
                     return;
                 else
                 {
-                    bool reg(string pat, bool lln = false) => (m = Regex.Match(lln ? line : e.HoveredWord, pat, RegexOptions.IgnoreCase)).Success
-                                                           || (m = Regex.Match(lln ? line : e.HoveredWord, TrimStart(TrimEnd(pat, @"\b"), @"\b"), RegexOptions.IgnoreCase)).Success;
+                    bool reg(string pat, bool lln = false) => (m = Regex.Match(lln ? line : e.HoveredWord, pat, RegexOptions.IgnoreCase)).Success;
                     string token = e.HoveredWord.ToLower();
 
                     if (reg(REGEX_TODO))
@@ -334,6 +333,11 @@ namespace MCPU.IDE
                         // tooltip.Icon =;
                         e.ToolTipText = "tooltip_param".GetStr(e.HoveredWord);
                     }
+                    else if (reg(REGEX_STOKEN))
+                    {
+                        tooltip.Icon = autocomp_images["directive"];
+                        e.ToolTipText = $"{e.HoveredWord}-token\n << TODO >>";
+                    }
                     else if (reg(REGEX_CONSTANT))
                     {
                         string str = MCPUCompiler.Constants[e.HoveredWord.Trim().ToLower()];
@@ -346,11 +350,6 @@ namespace MCPU.IDE
 
                         tooltip.Icon = autocomp_images["constant"];
                         e.ToolTipText = "tooltip_constant".GetStr(e.HoveredWord, fiu.I, fiu.F);
-                    }
-                    else if (reg(REGEX_STOKEN))
-                    {
-                        tooltip.Icon = autocomp_images["directive"];
-                        e.ToolTipText = $"{e.HoveredWord}-token\n << TODO >>";
                     }
                     else if (reg(REGEX_FLOAT))
                     {

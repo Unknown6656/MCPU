@@ -38,9 +38,13 @@ namespace MCPU.Compiler
         /// </summary>
         public const string INTEGER_CORE = @"(\-?(0x[0-9a-f]+|[0-9a-f]+h|[0-9]+|0o[01]+|0b[0-7]+)|true|false|null|line|i_(min|max))";
         /// <summary>
+        /// Interrupt handler function name matching pattern
+        /// </summary>
+        public static readonly Regex INT_HANDLER_REGEX = new Regex(@"\bint_(?<int>[0-9a-f]{2})\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        /// <summary>
         /// Argument core matching pattern
         /// </summary>
-        internal static readonly Regex ARGUMENT_CORE = new Regex($@"((?<float>{FLOAT_CORE})|k?\[\$?(?<addr>{INTEGER_CORE})\]|k?\[\[\$?(?<ptr>{INTEGER_CORE})\]\]|\$?(?<const>{INTEGER_CORE})|\<\s*(?<opref>[_a-z]*[a-z]+\w*)\s*\>|{NAME_REGEX_CORE})", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        public static readonly Regex ARGUMENT_CORE = new Regex($@"((?<float>{FLOAT_CORE})|k?\[\$?(?<addr>{INTEGER_CORE})\]|k?\[\[\$?(?<ptr>{INTEGER_CORE})\]\]|\$?(?<const>{INTEGER_CORE})|\<\s*(?<opref>[_a-z]*[a-z]+\w*)\s*\>|{NAME_REGEX_CORE})", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         /// <summary>
         /// Instruction matching pattern
         /// </summary>
@@ -56,7 +60,7 @@ namespace MCPU.Compiler
         /// <summary>
         /// Matches function declarations
         /// </summary>
-        public static readonly Regex FUNC_REGEX = new Regex($@"((?<inline>\.inline)\s+|(?<int>\.interrupt)\s+|\b)func\s+{NAME_REGEX_CORE}\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        public static readonly Regex FUNC_REGEX = new Regex($@"((?<inline>\.inline)\s+|(?<int>interrupt)\s+|\b)func\s+{NAME_REGEX_CORE}\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         /// <summary>
         /// Matches function endings
         /// </summary>
@@ -77,6 +81,9 @@ namespace MCPU.Compiler
         /// Represents the IEEE-754 representation of the mathematical constant φ
         /// </summary>
         public static readonly int FC_φ = (FloatIntUnion)1.61803398874989;
+        /// <summary>
+        /// Contains an enumeration of compiler constants
+        /// </summary>
         public static readonly Dictionary<string, string> Constants = new Dictionary<string, string>
         {
             ["line"] = null,
@@ -96,7 +103,7 @@ namespace MCPU.Compiler
             ["phi"] = FC_φ.ToString(),
             ["e"] = FC_e.ToString(),
         };
-        internal static readonly string[] __reserved = (from opc in OPCodes.CodesByID
+        internal static readonly string[] __reserved = (from opc in CodesByID
                                                         where opc.Value.IsKeyword
                                                         select opc.Value.Token.ToLower()).Concat(new string[] { "func", "end", MAIN_FUNCTION_NAME, "line", "epsilon", "tau", "phi", "e", "pi", "i_max", "f_max", "i_min", "f_min", "f_pinf", "f_ninf", "nan", "interrupt" }).ToArray();
         internal static readonly Dictionary<string, string> __defstrtable = new Dictionary<string, string>
@@ -128,7 +135,9 @@ namespace MCPU.Compiler
             ["INVALID_MAIN_TOKEN"] = "The '.main'-token cannot be used inside a method or after an other '.main'-token.",
             ["TOKEN_NOT_ENOUGH_ARGS"] = "The token '.{0}' requires at least {1} argument(s).",
             ["TOKEN_UNKNOWN_SWITCH"] = "The switch '{0}' is either unknown or cannot be used using the '.enable'/'.disable'-token.",
-            ["DONT_USE_INTERRUPT"] = "The instruction 'interrupt' should not be used directly. Use '.enable interrupt' or '.disable interrupt' instead."
+            ["DONT_USE_INTERRUPT"] = "The instruction 'interrupt' should not be used directly. Use '.enable interrupt' or '.disable interrupt' instead.",
+            ["INVALID_INT_HANDLER_NAME"] = "The function name '{0}' is invalid for an interrupt handler routine. It should have the format 'int_xx' where 'xx' represents the hexadecimal interrupt code.",
+            ["FUNC_RESV_NAME_INT"] = "The name '{0}' is reserved for interrupt handler functions and can therefore not be used as a regular function name.",
         };
         internal static Dictionary<string, string> __strtable;
 
@@ -282,11 +291,9 @@ namespace MCPU.Compiler
                 {
                     if (line.StartsWith(".") && !line.ToLower().StartsWith(".inline"))
                     {
-                        line = line.Remove(0, 1).Trim().ToLower();
+                        string[] args = (line + " ").ToLower().Split(' ').Select(_ => _.Trim()).ToArray();
 
-                        string[] args = (line + " ").Split(' ').Skip(1).Select(_ => _.Trim()).ToArray();
-
-                        switch (line)
+                        switch (line = args[0].Remove(0, 1))
                         {
                             case "main":
                                 if (is_func != 0)
@@ -319,13 +326,13 @@ namespace MCPU.Compiler
 
                         ErrorData? EnableDisable(bool enable)
                         {
-                            if (args.Length == 0)
+                            if (args.Length < 2)
                                 return Error(GetString("TOKEN_NOT_ENOUGH_ARGS", enable ? "enable" : "disable", 1));
 
-                            switch (args[0])
+                            switch (args[1])
                             {
                                 case "interrupt":
-                                    curr_func.Instructions.Add(((INTERRUPT, new InstructionArgument[] { 1 }), linenr));
+                                    curr_func.Instructions.Add(((INTERRUPT, new InstructionArgument[] { enable ? 1 : 0 }), linenr));
 
                                     return null;
                                     // TODO : more options?
@@ -363,13 +370,22 @@ namespace MCPU.Compiler
                             else
                                 tid = ++id;
 
-                            // TODO : interrupt handler processing
+                            byte? intnr = null;
+
+                            if (interrupt)
+                                if ((match = INT_HANDLER_REGEX.Match(name)).Success)
+                                    intnr = byte.Parse(match.Groups["int"].ToString(), NumberStyles.HexNumber);
+                                else
+                                    return Error(GetString("INVALID_INT_HANDLER_NAME", name));
+                            else if (INT_HANDLER_REGEX.Match(name).Success)
+                                return Error(GetString("FUNC_RESV_NAME_INT", name));
 
                             curr_func = new MCPUFunction(name, (NOP, linenr))
                             {
                                 ID = tid,
                                 IsInlined = inline,
-                                DefinedLine = linenr
+                                DefinedLine = linenr,
+                                InterruptNumber = intnr,
                             };
                             is_func = 1;
 
@@ -597,6 +613,7 @@ namespace MCPU.Compiler
                     throw new MCPUCompilerException(0, GetString("MAIN_TOKEN_MISSING"));
 
                 MCPUFunctionMetadata[] metadata = new MCPUFunctionMetadata[func.Length];
+                Dictionary<byte, int> interrupttable = new Dictionary<byte, int>();
                 List<(Instruction, int)> instr = new List<(Instruction, int)>();
                 Dictionary<int, int> unused_isl = new Dictionary<int, int>();
                 Dictionary<int, int> jumptable = new Dictionary<int, int>();
@@ -618,15 +635,16 @@ namespace MCPU.Compiler
                         jumptable[f.ID] = linenr;
                         metadata[fnr++] = f;
 
+                        if (f.InterruptNumber != null)
+                            interrupttable[f.InterruptNumber.Value] = f.ID;
+
                         if (f.IsInlined)
                         {
                             bool caninline = (f.Instructions.Count <= 30) && f.Instructions.All(_ => (_.Item1.OPCode == RET) || !_.Item1.OPCode.SpecialIPHandling);
 
                             if (caninline && OptimizationEnabled)
                             {
-
                                 // MAGIC GOES HERE
-
 
                                 throw new NotImplementedException(GetString("INLINE_NYET_SUPP"));
                                 continue;
@@ -682,13 +700,17 @@ namespace MCPU.Compiler
                             unused_isl.Remove(val);
                         }
 
-                (Instruction[] inst, int[] opt_lines) = Optimize(cmp_instr);
+                (Instruction[] inst, int[] opt_lines, Dictionary<int, (int, bool)> offset_table) = Optimize(cmp_instr);
+
+                foreach (byte b in interrupttable.Keys)
+                    if (offset_table.ContainsKey(interrupttable[b]))
+                        interrupttable[b] -= offset_table[interrupttable[b]].Item1;
 
                 return (inst, (from o in opt_lines.Union(rm)
                                                   .Union(unused_isl.Values)
                                                   .Except(ignored)
                                where func.All(f => f.DefinedLine != o)
-                               select o).ToArray(), metadata, labels);
+                               select o).ToArray(), metadata, labels, interrupttable);
             }
             catch (Exception ex)
             when (!(ex is MCPUCompilerException))
@@ -726,7 +748,7 @@ namespace MCPU.Compiler
         /// </summary>
         /// <param name="instr">Instructions</param>
         /// <returns>Optimized instructions</returns>
-        public static (Instruction[], int[]) Optimize(params (Instruction, int)[] instr)
+        public static (Instruction[], int[], Dictionary<int, (int, bool)>) Optimize(params (Instruction, int)[] instr)
         {
             bool CanBeRemoved(Instruction i)
             {
@@ -754,7 +776,7 @@ namespace MCPU.Compiler
             }
 
             if (!OptimizationEnabled)
-                return ((from i in instr select i.Item1).ToArray(), new int[0]);
+                return ((from i in instr select i.Item1).ToArray(), new int[0], new Dictionary<int, (int, bool)>());
 
             Dictionary<int, (int, bool)> offset_table = Enumerable.Range(0, instr.Length).ToDictionary(_ => _, _ => (0, false));
             List<Instruction> outp = new List<Instruction>();
@@ -783,7 +805,7 @@ namespace MCPU.Compiler
 
             return (outp.ToArray(), (from l in rm
                                      where l >= 0
-                                     select l).ToArray());
+                                     select l).ToArray(), offset_table);
         }
 
         /// <summary>
@@ -984,6 +1006,10 @@ namespace MCPU.Compiler
         /// </summary>
         public bool Inlined { set; get; }
         /// <summary>
+        /// Sets or gets the interrupt number, which the current function is the handler of (or null, if the function isn't an interrupt handler)
+        /// </summary>
+        public byte? InterruptHandler { set; get; }
+        /// <summary>
         /// The (0-based) line, in which the function has been defined (The line number is one-based -- NOT zero-based)
         /// </summary>
         public int DefinedLine { set; get; }
@@ -1010,10 +1036,13 @@ namespace MCPU.Compiler
         /// Reflected function information
         /// </summary>
         public MCPUFunctionMetadata[] Functions { set; get; }
+        /// <summary>
+        /// The interrupt handler table
+        /// </summary>
+        public Dictionary<byte, int> InterruptTable { set; get; }
 
-
-        public static implicit operator (Instruction[], int[], MCPUFunctionMetadata[], MCPULabelMetadata[])(MCPUCompilerResult res) => (res.Instructions, res.OptimizedLines, res.Functions, res.Labels);
-        public static implicit operator MCPUCompilerResult((Instruction[], int[], MCPUFunctionMetadata[], MCPULabelMetadata[])_) => new MCPUCompilerResult { Instructions = _.Item1, OptimizedLines = _.Item2, Functions = _.Item3, Labels = _.Item4 };
+        public static implicit operator (Instruction[], int[], MCPUFunctionMetadata[], MCPULabelMetadata[], Dictionary<byte, int>) (MCPUCompilerResult res) => (res.Instructions, res.OptimizedLines, res.Functions, res.Labels, res.InterruptTable);
+        public static implicit operator MCPUCompilerResult((Instruction[], int[], MCPUFunctionMetadata[], MCPULabelMetadata[], Dictionary<byte, int>) _) => new MCPUCompilerResult { Instructions = _.Item1, OptimizedLines = _.Item2, Functions = _.Item3, Labels = _.Item4, InterruptTable = _.Item5 };
     }
 
     /// <summary>
@@ -1037,6 +1066,10 @@ namespace MCPU.Compiler
         /// Determines, whether the function is inlined during the compiling process
         /// </summary>
         public bool IsInlined { internal set; get; }
+        /// <summary>
+        /// Sets or gets the interrupt number, which the current function is the handler of (or null, if the function isn't an interrupt handler)
+        /// </summary>
+        public byte? InterruptNumber { internal set; get; }
         /// <summary>
         /// The function's instructions
         /// </summary>
@@ -1078,7 +1111,8 @@ namespace MCPU.Compiler
         {
             Name = func.Name,
             Inlined = func.IsInlined,
-            DefinedLine = func.DefinedLine
+            DefinedLine = func.DefinedLine,
+            InterruptHandler = func.InterruptNumber
         };
     }
 

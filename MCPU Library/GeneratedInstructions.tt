@@ -58,6 +58,7 @@ foreach (Type t in asm.GetTypes())
 		
 		name = name == "in" ? "@in"
 			 : name == "out" ? "@out"
+			 : name == "int" ? "@int"
 			 : name == "bool" ? "@bool"
 	         : name;
 

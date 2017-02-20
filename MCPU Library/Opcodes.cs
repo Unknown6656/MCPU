@@ -752,8 +752,22 @@ namespace MCPU.Instructions
     }
 
     #endregion
-    #region 0034...003b <<unassigned>>
+    #region 0034...003a <<unassigned>>
     #endregion
+
+    [OPCodeNumber(0x003b), RequiresPrivilege, Keyword]
+    public sealed unsafe class @int
+        : OPCode
+    {
+        public @int()
+            : base(1, (p, _) => {
+                AssertNotInstructionSpace(0, _);
+
+                p.Interrupt((byte)p.TranslateConstant(_[0]));
+            })
+        {
+        }
+    }
 
     [OPCodeNumber(0x003c)]
     public sealed unsafe class swap
