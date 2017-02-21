@@ -88,6 +88,10 @@ namespace MCPU.MCPUPP.Compiler
         /// Returns the global precompiled MCPU++ code file heaeder
         /// </summary>
         public static string GlobalHeader => $@"
+interrupt func int_00       ; general interrupt method
+    syscall 5 
+end func
+
 func MOVDO                  ; mov [[dst]+offs] [src] <==> call MOVDO dst offs src
     push [{F_CC}]
     mov [{F_CC}] [$0]
@@ -355,6 +359,7 @@ end func
                 return $@"
     .main
     .kernel
+    .enable interrupt
     clear [0] {TMP_SZ}
     mov [{F_LOF}] {TMP_SZ}
     mov [{F_LSZ}] {nfo.AsB.LocalSize}

@@ -51,6 +51,13 @@ namespace MCPU
 
                 *p.TranslateAddress(_[0]) = p.Ticks;
             },
+            [5] = (p, _) => p.WriteLine(string.Join("", from arg in _
+                                                        select new string(new char[] {
+                                                            (char)((arg >> 24) & 'ÿ'),
+                                                            (char)((arg >> 16) & 'ÿ'),
+                                                            (char)((arg >> 8) & 'ÿ'),
+                                                            (char)(arg & 'ÿ')
+                                                        })).Replace("\0", "")),
         };
 #if !WINDOWS
         private const string IVPEX_MSG = "The memory watcher unit requires a Win32-Environment with the corresponding API.";

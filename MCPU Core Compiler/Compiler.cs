@@ -136,6 +136,7 @@ namespace MCPU.Compiler
             ["TOKEN_NOT_ENOUGH_ARGS"] = "The token '.{0}' requires at least {1} argument(s).",
             ["TOKEN_UNKNOWN_SWITCH"] = "The switch '{0}' is either unknown or cannot be used using the '.enable'/'.disable'-token.",
             ["DONT_USE_INTERRUPT"] = "The instruction 'interrupt' should not be used directly. Use '.enable interrupt' or '.disable interrupt' instead.",
+            ["DONT_USE_INTERRUPTTABLE"] = "The instruction 'interrupttable' should not be used directly. Declare interrupt handler functions to build the interrupt-table instead.",
             ["INVALID_INT_HANDLER_NAME"] = "The function name '{0}' is invalid for an interrupt handler routine. It should have the format 'int_xx' where 'xx' represents the hexadecimal interrupt code.",
             ["FUNC_RESV_NAME_INT"] = "The name '{0}' is reserved for interrupt handler functions and can therefore not be used as a regular function name.",
         };
@@ -291,7 +292,7 @@ namespace MCPU.Compiler
                 {
                     if (line.StartsWith(".") && !line.ToLower().StartsWith(".inline"))
                     {
-                        string[] args = (line + " ").ToLower().Split(' ').Select(_ => _.Trim()).ToArray();
+                        string[] args = line.ToLower().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Select(_ => _.Trim()).ToArray();
 
                         switch (line = args[0].Remove(0, 1))
                         {
@@ -506,6 +507,8 @@ namespace MCPU.Compiler
 
                             if (opc == INTERRUPT)
                                 return Error(GetString("DONT_USE_INTERRUPT"));
+                            if (opc == INTERRUPTTABLE)
+                                return Error(GetString("DONT_USE_INTERRUPTTABLE"));
                             else if (opc == KERNEL)
                                 return Error(GetString("DONT_USE_KERNEL"));
 

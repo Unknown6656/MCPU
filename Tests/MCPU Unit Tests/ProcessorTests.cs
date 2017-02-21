@@ -527,5 +527,8 @@ loop:
             for (int i = 0; i < Processor.IO_COUNT; i++)
                 IsTrue(proc.IO[i] == (IODirection.In, (byte)(i & 0xf)));
         }
+
+
+        // TODO : interrupt tests
     }
 }
