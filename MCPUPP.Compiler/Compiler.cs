@@ -78,6 +78,7 @@ namespace MCPU.MCPUPP.Compiler
         /// </summary>
         public const int MIN_PROC_SZ = 0x200; // 2 KB
 
+        private readonly Random rand = new Random((int)(DateTime.Now.Ticks & 0xffffffff));
         private int idc = 0;
 
         /// <summary>
@@ -149,6 +150,31 @@ func SY_POPG                ; pop from SYA-stack into global № $0
     add [{F_CC}] $0
     call SY_POP [{F_CC}]
 end func
+
+func SY_PEEK                ; peek from SYA-stack into $0
+    mov [$0] [{F_SYP}]
+    decr [$0]
+    mov [$0] [[$0]]
+end func
+
+func SY_EXEC_1              ; takes the top-most element, executes <$0> and pushes the result back
+    push [{F_CC}]
+    call SY_POP {F_CC}
+    exec $0 [{F_CC}]
+    call SY_PUSH [{F_CC}]
+    pop [{F_CC}]
+end func
+
+func SY_EXEC_2              ; takes the two top-most elements, executes <$0> and pushes the result back
+    push [{F_CC - 1}]
+    push [{F_CC}]
+    call SY_POP {F_CC}
+    call SY_POP {F_CC - 1}
+    exec $0 [{F_CC}] [{F_CC - 1}]
+    call SY_PUSH [{F_CC}]
+    pop [{F_CC}]
+    pop [{F_CC - 1}]
+end func
 ";
 
         /// <summary>
@@ -178,7 +204,14 @@ end func
         /// Returns a unique ID, which can be used for labels etc.
         /// </summary>
         /// <returns>Unique ID</returns>
-        public string GetUniqueID() => $"{new Guid():N}_{idc++:x}";
+        public string GetUniqueID()
+        {
+            byte[] bytes = new byte[8];
+
+            rand.NextBytes(bytes);
+
+             return $"id_{string.Join("", from b in bytes select b.ToString("x2"))}_{idc++:x}";
+        }
 
         /// <summary>
         /// Returns the unique label ID associated with the given intermediate label
@@ -226,7 +259,7 @@ end func
             IMBuilder builder = new IMBuilder(res);
             IMProgram preproc = builder.BuildClass(prog);
 
-            string instr = GenerateInstructions(prog, res, builder, preproc);
+            string instr = $"{GlobalHeader}\n\n{GenerateInstructions(prog, res, builder, preproc)}";
 
             instr = FormatMCPUCode(instr);
 
@@ -253,12 +286,14 @@ end func
 
             foreach (IMMethod m in funcs)
             {
+                string footer = $"{InnerFunctionFooter(out string endlbl).TrimEnd()}     ; end of method '{m.Name}'";
+
                 sb.AppendLine($"func {FunctionName(m)}      ; {m.Signature}");
 
                 foreach (IMInstruction instr in m.Body)
-                    sb.AppendLine(GenerateInstruction(instr, m, globals));
+                    sb.AppendLine(GenerateInstruction(instr, (m, endlbl), globals));
 
-                sb.AppendLine($"end func     ; end of method '{m.Name}'");
+                sb.AppendLine(footer);
             }
 
             sb.Append(GenerateFunctionCall(new MainFunctionCallInformation
@@ -272,31 +307,53 @@ end func
             int GetFunctionSize(IMMethod func) => func.Locals.Sum(_ => _.Type.IsArray ? 2 : 1);
         }
 
-        internal string GenerateInstruction(IMInstruction instr, IMMethod func, Dictionary<string, int> globals)
+        internal string GenerateInstruction(IMInstruction instr, (IMMethod func, string endlbl) func, Dictionary<string, int> globals)
         {
+            string exec_sya1(OPCode opc) => $"    call SY_EXEC_1 {opc.Number:x4}h";
+            string exec_sya2(OPCode opc) => $"    call SY_EXEC_2 {opc.Number:x4}h";
+
             switch (instr.Tag)
             {
                 // TODO : generate for all instructions
 
                 case Tags.Ret:
                     {
-                        string lbl1 = GetUniqueID();
-                        string lbl2 = GetUniqueID();
+                        string lbl = GetUniqueID();
 
                         return $@"
     cmp [{F_SYP}]
-    jnz {lbl1}
+    jnz {lbl}
     mov [{F_RET}] 0
-    jmp {lbl2}
-{lbl1}:
+    jmp {func.endlbl}
+{lbl}:
     call SY_POP {F_RET}
-{lbl2}:
-{InnerFunctionFooter()}";
+    jmp {func.endlbl}";
                     }
-                case Tags.Halt:
-                    return "halt";
-                case Tags.Nop:
-                    return "nop";
+                case Tags.Halt: return "halt";
+                case Tags.Nop: return "nop";
+                case Tags.Cmp: return "cmp";
+                case Tags.Dup: return $@"
+    push [{F_CC}]
+    call SY_PEEK {F_CC}
+    call SY_PUSH [{F_CC}]
+    pop [{F_CC}]
+";
+                case Tags.Add: return exec_sya2(OPCodes.ADD);
+                case Tags.Sub: return exec_sya2(OPCodes.SUB);
+                case Tags.Mul: return exec_sya2(OPCodes.MUL);
+                case Tags.Div: return exec_sya2(OPCodes.DIV);
+                case Tags.Mod: return exec_sya2(OPCodes.MOD);
+                case Tags.Shr: return exec_sya2(OPCodes.SHR);
+                case Tags.Shl: return exec_sya2(OPCodes.SHL);
+                case Tags.Ror: return exec_sya2(OPCodes.ROR);
+                case Tags.Rol: return exec_sya2(OPCodes.ROL);
+                case Tags.And: return exec_sya2(OPCodes.AND);
+                case Tags.Or: return exec_sya2(OPCodes.OR);
+                case Tags.Xor: return exec_sya2(OPCodes.XOR);
+                case Tags.Pow: return exec_sya2(OPCodes.POW);
+                case Tags.Not: return exec_sya1(OPCodes.NOT);
+                case Tags.Neg: return exec_sya1(OPCodes.NEG);
+                case Tags.Bool: return exec_sya1(OPCodes.BOOL);
                 default:
                     switch (instr)
                     {
@@ -308,16 +365,57 @@ end func
 
                         case Inline inline:
                             return inline.Item;
-                        case Ldfld fld:
-                            return $"call SY_PUSHG {globals[fld.Item.Name]}";
+                        case Ldcf cf:
+                            return $"call SY_PUSH {cf.Item}";
+                        case Ldci ci:
+                            return $"call SY_PUSH {ci.Item}";
+                        case Ldarg arg:
+                            return $"call SY_PUSH ${arg.Item}";
                         case Ldloc loc:
                             return $"call SY_PUSHL {loc.Item}";
+                        case Ldfld fld:
+                            return $"call SY_PUSHG {globals[fld.Item.Name]}";
                         default:
-                            return "";
+                            return $"; TODO: {instr}";
                     }
             }
 
-            // string gen_1_1(string inner) => 
+            /* TODO:
+             
+            | Syscall of int * int (* syscall <ID> <argc> *)
+            | Call of string * int (* call <Name> <argc> *)
+            
+            | Stloc of int
+            | Starg of int
+            | Malloc of VariableType
+            | Delete
+            | Ldlen
+            | Ldaddr
+            | Ldptra
+            | Stptra
+            | Ldptrv
+            | Stptrv
+            | Ldelem of VariableType
+            | Stelem of VariableType
+            | Ldptr of VariableType
+            | Stptr of VariableType
+            | Stfld of IMVariable
+            | Cmp
+            | FCmp
+            | Label of IMLabel
+            | Jmp of IMLabel
+            | Jz of IMLabel
+            | Jnz of IMLabel
+            | Swap
+            | Neg
+            | Not
+            | Bool
+            | Push
+            | Pop
+            | Peek
+            | FIcast
+            | IFcast
+             */
         }
 
         /// <summary>
@@ -333,9 +431,11 @@ func {funcname}
         /// <summary>
         /// Generates the precompiled MCPU++ code for a function footer
         /// </summary>
+        /// <param name="endlbl">The label name, which represents the end of the current function</param>
         /// <param name="returnval">The function's return argument/value</param>
         /// <returns>Function footer</returns>
-        public string InnerFunctionFooter(InstructionArgument? returnval = null) => $@"
+        public string InnerFunctionFooter(out string endlbl, InstructionArgument? returnval = null) => $@"
+{endlbl = GetUniqueID()}:
     mov [{F_RET}] {(returnval ?? new InstructionArgument { Type = ArgumentType.Address, Value = F_RET }).ToShortString()}
 end func
 ";

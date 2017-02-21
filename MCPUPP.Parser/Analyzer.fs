@@ -269,7 +269,7 @@ type ExpressionTypeDictionary(program, ftable : FunctionTable, stable : SymbolTa
                                     raise <| Errors.InvalidConversion type' rettype
                             | InlineAsmStatement asm ->
                                 let fail = Errors.UnableParseInlineAsm >> raise
-                                let lines = (".main\n.kernel\n" + asm.Code).Split '\n'
+                                let lines = asm.Code.Split '\n'
                                             |> Array.map (fun (l : string) -> (if l.Contains ';' then
                                                                                    l.Remove(l.IndexOf ';')
                                                                                else
@@ -277,12 +277,12 @@ type ExpressionTypeDictionary(program, ftable : FunctionTable, stable : SymbolTa
                                             |> Array.filter (fun l -> l.Length > 0)
                                 Array.iter (fun (l : string) ->
                                                 if l.StartsWith "." then fail()
-                                                if ismatch l @"\b(ret|call)\b" then fail()
+                                                elif ismatch l @"\b(ret|call)\b" then fail()
                                                 // TODO : other checks
                                                 ) lines
-                                let comp = MCPUCompiler.Compile lines
-                                if comp.IsB then fail()
-                                else Console.WriteLine(String.Join("\n", comp.AsA.Instructions));
+                                //let comp = MCPUCompiler.Compile lines
+                                //if comp.IsB then fail()
+                                //else Console.WriteLine(String.Join("\n", comp.AsA.Instructions));
                             |_ -> ()
         and ScanExpression expr =
             let CheckTypes s t = if s <> t then raise <| Errors.InvalidConversion s t
