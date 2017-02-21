@@ -22,9 +22,6 @@ type IMInstruction =
     | Call of string * int (* call <Name> <argc> *)
     | Ret
     | Inline of string
-    | Io of int * bool
-    | In of int
-    | Out of int
     | Ldci of int
     | Ldcf of float
     | Ldloc of int
@@ -50,21 +47,8 @@ type IMInstruction =
     | FCmp
     | Label of IMLabel
     | Jmp of IMLabel
-    | Jle of IMLabel
-    | Jl of IMLabel
-    | Jg of IMLabel
-    | Jge of IMLabel
-    | Je of IMLabel
-    | Jne of IMLabel
     | Jz of IMLabel
     | Jnz of IMLabel
-    | Jneg of IMLabel
-    | Jpos of IMLabel
-    | Jnan of IMLabel
-    | Jnnan of IMLabel
-    | Jinf of IMLabel
-    | Jpinf of IMLabel
-    | Jninf of IMLabel
     | Swap
     | Dup
     | Add
@@ -81,50 +65,13 @@ type IMInstruction =
     | Or
     | And
     | Xor
-    | Nor
-    | Nand
-    | Nxor
-    | Abs
     | Bool
     | Pow
-    | Fac
-    | Incr
-    | Decr
-    | CPUID
     | Push
     | Pop
     | Peek
     | FIcast
     | IFcast
-    | FAdd
-    | FSub
-    | FMul
-    | FDiv
-    | FMod
-    | FNeg
-    | FInv
-    | FSqrt
-    | FRoot
-    | FLog
-    | FLogE
-    | FPow
-    | FExp
-    | FFloor
-    | FCeil
-    | FRound
-    | FMin
-    | FMax
-    | FSign
-    | FSin
-    | FCos
-    | FTan
-    | FSinh
-    | FCosh
-    | FTanh
-    | FAsin
-    | FAcos
-    | FAtan
-    | FAtan2
 
 type IMMethod =
     {

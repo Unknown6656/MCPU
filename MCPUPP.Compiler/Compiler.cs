@@ -210,7 +210,9 @@ end func
                                                                              let tl = l.Trim()
                                                                              where tl.Length > 0
                                                                              let cnt = tl.Contains(MCPUCompiler.COMMENT_START) ? tl.Remove(tl.IndexOf(MCPUCompiler.COMMENT_START)).Trim() : tl
-                                                                             select (cnt.EndsWith(":") ? "" : "    ") + tl).ToArray();
+                                                                             select (MCPUCompiler.LABEL_REGEX.IsMatch(cnt) ||
+                                                                                     MCPUCompiler.FUNC_REGEX.IsMatch(cnt) ||
+                                                                                     MCPUCompiler.END_FUNC_REGEX.IsMatch(cnt) ? "" : "    ") + tl).ToArray();
 
         /// <summary>
         /// 
@@ -226,6 +228,7 @@ end func
 
             string instr = GenerateInstructions(prog, res, builder, preproc);
 
+            instr = FormatMCPUCode(instr);
 
             throw new NotImplementedException();
         }
@@ -253,7 +256,7 @@ end func
                 sb.AppendLine($"func {FunctionName(m)}      ; {m.Signature}");
 
                 foreach (IMInstruction instr in m.Body)
-                    GenerateInstruction(instr, m, globals);
+                    sb.AppendLine(GenerateInstruction(instr, m, globals));
 
                 sb.AppendLine($"end func     ; end of method '{m.Name}'");
             }
@@ -275,6 +278,21 @@ end func
             {
                 // TODO : generate for all instructions
 
+                case Tags.Ret:
+                    {
+                        string lbl1 = GetUniqueID();
+                        string lbl2 = GetUniqueID();
+
+                        return $@"
+    cmp [{F_SYP}]
+    jnz {lbl1}
+    mov [{F_RET}] 0
+    jmp {lbl2}
+{lbl1}:
+    call SY_POP {F_RET}
+{lbl2}:
+{InnerFunctionFooter()}";
+                    }
                 case Tags.Halt:
                     return "halt";
                 case Tags.Nop:
@@ -284,10 +302,18 @@ end func
                     {
                         // TODO : generate for all instructions
 
-                        case Ldfld fld: return $"call SY_PUSHG {globals[fld.Item.Name]}";
-                        case Ldloc loc: return $"call SY_PUSHL {loc.Item}";
+                        case Syscall syscall:
+                        case Call call:
+                            return ""; // TODO
+
+                        case Inline inline:
+                            return inline.Item;
+                        case Ldfld fld:
+                            return $"call SY_PUSHG {globals[fld.Item.Name]}";
+                        case Ldloc loc:
+                            return $"call SY_PUSHL {loc.Item}";
                         default:
-                            return "nop";
+                            return "";
                     }
             }
 
@@ -367,6 +393,7 @@ end func
     mov [{F_LOF}] {TMP_SZ}
     add [{F_LOF}] [{F_GSZ}]
     call {MAIN_FUNCTION_NAME}
+    .disable interrupt
     .user
     halt
 ";

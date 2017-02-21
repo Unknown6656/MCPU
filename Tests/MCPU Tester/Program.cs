@@ -77,10 +77,13 @@ namespace MCPU
 int lelz;
 float[] u;
 
-//void f1()
-//{
-//    u = new float[12];
-//}
+int f1()
+{
+    u = new float[12];
+
+    delete u;
+    return 9;
+}
 
 void main(void)
 {
@@ -90,6 +93,9 @@ void main(void)
 
     u = new float[42];
     kek = new int[5];
+    lelz = f1();
+
+    __asm ""syscall 5 74657374h"";
 }
 ";
             var prog = Lexer.parse(code);
