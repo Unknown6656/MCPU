@@ -632,7 +632,7 @@ namespace MCPU.Compiler
                     else
                     {
                         unused_isl[f.ID] = f.DefinedLine;
-                        jumptable[f.ID] = linenr;
+                        jumptable[f.ID] = linenr + 1;
                         metadata[fnr++] = f;
 
                         if (f.InterruptNumber != null)
@@ -702,11 +702,34 @@ namespace MCPU.Compiler
 
                 (Instruction[] inst, int[] opt_lines, Dictionary<int, (int, bool)> offset_table) = Optimize(cmp_instr);
 
-                foreach (byte b in interrupttable.Keys)
+                foreach (byte b in interrupttable.Keys.ToArray())
                     if (offset_table.ContainsKey(interrupttable[b]))
                         interrupttable[b] -= offset_table[interrupttable[b]].Item1;
 
-                return (inst, (from o in opt_lines.Union(rm)
+                Instruction[] header = new Instruction[]
+                {
+                    (KERNEL, new InstructionArgument[] { 1 }),
+                    (INTERRUPTTABLE, (from kvp in interrupttable
+                                      select (InstructionArgument)((kvp.Key << 24) | (kvp.Value & 0x00ffffff))).ToArray()),
+                    (KERNEL, new InstructionArgument[] { 0 }),
+                };
+
+                foreach (byte b in interrupttable.Keys.ToArray())
+                    interrupttable[b] += header.Length;
+
+                inst = header.Concat(from i in inst
+                                     select new Func<Instruction>(() =>
+                                     {
+                                         InstructionArgument[] args = i.Arguments;
+
+                                         for (int j = 0; j < args.Length; j++)
+                                             if (args[j].IsInstructionSpace)
+                                                 args[j].Value += header.Length;
+
+                                         return (i.OPCode, args);
+                                     })()).ToArray();
+
+            return (inst, (from o in opt_lines.Union(rm)
                                                   .Union(unused_isl.Values)
                                                   .Except(ignored)
                                where func.All(f => f.DefinedLine != o)

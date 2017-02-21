@@ -27,7 +27,7 @@
         <s:String xml:space="preserve" x:Key="MISSING_FUNC_DECL">Объявление функции должно предшествовать 'END FUNC'-маркер.</s:String>
         <s:String xml:space="preserve" x:Key="INSTR_OUTSIDE_MAIN">Инструкция может быть использована только внутри функции или после '.main'-маркера.</s:String>
         <s:String xml:space="preserve" x:Key="INSTR_NFOUND">Команда '{0}' не может быть найден.</s:String>
-        <s:String xml:space="preserve" x:Key="DONT_USE_KERNEL">Команда "ЯДРО" не должна использоваться непосредственно. Используйте '.kernel' или '.user' вместо этого.</s:String>
+        <s:String xml:space="preserve" x:Key="DONT_USE_KERNEL">Команда 'kernel' не должна использоваться непосредственно. Используйте '.kernel' или '.user' вместо этого.</s:String>
         <s:String xml:space="preserve" x:Key="ARGTYPE_NDET">Тип аргумента '{0}' не может быть определена.</s:String>
         <s:String xml:space="preserve" x:Key="INVALID_ARG">Недопустимый аргумент '{0}' дано.</s:String>
         <s:String xml:space="preserve" x:Key="LABEL_FUNC_NFOUND">Метка или функция '{0}' не может быть найден.</s:String>
@@ -40,6 +40,12 @@
         <s:String xml:space="preserve" x:Key="COULDNT_TRANSLATE_EXEC">'exec'-выражение не может быть переведено.</s:String>
         <s:String xml:space="preserve" x:Key="INVALID_RET">'ret'-инструкция не может быть использован после '.main'-маркера из-за StackUnderflow во время выполнения. Рассмотрим использование 'halt'.</s:String>
         <s:String xml:space="preserve" x:Key="INVALID_MAIN_TOKEN">'.main'-Маркер не может быть использован внутри метода или после другого' .main'-Маркер.</s:String>
+        <s:String xml:space="preserve" x:Key="TOKEN_NOT_ENOUGH_ARGS">Маркер '.{0}' требует по крайней мере {1} аргумент(ы).</s:String>
+        <s:String xml:space="preserve" x:Key="TOKEN_UNKNOWN_SWITCH">Переключатель '{0}' либо неизвестен, либо не могут быть использованы с помощью '.enable'/'.disable'-маркер.</s:String>
+        <s:String xml:space="preserve" x:Key="DONT_USE_INTERRUPT">Инструкция 'interrupt' не должен использоваться непосредственно. Используйте '.enable interrupt' или '.disable interrupt' вместо этого.</s:String>
+        <s:String xml:space="preserve" x:Key="DONT_USE_INTERRUPTTABLE">Команда 'interrupttable' не должны использоваться непосредственно. Используйте декларацию обработчика прерываний построить таблицу прерываний.</s:String>
+        <s:String xml:space="preserve" x:Key="INVALID_INT_HANDLER_NAME">Имя функции '{0}' является недопустимым для прерывания обработчику. Он должен иметь формат 'int_xx', где 'хх' представляет собой шестнадцатеричный код прерывания.</s:String>
+        <s:String xml:space="preserve" x:Key="FUNC_RESV_NAME_INT">Имя '{0}' зарезервирован для прерывания функций обработчика и поэтому не может быть использован в качестве обычного имени функции.</s:String>
     </ResourceDictionary>
     <s:String xml:space="preserve" x:Key="global_hint">намек</s:String>
     <s:String xml:space="preserve" x:Key="global_opt">{0} оптимизируемое линии найдено.</s:String>

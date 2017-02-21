@@ -197,7 +197,7 @@ namespace MCPU.IDE
                 autocomp.ImageList.Images.Add(kvp.Key, kvp.Value);
 
             std_autocompitems = (from kvp in OPCodes.CodesByToken
-                                 where kvp.Value != OPCodes.KERNEL
+                                 where kvp.Value.IsHidden
                                  let nv = kvp.Key.Replace("@", "")
                                  let kv = kvp.Value.IsKeyword
                                  select new AutocompleteItem
@@ -431,7 +431,8 @@ namespace MCPU.IDE
                      MenuText = s.ToLower(),
                      ToolTipText = "autocomp_snippet".GetStr(s),
                      ImageIndex = GetImageIndex("snippet"),
-                 }).Concat((from f in functions ?? new MCPUFunctionMetadata[0]
+                 })
+                    .Concat((from f in functions ?? new MCPUFunctionMetadata[0]
                             select new AutocompleteItem
                             {
                                 Text = f.Name,

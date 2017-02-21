@@ -92,7 +92,7 @@ namespace MCPU.IDE
                 string memsz = $"0x{p.Size:x8}";
                 string tick = $"0x{p.Ticks:x8}";
                 string instrs = string.Join(" ", from b in Instruction.SerializeMultiple(instr) select b.ToString("x2"));
-                
+
                 for (int i = 0; i < p.StackSize * 4; i++)
                     sbstack.Append($"{((byte*)p.StackPointer)[i]:x2} ");
 
@@ -135,7 +135,7 @@ namespace MCPU.IDE
                                                       select arg.ToShortString()),
                         // Keyword = instr.OPCode.IsKeyword ? new BitmapImage(new Uri("Resources/")) : null,
                     });
-                
+
                 // some kind of semaphore goes here, which kills 'old' tasks and prevents UI blocking
 
                 DoUIStuff(delegate

@@ -1426,7 +1426,7 @@ namespace MCPU.Instructions
 
     #endregion
 
-    [OPCodeNumber(0xfffd)]
+    [OPCodeNumber(0xfffc), Hidden, Keyword]
     public sealed unsafe class interrupt
         : OPCode
     {
@@ -1435,6 +1435,30 @@ namespace MCPU.Instructions
                 AssertConstant(0, _);
 
                 p.SetInformationFlag(InformationFlags.InterruptEnable, _[0] != 0);
+            })
+        {
+        }
+    }
+
+    [OPCodeNumber(0xfffd), Hidden, RequiresPrivilege, Keyword]
+    public sealed unsafe class interrupttable
+        : OPCode
+    {
+        public interrupttable()
+            : base(0, (p, _) => {
+                int count = _.Length;
+                Dictionary<byte, int> inttable = new Dictionary<byte, int>();
+
+                for (int i = 0; i < count; i++)
+                {
+                    AssertConstant(count, _);
+
+                    int vec = p.TranslateConstant(_[0]);
+
+                    inttable[(byte)((vec >> 24) & 0xff)] = (int)(vec & 0xff000000u);
+                }
+
+                p.interrupt_table = inttable;
             })
         {
         }
@@ -1454,7 +1478,7 @@ namespace MCPU.Instructions
         }
     }
 
-    [OPCodeNumber(0xffff)]
+    [OPCodeNumber(0xffff), Hidden]
     public sealed unsafe class kernel
         : OPCode
     {

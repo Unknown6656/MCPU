@@ -27,7 +27,7 @@
         <s:String xml:space="preserve" x:Key="MISSING_FUNC_DECL">Eine Funktionsdeklaration muss einem 'END FUNC' vorangehen.</s:String>
         <s:String xml:space="preserve" x:Key="INSTR_OUTSIDE_MAIN">Instruktionen können nur innerhalb einer Funktion oder nach der '.main'-Marke verwendet werden.</s:String>
         <s:String xml:space="preserve" x:Key="INSTR_NFOUND">Die Instruktion '{0}' konnte nicht gefunden werden.</s:String>
-        <s:String xml:space="preserve" x:Key="DONT_USE_KERNEL">Die Instruktion 'KERNEL' sollte nicht direkt verwendet werden. Bitte verwenden Sie stattdessen '.kernel' oder '.user'.</s:String>
+        <s:String xml:space="preserve" x:Key="DONT_USE_KERNEL">Die Instruktion 'kernel' sollte nicht direkt verwendet werden. Bitte verwenden Sie stattdessen '.kernel' oder '.user'.</s:String>
         <s:String xml:space="preserve" x:Key="ARGTYPE_NDET">Der Datentyp des Argumentes '{0}' konnte nicht determiniert werden.</s:String>
         <s:String xml:space="preserve" x:Key="INVALID_ARG">Ungültiges Argument '{0}'.</s:String>
         <s:String xml:space="preserve" x:Key="LABEL_FUNC_NFOUND">Die Funktion oder Sprungmarke '{0}' konnte nicht gefunden werden.</s:String>
@@ -40,6 +40,12 @@
         <s:String xml:space="preserve" x:Key="COULDNT_TRANSLATE_EXEC">Der 'exec'-Ausdruck konnte nicht kompiliert werden.</s:String>
         <s:String xml:space="preserve" x:Key="INVALID_RET">Die 'ret'-Instruktion kann nicht nach der '.main'-Marke verwendet werden, da dies zur Laufzeit einen StackUnderflow-Fehler verursachen könnte. Ziehen Sie stattdessen die Verwendung der instruktion 'halt' in Erwägung.</s:String>
         <s:String xml:space="preserve" x:Key="INVALID_MAIN_TOKEN">Die '.main'-Marke kann nicht innerhalb einer Funktion oder nach einer anderen '.main'-Marke verwendet werden.</s:String>
+        <s:String xml:space="preserve" x:Key="TOKEN_NOT_ENOUGH_ARGS">Die Marke '.{0}' benötigt mindestens {1} argument(e).</s:String>
+        <s:String xml:space="preserve" x:Key="TOKEN_UNKNOWN_SWITCH">Das Flag '{0}' ist entweder unbekannt, oder kann nicht mit der '.enable'/'.disable'-Marke verwendet werden.</s:String>
+        <s:String xml:space="preserve" x:Key="DONT_USE_INTERRUPT">Die Instruktion 'interrupt' sollte nicht direkt verwendet werden. Bitte verwenden Sie stattdessen '.enable interrupt' oder '.disable interrupt'.</s:String>
+        <s:String xml:space="preserve" x:Key="DONT_USE_INTERRUPTTABLE">Die Instruktion 'interrupttable' sollte nicht direkt verwendet werden. Bitte verwenden Sie die Deklaration von Interrupt-Handler-Routinen, um die Interrupt-Tabelle aufzubauen.</s:String>
+        <s:String xml:space="preserve" x:Key="INVALID_INT_HANDLER_NAME">Der Funktionsname '{0}' ist für eine Interrupt-Handler-Routine ungültig. Bitte verwenden sie das folgende Namensschema: 'int_xx', wobei 'xx' für den hexadezimalen Interrupt-Code steht.</s:String>
+        <s:String xml:space="preserve" x:Key="FUNC_RESV_NAME_INT">Der Funktionsname '{0}' ist für Interrupt-Handler-Routinen reserviert und kann daher nicht als regulärer Funktionsname verwendet werden.</s:String>
     </ResourceDictionary>
     <s:String xml:space="preserve" x:Key="global_hint">Hinweis</s:String>
     <s:String xml:space="preserve" x:Key="global_opt">{0} optimierbare Zeilen gefunden.</s:String>
