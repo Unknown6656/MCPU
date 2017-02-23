@@ -352,7 +352,7 @@ void not_a_main_function(void)
 }
 ", "MISSING_MAIN");
 
-        [TestMethod]
+        [TestMethod, Skip] // skip, as this will be handled by the precompiler - not the analyzer
         public void Test_28() => ExpectAnalyzerFailure(@"
 void main(void)
 {
@@ -360,7 +360,7 @@ void main(void)
 }
 ", "IVAL_MCPUASM");
 
-        [TestMethod]
+        [TestMethod, Skip] // skip, as this will be handled by the precompiler - not the analyzer
         public void Test_29() => ExpectAnalyzerFailure(@"
 void main(void)
 {
