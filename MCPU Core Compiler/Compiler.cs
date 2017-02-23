@@ -512,7 +512,7 @@ namespace MCPU.Compiler
                             else if (opc == KERNEL)
                                 return Error(GetString("DONT_USE_KERNEL"));
 
-                            while (opc == EXEC)
+                            while ((opc == EXEC) && (args.Count > 0) && (args[0].Type == ArgumentType.Constant))
                                 try
                                 {
                                     opc = CodesByID[(ushort)args[0]];

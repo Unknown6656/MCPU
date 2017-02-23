@@ -528,6 +528,45 @@ loop:
                 IsTrue(proc.IO[i] == (IODirection.In, (byte)(i & 0xf)));
         }
 
+        [TestMethod]
+        public void Test_25()
+        {
+            const int i = 315;
+            const int j = 42;
+
+            Execute($@"
+    .main
+    MOV [0] <add>
+    MOV [1] {i}
+    MOV [2] {j}
+    EXEC [0] [1] [2]
+");
+            AreValues((0, OPCodes.ADD.Number),
+                      (1, i + j),
+                      (2, j));
+        }
+
+        [TestMethod]
+        public void Test_26()
+        {
+            const int i = 315;
+            const int ai = 12;
+            const int j = -1;
+
+            Execute($@"
+    .main
+    MOV [0] 42
+    MOV [[0]] <xor>
+    MOV [1] {ai}
+    MOV [[1]] {i}
+    EXEC [[0]] [[1]] {j}
+");
+            AreValues((0, 42),
+                      (42, OPCodes.XOR.Number),
+                      (1, ai),
+                      (ai, i ^ j));
+        }
+
 
         // TODO : interrupt tests
     }

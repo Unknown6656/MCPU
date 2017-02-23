@@ -245,7 +245,7 @@ end func
                                                                              let cnt = tl.Contains(MCPUCompiler.COMMENT_START) ? tl.Remove(tl.IndexOf(MCPUCompiler.COMMENT_START)).Trim() : tl
                                                                              select (MCPUCompiler.LABEL_REGEX.IsMatch(cnt) ||
                                                                                      MCPUCompiler.FUNC_REGEX.IsMatch(cnt) ||
-                                                                                     MCPUCompiler.END_FUNC_REGEX.IsMatch(cnt) ? "" : "    ") + tl).ToArray();
+                                                                                     MCPUCompiler.END_FUNC_REGEX.IsMatch(cnt) ? "" : "    ") + tl + (MCPUCompiler.END_FUNC_REGEX.IsMatch(cnt) ? "\n" : "")).ToArray();
 
         /// <summary>
         /// 

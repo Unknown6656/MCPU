@@ -664,7 +664,7 @@ namespace MCPU
         /// <summary>
         /// Returns, whether the argument is a constant
         /// </summary>
-        public bool IsConstant => (KernelInvariantType & KernelInvariantType & ~ArgumentType.Parameter) == ArgumentType.Constant;
+        public bool IsConstant => (KernelInvariantType & ParameterInvariantType) == ArgumentType.Constant;
         /// <summary>
         /// Returns, whether the argument resides inside the instruction segment (meaning it is a label or function)
         /// </summary>
