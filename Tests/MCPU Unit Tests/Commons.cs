@@ -122,8 +122,13 @@ namespace MCPU.Testing
     {
     }
 
-    public sealed class AppVeyorSkipAttribute
+    public class SkipAttribute
         : Attribute
+    {
+    }
+
+    public sealed class AppVeyorSkipAttribute
+        : SkipAttribute
     {
     }
 }

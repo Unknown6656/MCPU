@@ -536,6 +536,7 @@ loop:
 
             Execute($@"
     .main
+    .kernel
     MOV [0] <add>
     MOV [1] {i}
     MOV [2] {j}
@@ -555,6 +556,7 @@ loop:
 
             Execute($@"
     .main
+    .kernel
     MOV [0] 42
     MOV [[0]] <xor>
     MOV [1] {ai}

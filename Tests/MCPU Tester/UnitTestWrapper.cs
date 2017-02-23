@@ -125,7 +125,8 @@ namespace MCPU
 
                         try
                         {
-                            if ((nfo.GetCustomAttributes<AppVeyorSkipAttribute>().FirstOrDefault() != null) && appveyor)
+                            if (((nfo.GetCustomAttributes<AppVeyorSkipAttribute>().FirstOrDefault() != null) && appveyor) ||
+                                (nfo.GetCustomAttributes<SkipAttribute>().FirstOrDefault() != null))
                                 Commons.Skip();
 
                             init.Invoke(container, new object[0]);

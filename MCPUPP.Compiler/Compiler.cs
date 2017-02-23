@@ -90,7 +90,7 @@ namespace MCPU.MCPUPP.Compiler
         /// </summary>
         public static string GlobalHeader => $@"
 interrupt func int_00       ; general interrupt method
-    syscall 5 
+    syscall 5 67656e65h 72616c20h 6572726fh 7200000000h
 end func
 
 func MOVDO                  ; mov [[dst]+offs] [src] <==> call MOVDO dst offs src

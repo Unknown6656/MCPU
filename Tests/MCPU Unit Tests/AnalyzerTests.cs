@@ -544,7 +544,7 @@ void main(void)
 }
 ", "ARRAY_EXPECTED");
 
-        [TestMethod]
+        [TestMethod, Skip]
         public void Test_46() => ExpectAnalyzerFailure(@"
 float i;
 
@@ -554,7 +554,7 @@ void main(void)
 }
 ", "VARIABLE_EXISTS");
 
-        [TestMethod]
+        [TestMethod, Skip]
         public void Test_47() => ExpectAnalyzerFailure(@"
 int[] i;
 
