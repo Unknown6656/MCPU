@@ -18,7 +18,6 @@ type IMLabel = int
 // everything is stack-based here (will be thrown onto the sya-stack)
 type IMInstruction =
     | Halt
-    | Syscall of int * int (* syscall <ID> <argc> *)
     | Call of string * int (* call <Name> <argc> *)
     | Ret
     | Inline of string
@@ -49,7 +48,6 @@ type IMInstruction =
     | Jmp of IMLabel
     | Jz of IMLabel
     | Jnz of IMLabel
-    | Swap
     | Dup
     | Add
     | Sub
@@ -67,9 +65,7 @@ type IMInstruction =
     | Xor
     | Bool
     | Pow
-    | Push
     | Pop
-    | Peek
     | FIcast
     | IFcast
 

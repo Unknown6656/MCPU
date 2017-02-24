@@ -2,6 +2,7 @@
 using Microsoft.FSharp.Reflection;
 using Microsoft.FSharp.Core;
 
+using System.Collections.ObjectModel;
 using System.Runtime.Serialization;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -88,9 +89,9 @@ namespace MCPU.MCPUPP.Compiler
         /// <summary>
         /// Returns the global precompiled MCPU++ code file heaeder
         /// </summary>
-        public static string GlobalHeader => $@"
+        public static string GlobalHeader { get; } = $@"
 interrupt func int_00       ; general interrupt method
-    syscall 5 67656e65h 72616c20h 6572726fh 7200000000h
+    syscall 5 67656e65h 72616c20h 6572726fh 72000000h
 end func
 
 func MOVDO                  ; mov [[dst]+offs] [src] <==> call MOVDO dst offs src
@@ -176,16 +177,86 @@ func SY_EXEC_2              ; takes the two top-most elements, executes <$0> and
     pop [{F_CC - 1}]
 end func
 ";
-
         /// <summary>
-        /// Destructs the current MCPU++ Compiler instance
+        /// Returns a dictionary of predefined functions and their associated MCPU code
         /// </summary>
-        ~MCPUPPCompiler() => Dispose();
+        public static ReadOnlyDictionary<string, string> PredefinedFunctions { get; }
 
-        /// <summary>
-        /// Disposes the current compiler instance and relases all resources
-        /// </summary>
-        public void Dispose() => Processor = null;
+
+        static MCPUPPCompiler() => PredefinedFunctions = new ReadOnlyDictionary<string, string>(new Dictionary<string, string>
+        {
+            ["iprint"] = $@"
+    push [{F_CC}]
+    call SY_POP {F_CC}
+    syscall 2 [{F_CC}]
+    pop [{F_CC}]
+",
+            ["fprint"] = $@"
+    push [{F_CC}]
+    call SY_POP {F_CC}
+    syscall 3 [{F_CC}]
+    pop [{F_CC}]
+",
+            ["iscan"] = $@"", // TODO
+            ["fscan"] = $@"", // TODO
+
+            ["sin"] = exec_sya1(OPCodes.FSIN),
+            ["cos"] = exec_sya1(OPCodes.FCOS),
+            ["tan"] = exec_sya1(OPCodes.FTAN),
+            ["asin"] = exec_sya1(OPCodes.FASIN),
+            ["acos"] = exec_sya1(OPCodes.FACOS),
+            ["atan"] = exec_sya1(OPCodes.FATAN),
+            ["atan2"] = exec_sya2(OPCodes.FATAN2),
+            ["sinh"] = exec_sya1(OPCodes.FSINH),
+            ["cosh"] = exec_sya1(OPCodes.FCOSH),
+            ["tanh"] = exec_sya1(OPCodes.FTANH),
+            ["halt"] = "halt",
+            ["cpuid"] = $@"
+    push [{F_CC}]
+    cpuid [{F_CC}]
+    call SY_PUSH [{F_CC}]
+    pop [{F_CC}]
+",
+            ["wait"] = $@"
+    push [{F_CC}]
+    call SY_POP {F_CC}
+    wait {F_CC}
+    pop [{F_CC}]
+",
+            ["io"] = $@"
+    push [{F_CC}]
+    push [{F_CC - 1}]
+    call SY_POP {F_CC - 1}
+    call SY_POP {F_CC}
+    io [{F_CC}] [{F_CC - 1}]
+    pop [{F_CC}]
+    pop [{F_CC - 1}]
+",
+            ["in"] = $@"
+    push [{F_CC}]
+    call SY_POP {F_CC}
+    in [{F_CC}] [{F_CC}]
+    call SY_PUSH [{F_CC}]
+    pop [{F_CC}]
+",
+            ["out"] = $@"
+    push [{F_CC}]
+    push [{F_CC - 1}]
+    call SY_POP {F_CC - 1}
+    call SY_POP {F_CC}
+    out [{F_CC}] [{F_CC - 1}]
+    pop [{F_CC}]
+    pop [{F_CC - 1}]
+",
+            /* todo:
+                log
+                ln
+                exp
+                round
+                ceil
+                float
+             */
+        });
 
         /// <summary>
         /// Creates a new MCPU++ Compiler instance based on the given processor
@@ -199,6 +270,16 @@ end func
             Processor = p;
             Processor.OnDisposed += _ => Dispose();
         }
+
+        /// <summary>
+        /// Destructs the current MCPU++ Compiler instance
+        /// </summary>
+        ~MCPUPPCompiler() => Dispose();
+
+        /// <summary>
+        /// Disposes the current compiler instance and relases all resources
+        /// </summary>
+        public void Dispose() => Processor = null;
 
         /// <summary>
         /// Returns a unique ID, which can be used for labels etc.
@@ -252,18 +333,41 @@ end func
         /// </summary>
         /// <param name="prog"></param>
         /// <returns></returns>
-        public string Compile(Program prog)
+        public Union<MCPUPPCompilerResult, MCPUPPCompilerException> Compile(string source)
         {
-            AnalyzerResult res = Analyze(prog);
+            try
+            {
+                Program prog = Lexer.parse(source);
+                AnalyzerResult res = Analyze(prog);
 
-            IMBuilder builder = new IMBuilder(res);
-            IMProgram preproc = builder.BuildClass(prog);
+                IMBuilder builder = new IMBuilder(res);
+                IMProgram preproc = builder.BuildClass(prog);
 
-            string instr = $"{GlobalHeader}\n\n{GenerateInstructions(prog, res, builder, preproc)}";
+                string mcpu = $"{GlobalHeader}\n\n{GenerateInstructions(prog, res, builder, preproc)}";
 
-            instr = FormatMCPUCode(instr);
+                mcpu = FormatMCPUCode(mcpu);
 
-            throw new NotImplementedException();
+                Instruction[] instr = MCPUCompiler.Compile(mcpu).AsA.Instructions;
+
+                return new MCPUPPCompilerResult
+                {
+                    Instructions = instr,
+                    CompiledCode = mcpu,
+                    SourceCode = source,
+                    UserFunctions = (from m in preproc.Methods
+                                     select new FunctionSignature
+                                     {
+                                         Name = m.Name,
+                                         ReturnType = m.ReturnType.Convert(),
+                                         Parameters = (from p in m.Parameters
+                                                       select (p.Type.Convert(), p.Name)).ToArray(),
+                                     }).ToArray()
+                };
+            }
+            catch (Exception ex)
+            {
+                return ex is MCPUPPCompilerException mex ? mex : new MCPUPPCompilerException(ex.Message);
+            }
         }
 
         /// <summary>
@@ -309,13 +413,8 @@ end func
 
         internal string GenerateInstruction(IMInstruction instr, (IMMethod func, string endlbl) func, Dictionary<string, int> globals)
         {
-            string exec_sya1(OPCode opc) => $"    call SY_EXEC_1 {opc.Number:x4}h";
-            string exec_sya2(OPCode opc) => $"    call SY_EXEC_2 {opc.Number:x4}h";
-
             switch (instr.Tag)
             {
-                // TODO : generate for all instructions
-
                 case Tags.Ret:
                     {
                         string lbl = GetUniqueID();
@@ -331,7 +430,6 @@ end func
                     }
                 case Tags.Halt: return "halt";
                 case Tags.Nop: return "nop";
-                case Tags.Cmp: return "cmp";
                 case Tags.Dup: return $@"
     push [{F_CC}]
     call SY_PEEK {F_CC}
@@ -354,15 +452,29 @@ end func
                 case Tags.Not: return exec_sya1(OPCodes.NOT);
                 case Tags.Neg: return exec_sya1(OPCodes.NEG);
                 case Tags.Bool: return exec_sya1(OPCodes.BOOL);
+                case Tags.Pop: return $"decr [{F_SYP}]";
+                case Tags.Cmp: return exec_sya2(OPCodes.CMP);
+                case Tags.FCmp: return exec_sya2(OPCodes.FCMP);
+                case Tags.FIcast: return exec_sya1(OPCodes.FICAST);
+                case Tags.IFcast: return exec_sya1(OPCodes.IFCAST);
                 default:
                     switch (instr)
                     {
-                        // TODO : generate for all instructions
-
-                        case Syscall syscall:
                         case Call call:
-                            return ""; // TODO
+                            if (PredefinedFunctions.ContainsKey(call.Item1))
+                            {
+                                return PredefinedFunctions[call.Item1];
+                            }
+                            else
+                            {
+                                int argc = call.Item2;
 
+                                return GenerateFunctionCall(new FunctionCallInformation
+                                {
+                                    Name = $"{FUNCTION_PREFIX}{call.Item1}",
+                                    LocalSize = 0, // TODO
+                                });
+                            }
                         case Inline inline:
                             return inline.Item;
                         case Ldcf cf:
@@ -371,22 +483,31 @@ end func
                             return $"call SY_PUSH {ci.Item}";
                         case Ldarg arg:
                             return $"call SY_PUSH ${arg.Item}";
+                        case Starg arg:
+                            return $"; Todo: starg ${arg.Item}"; // TODO
                         case Ldloc loc:
                             return $"call SY_PUSHL {loc.Item}";
+                        case Stloc loc:
+                            return $"call SY_POPL {loc.Item}";
                         case Ldfld fld:
                             return $"call SY_PUSHG {globals[fld.Item.Name]}";
+                        case Stfld fld:
+                            return $"call SY_POPG {globals[fld.Item.Name]}";
+                        case Label lbl:
+                            return $"{GetUniqueID(lbl.Item)}:";
+                        case Jmp jmp:
+                            return $"jmp {GetUniqueID(jmp.Item)}";
+                        case Jz jz:
+                            return $"jz {GetUniqueID(jz.Item)}";
+                        case Jnz jnz:
+                             return $"jnz {GetUniqueID(jnz.Item)}";
                         default:
                             return $"; TODO: {instr}";
                     }
             }
 
             /* TODO:
-             
-            | Syscall of int * int (* syscall <ID> <argc> *)
-            | Call of string * int (* call <Name> <argc> *)
             
-            | Stloc of int
-            | Starg of int
             | Malloc of VariableType
             | Delete
             | Ldlen
@@ -399,24 +520,12 @@ end func
             | Stelem of VariableType
             | Ldptr of VariableType
             | Stptr of VariableType
-            | Stfld of IMVariable
-            | Cmp
-            | FCmp
-            | Label of IMLabel
-            | Jmp of IMLabel
-            | Jz of IMLabel
-            | Jnz of IMLabel
-            | Swap
-            | Neg
-            | Not
-            | Bool
-            | Push
-            | Pop
-            | Peek
-            | FIcast
-            | IFcast
              */
         }
+
+        internal static string exec_sya1(OPCode opc) => $"call SY_EXEC_1 {opc.Number:x4}h       ; '{opc.Token}'-instruction";
+
+        internal static string exec_sya2(OPCode opc) => $"call SY_EXEC_2 {opc.Number:x4}h       ; '{opc.Token}'-instruction";
 
         /// <summary>
         /// Generates the precompiled MCPU++ code for a function header
@@ -507,6 +616,12 @@ end func
     {
         internal static readonly Type ITupleType = typeof(Tuple).Assembly.GetType("System.ITuple");
 
+
+        internal static VariableType Convert(this SymbolVariableType svt) =>
+            (svt.IsArray ? VariableType.Array : svt.IsScalar ? VariableType.Scalar : VariableType.Pointer) | svt.Type.Convert();
+
+        internal static VariableType Convert(this Parser.SyntaxTree.VariableType svt) =>
+            svt.IsInt ? VariableType.Int : svt.IsFloat ? VariableType.Float : VariableType.Void;
 
         internal static dynamic GenerateTuple(object val)
         {
@@ -642,6 +757,50 @@ end func
     }
 
     /// <summary>
+    /// Represents the result of a successful MCPU++ code compilation
+    /// </summary>
+    [Serializable]
+    public sealed class MCPUPPCompilerResult
+    {
+        /// <summary>
+        /// Retruns the original MCPU++ source code
+        /// </summary>
+        public string SourceCode { internal set; get; }
+        /// <summary>
+        /// Returns the assembled MCPU code
+        /// </summary>
+        public string CompiledCode { internal set; get; }
+        /// <summary>
+        /// Returns the compiled instructions
+        /// </summary>
+        public Instruction[] Instructions { internal set; get; }
+        /// <summary>
+        /// Returns a list of user-defined function signatures
+        /// </summary>
+        public FunctionSignature[] UserFunctions { internal set; get; }
+    }
+
+    /// <summary>
+    /// Represents a MCPU++ function signature
+    /// </summary>
+    [Serializable]
+    public struct FunctionSignature
+    {
+        /// <summary>
+        /// The function's name
+        /// </summary>
+        public string Name;
+        /// <summary>
+        /// The function's return type
+        /// </summary>
+        public VariableType ReturnType;
+        /// <summary>
+        /// The function's parameters
+        /// </summary>
+        public (VariableType Type, string Name)[] Parameters;
+    }
+
+    /// <summary>
     /// Represents a basic MCPU++ function call information structure
     /// </summary>
     [Serializable]
@@ -722,11 +881,19 @@ end func
         /// <summary>
         /// 
         /// </summary>
-        Int = 0x00,
+        Int = 0x01,
         /// <summary>
         /// 
         /// </summary>
-        Float = 0x01,
+        Float = 0x02,
+        /// <summary>
+        /// 
+        /// </summary>
+        Void = 0x04,
+        /// <summary>
+        /// 
+        /// </summary>
+        Scalar = 0x00,
         /// <summary>
         /// 
         /// </summary>

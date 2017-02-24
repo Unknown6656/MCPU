@@ -946,6 +946,8 @@ namespace MCPU.Compiler
                     if (ins.OPCode is Instructions.kernel)
                         sb.Append('.')
                           .AppendLine((ins.Arguments?[0] ?? 0) == 0 ? "user" : "kernel");
+                    if (ins.OPCode is Instructions.interrupt)
+                        sb.AppendLine($".{((ins.Arguments?[0] ?? 0) == 0 ? "dis" : "en")}able interrupt");
                     else
                     {
                         sb.Append(ins.OPCode.Token);

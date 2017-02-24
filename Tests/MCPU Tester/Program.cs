@@ -65,52 +65,54 @@ namespace MCPU
 
         private static int InnerMain(string[] args)
         {
-            Processor proc = new Processor(4096, 4096, -559038737);
-
-            proc.OnError += (p, ex) => {
+            void err(Exception ex)
+            {
                 ForegroundColor = ConsoleColor.Red;
                 WriteLine($"WELL FUGG :D\n{ex.Message}\n{ex.StackTrace}");
                 ForegroundColor = ConsoleColor.White;
-            };
+            }
+            Processor proc = new Processor(4096, 4096, -559038737);
+
+            proc.OnError += (p, ex) => err(ex);
 
             const string code = @"
-int lelz;
-float[] u;
-
-int f1()
-{
-    u = new float[12];
-
-    delete u;
-    return 9;
-}
+//int f1(int i)
+//{
+//    return 9 * i;
+//}
 
 void main(void)
 {
-    int[] kek;
-    float* ptr;
     int lelz;
+    float test;
 
-    u = new float[42];
-    kek = new int[5];
-    lelz = f1();
+    lelz = 315; //f1((5 - 3) / 2);
+    test = sin(0.0);
+    
+    iprint(lelz);
+    fprint(test);
 
     __asm ""syscall 5 74657374h"";
+    __asm ""syscall 1"";
 }
 ";
-            var prog = Lexer.parse(code);
-            var res = Analyzer.Analyze(prog);
-
-            WriteLine(prog.ToDebugString());
-            WriteLine(string.Join("\n", from et in res.ExpressionTypes
-                                        select $"{et.Key} : {et.Value}"));
-            WriteLine(string.Join("\n", from et in res.SymbolTable
-                                        orderby et.Key.Identifier ascending
-                                        select $"{et.Key} : {et.Value}"));
-
             MCPUPPCompiler comp = new MCPUPPCompiler(proc);
+            Union<MCPUPPCompilerResult, MCPUPPCompilerException> res = comp.Compile(code);
 
-            WriteLine(comp.Compile(prog));
+            if (res.IsA)
+            {
+                MCPUPPCompilerResult mcpuppres = res.AsA;
+                Instruction[] instr = mcpuppres.Instructions;
+
+                WriteLine($"{mcpuppres.CompiledCode}\n\n{MCPUCompiler.Decompile(mcpuppres.Instructions)}\n");
+
+                proc.Process(instr);
+
+                // ConsoleExtensions.HexDump(proc.ToBytes());
+
+            }
+            else
+                err(res.AsB);
 
             ReadKey(true);
             return 0;
