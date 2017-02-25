@@ -1451,11 +1451,11 @@ namespace MCPU.Instructions
 
                 for (int i = 0; i < count; i++)
                 {
-                    AssertConstant(count, _);
+                    AssertConstant(i, _);
 
-                    int vec = p.TranslateConstant(_[0]);
+                    int vec = p.TranslateConstant(_[i]);
 
-                    inttable[(byte)((vec >> 24) & 0xff)] = (int)(vec & 0xff000000u);
+                    inttable[(byte)((vec >> 24) & 0xff)] = vec & 0x00ffffff;
                 }
 
                 p.interrupt_table = inttable;

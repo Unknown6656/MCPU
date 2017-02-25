@@ -67,7 +67,7 @@ namespace MCPU
             else if (!p.IsElevated && RequiresEleveation)
                 throw new MissingPrivilegeException();
             else
-                Process(p ?? throw new ArgumentNullException("The processor must not be null."), RequiredArguments < 1 ? new InstructionArgument[0] : arguments);
+                Process(p ?? throw new ArgumentNullException("The processor must not be null."), arguments ?? new InstructionArgument[0]);
         }
 
         /// <summary>

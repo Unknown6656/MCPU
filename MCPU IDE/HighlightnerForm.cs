@@ -20,7 +20,7 @@ namespace MCPU.IDE
         : UserControl
         , IDisposable
     {
-        internal const string REGEX_STOKEN = @"\.(user|inline|kernel|main|enable|disable)\b";
+        internal const string REGEX_STOKEN = @"\.(user|inline|kernel|main|enable|disable|data)\b";
         internal const string REGEX_FUNC = @"^(?:\s*(\.inline|interrupt))?\s*func\s+(?:\w+)";
         internal const string REGEX_END_FUNC = @"^\s*end\s+func\b";
         internal const string REGEX_LABEL_DECL = @"^\s*\w+\:";
@@ -31,7 +31,7 @@ namespace MCPU.IDE
         internal static readonly string REGEX_TODO = $@"\b{MCPUCompiler.TODO_TOKEN}\b";
         internal static readonly string REGEX_INT = $@"\b({MCPUCompiler.INTEGER_CORE})\b";
         internal static readonly string REGEX_FLOAT = $@"\b({MCPUCompiler.FLOAT_CORE})\b";
-        internal static readonly string REGEX_KWORD = $@"({REGEX_FUNC}|{REGEX_END_FUNC}|\b({string.Join("|", MCPUCompiler.ReservedKeywords.Union(MCPUCompiler.Constants.Keys))}|{MCPUCompiler.MAIN_FUNCTION_NAME})\b)";
+        internal static readonly string REGEX_KWORD = $@"({REGEX_FUNC}|{REGEX_END_FUNC}|\=|\b({string.Join("|", MCPUCompiler.ReservedKeywords.Union(MCPUCompiler.Constants.Keys))}|{MCPUCompiler.MAIN_FUNCTION_NAME})\b)";
         internal static readonly string REGEX_INSTR = $@"\b({string.Join("|", from o in OPCodes.CodesByToken select o.Key)})\b";
         internal static readonly string REGEX_OPREF = $@"\<\s*({REGEX_INSTR})\s*\>";
 

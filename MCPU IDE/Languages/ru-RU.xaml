@@ -25,7 +25,7 @@
         <s:String xml:space="preserve" x:Key="FUNC_ALREADY_EXISTS">Функция '{0}' уже существует.</s:String>
         <s:String xml:space="preserve" x:Key="LABEL_ALREADY_EXISTS">Метка называется '{0}' уже существует.</s:String>
         <s:String xml:space="preserve" x:Key="MISSING_FUNC_DECL">Объявление функции должно предшествовать 'END FUNC'-маркер.</s:String>
-        <s:String xml:space="preserve" x:Key="INSTR_OUTSIDE_MAIN">Инструкция может быть использована только внутри функции или после '.main'-маркера.</s:String>
+        <s:String xml:space="preserve" x:Key="INSTR_OUTSIDE_FUNC">Инструкция может быть использована только внутри функции или после '.main'-маркера.</s:String>
         <s:String xml:space="preserve" x:Key="INSTR_NFOUND">Команда '{0}' не может быть найден.</s:String>
         <s:String xml:space="preserve" x:Key="DONT_USE_KERNEL">Команда 'kernel' не должна использоваться непосредственно. Используйте '.kernel' или '.user' вместо этого.</s:String>
         <s:String xml:space="preserve" x:Key="ARGTYPE_NDET">Тип аргумента '{0}' не может быть определена.</s:String>

@@ -8,7 +8,7 @@ using System;
 
 using static MCPU.OPCodes;
 
-using ErrorData = System.ValueTuple<MCPU.Compiler.MCPUFunction[], MCPU.Compiler.MCPULabelMetadata[], int[], int, string>;
+using PrecompilerData = System.ValueTuple<MCPU.Compiler.MCPUFunction[], MCPU.Compiler.MCPULabelMetadata[], System.ValueTuple<int, int>[], int[], int, string>;
 
 namespace MCPU.Compiler
 {
@@ -42,9 +42,17 @@ namespace MCPU.Compiler
         /// </summary>
         public static readonly Regex INT_HANDLER_REGEX = new Regex(@"\bint_(?<int>[0-9a-f]{2})\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         /// <summary>
+        /// Address matching pattern
+        /// </summary>
+        public static readonly string ADDRESS_CORE = $@"(k?\[\$?(?<addr>{INTEGER_CORE})\]|k?\[\[\$?(?<ptr>{INTEGER_CORE})\]\])";
+        /// <summary>
+        /// Data assignment matching pattern
+        /// </summary>
+        public static readonly Regex DATA_REGEX = new Regex($@"(?<kernel>k)?\[(?<addr>{INTEGER_CORE})\]\s*\=\s*(?<value>{INTEGER_CORE})", RegexOptions.IgnoreCase);
+        /// <summary>
         /// Argument core matching pattern
         /// </summary>
-        public static readonly Regex ARGUMENT_CORE = new Regex($@"((?<float>{FLOAT_CORE})|k?\[\$?(?<addr>{INTEGER_CORE})\]|k?\[\[\$?(?<ptr>{INTEGER_CORE})\]\]|\$?(?<const>{INTEGER_CORE})|\<\s*(?<opref>[_a-z]*[a-z]+\w*)\s*\>|{NAME_REGEX_CORE})", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        public static readonly Regex ARGUMENT_CORE = new Regex($@"((?<float>{FLOAT_CORE})|{ADDRESS_CORE}|\$?(?<const>{INTEGER_CORE})|\<\s*(?<opref>[_a-z]*[a-z]+\w*)\s*\>|{NAME_REGEX_CORE})", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         /// <summary>
         /// Instruction matching pattern
         /// </summary>
@@ -105,7 +113,7 @@ namespace MCPU.Compiler
         };
         internal static readonly string[] __reserved = (from opc in CodesByID
                                                         where opc.Value.IsKeyword
-                                                        select opc.Value.Token.ToLower()).Concat(new string[] { "func", "end", MAIN_FUNCTION_NAME, "line", "epsilon", "tau", "phi", "e", "pi", "i_max", "f_max", "i_min", "f_min", "f_pinf", "f_ninf", "nan", "interrupt" }).ToArray();
+                                                        select opc.Value.Token.ToLower()).Concat(new string[] { "func", "end", MAIN_FUNCTION_NAME, "line", "epsilon", "tau", "phi", "e", "pi", "i_max", "f_max", "i_min", "f_min", "f_pinf", "f_ninf", "nan", "interrupt", "data" }).ToArray();
         internal static readonly Dictionary<string, string> __defstrtable = new Dictionary<string, string>
         {
             ["JMP_INSIDE_FUNC"] = "A jump label may only be used inside a function or after the '.main'-token.",
@@ -118,7 +126,7 @@ namespace MCPU.Compiler
             ["FUNC_ALREADY_EXISTS"] = "The function '{0}' does already exist.",
             ["LABEL_ALREADY_EXISTS"] = "A label called '{0}' does already exist.",
             ["MISSING_FUNC_DECL"] = "A function declaration must precede an 'END FUNC'-token.",
-            ["INSTR_OUTSIDE_MAIN"] = "An instruction may only be used inside a function or after the '.main'-token.",
+            ["INSTR_OUTSIDE_FUNC"] = "An instruction may only be used inside a function or after the '.main'-token.",
             ["INSTR_NFOUND"] = "The instruction '{0}' could not be found.",
             ["DONT_USE_KERNEL"] = "The instruction 'kernel' should not be used directly. Use '.kernel' or '.user' instead.",
             ["ARGTYPE_NDET"] = "The type of the argument '{0}' could not be determined.",
@@ -139,6 +147,8 @@ namespace MCPU.Compiler
             ["DONT_USE_INTERRUPTTABLE"] = "The instruction 'interrupttable' should not be used directly. Declare interrupt handler functions to build the interrupt-table instead.",
             ["INVALID_INT_HANDLER_NAME"] = "The function name '{0}' is invalid for an interrupt handler routine. It should have the format 'int_xx' where 'xx' represents the hexadecimal interrupt code.",
             ["FUNC_RESV_NAME_INT"] = "The name '{0}' is reserved for interrupt handler functions and can therefore not be used as a regular function name.",
+            ["DATA_INSIDE_FUNC"] = "The '.data'-section token cannot be used inside a function.",
+            ["DATA_OUTSIDE_SECTION"] = "The data assignment expression should be used after a '.data'-section token.",
         };
         internal static Dictionary<string, string> __strtable;
 
@@ -183,11 +193,12 @@ namespace MCPU.Compiler
         /// <returns>Formatted string value</returns>
         public static string GetString(string key, params object[] args) => string.Format(GetString(key), args);
 
-        internal static unsafe (MCPUFunction[], MCPULabelMetadata[], int[], int, string) Precompile(params string[] lines)
+        internal static unsafe PrecompilerData Precompile(params string[] lines)
         {
             List<(int, string, int)> unmapped = new List<(int, string, int)>();
             List<MCPULabelMetadata> labelmeta = new List<MCPULabelMetadata>();
             Dictionary<string, int> labels = new Dictionary<string, int>();
+            Dictionary<int, int> init_data = new Dictionary<int, int>();
             List<MCPUFunction> functions = new List<MCPUFunction>();
             List<int> ignore = new List<int>();
             int is_func = 0, linenr = 0, id = 0;
@@ -293,11 +304,12 @@ namespace MCPU.Compiler
                     if (line.StartsWith(".") && !line.ToLower().StartsWith(".inline"))
                     {
                         string[] args = line.ToLower().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Select(_ => _.Trim()).ToArray();
+                        bool inside_func = (is_func != 0) && (is_func != -2);
 
                         switch (line = args[0].Remove(0, 1))
                         {
                             case "main":
-                                if (is_func != 0)
+                                if (inside_func)
                                     return Error(GetString("INVALID_MAIN_TOKEN"));
 
                                 curr_func = new MCPUFunction(MAIN_FUNCTION_NAME) { ID = 0, DefinedLine = linenr };
@@ -305,27 +317,34 @@ namespace MCPU.Compiler
                                 is_func = -1;
 
                                 continue;
-                            case "kernel" when (is_func != 0):
+                            case "kernel" when inside_func:
                                 curr_func.Instructions.Add(((KERNEL, new InstructionArgument[] { 1 }), linenr));
 
                                 continue;
-                            case "user" when (is_func != 0):
+                            case "user" when inside_func:
                                 curr_func.Instructions.Add(((KERNEL, new InstructionArgument[] { 0 }), linenr));
 
                                 continue;
-                            case "enable" when (is_func != 0):
-                            case "disable" when (is_func != 0):
-                                ErrorData? err = EnableDisable(line == "enable");
+                            case "enable" when inside_func:
+                            case "disable" when inside_func:
+                                PrecompilerData? err = EnableDisable(line == "enable");
 
                                 if (err == null)
                                     continue;
                                 else
                                     return err.Value;
+                            case "data":
+                                if (is_func != 0)
+                                    return Error(GetString("DATA_INSIDE_FUNC"));
+
+                                is_func = -2;
+
+                                continue;
                             default:
                                 return Error(GetString(is_func != -1 ? "TOKEN_NOT_PARSED" : "TOKEN_INSIDE_FUNC", line));
                         }
 
-                        ErrorData? EnableDisable(bool enable)
+                        PrecompilerData? EnableDisable(bool enable)
                         {
                             if (args.Length < 2)
                                 return Error(GetString("TOKEN_NOT_ENOUGH_ARGS", enable ? "enable" : "disable", 1));
@@ -336,7 +355,7 @@ namespace MCPU.Compiler
                                     curr_func.Instructions.Add(((INTERRUPT, new InstructionArgument[] { enable ? 1 : 0 }), linenr));
 
                                     return null;
-                                    // TODO : more options?
+                                // TODO : more options?
                                 default:
                                     return Error(GetString("TOKEN_UNKNOWN_SWITCH", args[0] ?? ""));
                             }
@@ -393,7 +412,7 @@ namespace MCPU.Compiler
                             functions.Add(curr_func);
                         }
                     else if ((match = END_FUNC_REGEX.Match(line)).Success)
-                        if (is_func != 0)
+                        if ((is_func != 0) && (is_func != -2))
                         {
                             ignore.Add(linenr);
 
@@ -403,9 +422,20 @@ namespace MCPU.Compiler
                         }
                         else
                             return Error(GetString("MISSING_FUNC_DECL"));
+                    else if ((match = DATA_REGEX.Match(line)).Success)
+                        if (is_func == -2)
+                        {
+                            int value = ParseIntArg(match.Groups["value"]?.ToString() ?? "");
+                            int addr = ParseIntArg(match.Groups["addr"]?.ToString() ?? "");
+                            int offs = (match.Groups["kernel"]?.ToString() ?? "").ToLower() == "k" ? 0 : Processor.MEM_OFFS;
+
+                            init_data[addr + (offs / 4)] = value;
+                        }
+                        else
+                            return Error(GetString("DATA_OUTSIDE_SECTION"));
                     else if ((match = INSTRUCTION_REGEX.Match(line)).Success)
-                        if (is_func == 0)
-                            return Error(GetString("INSTR_OUTSIDE_MAIN"));
+                        if ((is_func == 0) && (is_func == -2))
+                            return Error(GetString("INSTR_OUTSIDE_FUNC"));
                         else
                         {
                             List<InstructionArgument> args = new List<InstructionArgument>();
@@ -544,9 +574,10 @@ namespace MCPU.Compiler
                 return Error(GetString("LABEL_FUNC_NFOUND", unmapped[0].Item2));
             }
             else
-                return (functions.ToArray(), labelmeta.ToArray(), ignore.ToArray(), -1, "");
+                return (functions.ToArray(), labelmeta.ToArray(), (from kvp in init_data
+                                                                   select (kvp.Key, kvp.Value)).ToArray(), ignore.ToArray(), -1, "");
 
-            ErrorData Error(string message) => (null, null, null, linenr + 1, message);
+            PrecompilerData Error(string message) => (null, null, null, null, linenr + 1, message);
 
             MCPUFunction FindFirst(string name) => (from f in functions where f.Name == name select f).FirstOrDefault();
 
@@ -605,7 +636,7 @@ namespace MCPU.Compiler
         {
             try
             {
-                (MCPUFunction[] func, MCPULabelMetadata[] labels, int[] ignored, int errln, string errmsg) = Precompile(lines);
+                (MCPUFunction[] func, MCPULabelMetadata[] labels, (int, int)[] init_data, int[] ignored, int errln, string errmsg) = Precompile(lines);
 
                 if ((errln != -1) || !string.IsNullOrEmpty(errmsg))
                     throw new MCPUCompilerException(errln, errmsg);
@@ -709,16 +740,17 @@ namespace MCPU.Compiler
                     if (offset_table.ContainsKey(interrupttable[b]))
                         interrupttable[b] -= offset_table[interrupttable[b]].Item1;
 
-                Instruction[] header = new Instruction[]
-                {
-                    (KERNEL, new InstructionArgument[] { 1 }),
-                    (INTERRUPTTABLE, (from kvp in interrupttable
-                                      select (InstructionArgument)((kvp.Key << 24) | (kvp.Value & 0x00ffffff))).ToArray()),
-                    (KERNEL, new InstructionArgument[] { 0 }),
-                };
+                List<Instruction> header = new List<Instruction>();
+
+                header.Add((KERNEL, new InstructionArgument[] { 1 }));
+                header.Add((INTERRUPTTABLE, (from kvp in interrupttable
+                                             select (InstructionArgument)((kvp.Key << 24) | (kvp.Value & 0x00ffffff))).ToArray()));
+                header.AddRange(from (int addr, int value) _ in init_data
+                                select (Instruction)(MOV, new InstructionArgument[] { (_.addr, ArgumentType.KernelMode | ArgumentType.Address), (_.value, ArgumentType.Constant) }));
+                header.Add((KERNEL, new InstructionArgument[] { 0 }));
 
                 foreach (byte b in interrupttable.Keys.ToArray())
-                    interrupttable[b] += header.Length;
+                    interrupttable[b] += header.Count;
 
                 inst = header.Concat(from i in inst
                                      select new Func<Instruction>(() =>
@@ -727,12 +759,12 @@ namespace MCPU.Compiler
 
                                          for (int j = 0; j < args.Length; j++)
                                              if (args[j].IsInstructionSpace)
-                                                 args[j].Value += header.Length;
+                                                 args[j].Value += header.Count;
 
                                          return (i.OPCode, args);
                                      })()).ToArray();
 
-            return (inst, (from o in opt_lines.Union(rm)
+                return (inst, (from o in opt_lines.Union(rm)
                                                   .Union(unused_isl.Values)
                                                   .Except(ignored)
                                where func.All(f => f.DefinedLine != o)

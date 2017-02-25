@@ -25,7 +25,7 @@
         <s:String xml:space="preserve" x:Key="FUNC_ALREADY_EXISTS">Die Funktion '{0}' existiert bereits.</s:String>
         <s:String xml:space="preserve" x:Key="LABEL_ALREADY_EXISTS">Eine Sprungmarke namens '{0}' existiert bereits.</s:String>
         <s:String xml:space="preserve" x:Key="MISSING_FUNC_DECL">Eine Funktionsdeklaration muss einem 'END FUNC' vorangehen.</s:String>
-        <s:String xml:space="preserve" x:Key="INSTR_OUTSIDE_MAIN">Instruktionen können nur innerhalb einer Funktion oder nach der '.main'-Marke verwendet werden.</s:String>
+        <s:String xml:space="preserve" x:Key="INSTR_OUTSIDE_FUNC">Instruktionen können nur innerhalb einer Funktion oder nach der '.main'-Marke verwendet werden.</s:String>
         <s:String xml:space="preserve" x:Key="INSTR_NFOUND">Die Instruktion '{0}' konnte nicht gefunden werden.</s:String>
         <s:String xml:space="preserve" x:Key="DONT_USE_KERNEL">Die Instruktion 'kernel' sollte nicht direkt verwendet werden. Bitte verwenden Sie stattdessen '.kernel' oder '.user'.</s:String>
         <s:String xml:space="preserve" x:Key="ARGTYPE_NDET">Der Datentyp des Argumentes '{0}' konnte nicht determiniert werden.</s:String>
