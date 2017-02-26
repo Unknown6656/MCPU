@@ -263,6 +263,11 @@ namespace MCPU
         }
 
         /// <summary>
+        /// Sets or gets the processor's error handling policy
+        /// </summary>
+        public ErrorHandlingMode ErrorHandlingMode { set; get; } = ErrorHandlingMode.InterruptOrThrow;
+
+        /// <summary>
         /// Sets or gets the 4-byte integer value stored inside the given userspace memory address 
         /// </summary>
         /// <param name="addr">Userspace memory address</param>
@@ -491,20 +496,23 @@ namespace MCPU
             catch (Exception ex)
             {
                 Type t = ex.GetType();
+                bool handled = false;
 
                 do
                     if (__interruptexceptiontable.ContainsKey(t))
                     {
-                        Interrupt(__interruptexceptiontable[t]);
+                        handled = Interrupt(__interruptexceptiontable[t]);
 
                         break;
                     }
                 while ((t = t.BaseType) != null);
 
-                if (ex is MCPUProcessingException mcpupex)
-                    throw mcpupex;
-                else
-                    throw new MCPUProcessingException(ex, ins);
+                if (!(ErrorHandlingMode == ErrorHandlingMode.AlwaysThrow ? false :
+                      ErrorHandlingMode == ErrorHandlingMode.AlwaysInterrupt ? true : handled))
+                    if (ex is MCPUProcessingException mcpupex)
+                        throw mcpupex;
+                    else
+                        throw new MCPUProcessingException(ex, ins);
             }
         }
 
@@ -581,20 +589,22 @@ namespace MCPU
         /// Invokes the interrupt handler with the given interrupt code
         /// </summary>
         /// <param name="code">Interrupt code</param>
-        public void Interrupt(byte code)
+        public bool Interrupt(byte code)
         {
             if (InformationFlags.HasFlag(InformationFlags.InterruptEnable) &&
                 !InformationFlags.HasFlag(InformationFlags.InterruptCurrent) &&
                 (interrupt_table?.ContainsKey(code) ?? false))
             {
-                // TODO : save machine state (?)
                 SetInformationFlag(InformationFlags.InterruptCurrent, true);
 
                 ProcessNext((OPCodes.CALL, new InstructionArgument[] { (interrupt_table[code], ArgumentType.Function) }), false);
 
                 SetInformationFlag(InformationFlags.InterruptCurrent, false);
-                // TODO : restore machine state (?)
+
+                return true;
             }
+
+            return false;
         }
 
         /// <summary>
@@ -1280,5 +1290,26 @@ namespace MCPU
         /// Represents no flag
         /// </summary>
         Empty = 0b0000_0000_0000_0000,
+    }
+
+    /// <summary>
+    /// Represents the possible MCPU processor error handling modes
+    /// </summary>
+    [Serializable]
+    public enum ErrorHandlingMode
+        : byte
+    {
+        /// <summary>
+        /// An exception will only be thrown if no interrupt handler was found
+        /// </summary>
+        InterruptOrThrow = 0,
+        /// <summary>
+        /// An exception will always be thrown
+        /// </summary>
+        AlwaysThrow = 1,
+        /// <summary>
+        /// An exception will never be thrown
+        /// </summary>
+        AlwaysInterrupt = 2,
     }
 }

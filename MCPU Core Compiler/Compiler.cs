@@ -751,6 +751,10 @@ namespace MCPU.Compiler
                 header.AddRange(from (int addr, int value) _ in init_data
                                 select (Instruction)(MOV, new InstructionArgument[] { (_.addr, ArgumentType.KernelMode | ArgumentType.Address), (_.value, ArgumentType.Constant) }));
                 header.Add((KERNEL, new InstructionArgument[] { 0 }));
+                header[1] = (header[1].OPCode, (from a in header[1].Arguments
+                                                let b = (uint)(a & 0xff000000)
+                                                let c = a & 0x00ffffff
+                                                select (InstructionArgument)(int)(b | (uint)(a + header.Count))).ToArray());
 
                 foreach (byte b in interrupttable.Keys.ToArray())
                     interrupttable[b] += header.Count;
