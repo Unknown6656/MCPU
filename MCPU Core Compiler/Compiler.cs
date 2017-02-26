@@ -744,7 +744,10 @@ namespace MCPU.Compiler
 
                 header.Add((KERNEL, new InstructionArgument[] { 1 }));
                 header.Add((INTERRUPTTABLE, (from kvp in interrupttable
-                                             select (InstructionArgument)((kvp.Key << 24) | (kvp.Value & 0x00ffffff))).ToArray()));
+                                             let fline = jumptable[kvp.Value]
+                                             let nline = fline - (offset_table.ContainsKey(fline) ? offset_table[fline].Item1 : 0)
+                                             where nline != 0 // prevent endless loops
+                                             select (InstructionArgument)((kvp.Key << 24) | (nline & 0x00ffffff))).ToArray()));
                 header.AddRange(from (int addr, int value) _ in init_data
                                 select (Instruction)(MOV, new InstructionArgument[] { (_.addr, ArgumentType.KernelMode | ArgumentType.Address), (_.value, ArgumentType.Constant) }));
                 header.Add((KERNEL, new InstructionArgument[] { 0 }));
@@ -915,8 +918,8 @@ namespace MCPU.Compiler
                                                                       return arg;
                                                               })()).ToArray())).ToArray();
 
-            int lblen = (int)Math.Ceiling(Math.Log(labels.Count, 26));
-            int lbcnt = 0;
+            int lblen = (int)Math.Ceiling(Math.Log(labels.Count + 1, 26));
+            int lbcnt = 1;
 
             string nextlabel()
             {
@@ -962,8 +965,9 @@ namespace MCPU.Compiler
 
                 return ret + (wasaddr ? "0x" + arg.Value.ToString("x8") : arg.Value.ToString());
             }
+            string lineind() => $"line_{line:x4}:";
 
-            sb.AppendLine($"{new string(' ', tab_wdh)}.main");
+            sb.AppendLine($"main:{new string(' ', tab_wdh + 5)}.main");
 
             while (index < instructions.Length)
             {
@@ -973,12 +977,13 @@ namespace MCPU.Compiler
                 {
                     Instruction ins = instructions[index];
 
-                    sb.Append(new string(' ', tab_wdh));
+                    sb.Append(lineind())
+                      .Append(new string(' ', tab_wdh));
 
                     if (ins.OPCode is Instructions.kernel)
                         sb.Append('.')
                           .AppendLine((ins.Arguments?[0] ?? 0) == 0 ? "user" : "kernel");
-                    if (ins.OPCode is Instructions.interrupt)
+                    else if (ins.OPCode is Instructions.interrupt)
                         sb.AppendLine($".{((ins.Arguments?[0] ?? 0) == 0 ? "dis" : "en")}able interrupt");
                     else
                     {

@@ -58,19 +58,26 @@ namespace MCPU
         public static int Main(string[] args)
         {
             if (args.Contains("-inner"))
-                return InnerMain(args);
+                InnerMain1(args);
+            else if (args.Contains("-inner2"))
+                InnerMain2(args);
             else // if (args.Contains("-unittests"))
                 return UnitTestWrapper.Main(args);
+
+            ReadKey(true);
+
+            return 0;
         }
 
-        private static int InnerMain(string[] args)
+        private static void err(Exception ex)
         {
-            void err(Exception ex)
-            {
-                ForegroundColor = ConsoleColor.Red;
-                WriteLine($"WELL FUGG :D\n{ex.Message}\n{ex.StackTrace}");
-                ForegroundColor = ConsoleColor.White;
-            }
+            ForegroundColor = ConsoleColor.Red;
+            WriteLine($"WELL FUGG :D\n{ex.Message}\n{ex.StackTrace}");
+            ForegroundColor = ConsoleColor.White;
+        }
+
+        private static void InnerMain1(string[] args)
+        {
             Processor proc = new Processor(4096, 4096, -559038737);
 
             proc.OnError += (p, ex) => err(ex);
@@ -113,9 +120,44 @@ void main(void)
             }
             else
                 err(res.AsB);
+        }
 
-            ReadKey(true);
-            return 0;
+        private static void InnerMain2(string[] args)
+        {
+            const string code = @"
+interrupt func int_88
+    syscall 5 68656c6ch 6f207465h 7374h
+end func
+
+interrupt func int_01
+    syscall 5 2a657870h 6c6f6465h 732ah
+end func
+    
+    .data
+    [0] = 420h
+    k[0] = 88h
+    [1] = 0
+    
+    .main
+    .kernel
+    .enable interrupt
+    int k[0]
+    div [0] [1]
+";
+            Union<MCPUCompilerResult, MCPUCompilerException> res = MCPUCompiler.Compile(code);
+
+            if (res.IsA)
+            {
+                Instruction[] instr = res.AsA.Instructions;
+                Processor proc = new Processor(1024, 1024, -559038737);
+
+                WriteLine(MCPUCompiler.Decompile(instr));
+
+                proc.OnError += (p, ex) => err(ex);
+                proc.Process(instr);
+            }
+            else
+                err(res.AsB);
         }
     }
 }

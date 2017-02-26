@@ -59,6 +59,20 @@ namespace MCPU
                                                             (char)(arg & 'ÿ')
                                                         })).Replace("\0", "")),
         };
+        internal static readonly Dictionary<Type, byte> __interruptexceptiontable = new Dictionary<Type, byte>
+        {
+            [typeof(Exception)] = 0,
+            [typeof(OverflowException)] = 1,
+            [typeof(ArithmeticException)] = 1,
+            [typeof(DivideByZeroException)] = 1,
+            // [typeof(StackOverflowException)] = 2,
+            [typeof(InsufficientExecutionStackException)] = 2,
+            [typeof(StackException)] = 3,
+            [typeof(IndexOutOfRangeException)] = 4,
+            [typeof(MissingPrivilegeException)] = 5,
+            [typeof(ArgumentException)] = 6,
+            // more ?
+        };
 #if !WINDOWS
         private const string IVPEX_MSG = "The memory watcher unit requires a Win32-Environment with the corresponding API.";
 #endif
@@ -476,7 +490,16 @@ namespace MCPU
             }
             catch (Exception ex)
             {
-                Interrupt(0); // TODO : call appropriate interrupt number
+                Type t = ex.GetType();
+
+                do
+                    if (__interruptexceptiontable.ContainsKey(t))
+                    {
+                        Interrupt(__interruptexceptiontable[t]);
+
+                        break;
+                    }
+                while ((t = t.BaseType) != null);
 
                 if (ex is MCPUProcessingException mcpupex)
                     throw mcpupex;
@@ -560,8 +583,18 @@ namespace MCPU
         /// <param name="code">Interrupt code</param>
         public void Interrupt(byte code)
         {
-            if (InformationFlags.HasFlag(InformationFlags.InterruptEnable) && (interrupt_table?.ContainsKey(code) ?? false))
-                ProcessWithoutReset((OPCodes.CALL, new InstructionArgument[] { interrupt_table[code] }));
+            if (InformationFlags.HasFlag(InformationFlags.InterruptEnable) &&
+                !InformationFlags.HasFlag(InformationFlags.InterruptCurrent) &&
+                (interrupt_table?.ContainsKey(code) ?? false))
+            {
+                // TODO : save machine state (?)
+                SetInformationFlag(InformationFlags.InterruptCurrent, true);
+
+                ProcessNext((OPCodes.CALL, new InstructionArgument[] { (interrupt_table[code], ArgumentType.Function) }), false);
+
+                SetInformationFlag(InformationFlags.InterruptCurrent, false);
+                // TODO : restore machine state (?)
+            }
         }
 
         /// <summary>
@@ -1239,6 +1272,10 @@ namespace MCPU
         /// Indicates, that the interrupt handling is currently enabled
         /// </summary>
         InterruptEnable = 0b0010_0000_0000_0000,
+        /// <summary>
+        /// Indicates, that the processor is currently handling an interrupt
+        /// </summary>
+        InterruptCurrent = 0b0001_0000_0000_0000,
         /// <summary>
         /// Represents no flag
         /// </summary>
