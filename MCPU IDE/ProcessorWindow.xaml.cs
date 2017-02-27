@@ -132,7 +132,9 @@ namespace MCPU.IDE
                         Token = i.OPCode.Token.ToUpper(),
                         FG = Resources[num == p.IP ? "fg_cinstr" : "fg_instr"] as SolidColorBrush,
                         Arguments = string.Join(", ", from arg in i.Arguments
-                                                      select arg.ToShortString()),
+                                                      let icode = (arg >> 24) & 0xff
+                                                      let ln = arg & 0x00ffffff
+                                                      select i.OPCode != OPCodes.INTERRUPTTABLE ? arg.ToShortString() : $"int::{icode:x2} => func::{ln:x8}"),
                         // Keyword = instr.OPCode.IsKeyword ? new BitmapImage(new Uri("Resources/")) : null,
                     });
 

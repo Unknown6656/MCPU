@@ -83,17 +83,17 @@ namespace MCPU
             proc.OnError += (p, ex) => err(ex);
 
             const string code = @"
-//int f1(int i)
-//{
-//    return 9 * i;
-//}
+int f1(int i)
+{
+    return 9 * i;
+}
 
 void main(void)
 {
     int lelz;
     float test;
 
-    lelz = 315; //f1((5 - 3) / 2);
+    lelz = f1((5 - 3) / 2);
     test = sin(0.0);
     
     iprint(lelz);
@@ -111,7 +111,7 @@ void main(void)
                 MCPUPPCompilerResult mcpuppres = res.AsA;
                 Instruction[] instr = mcpuppres.Instructions;
 
-                WriteLine($"{mcpuppres.CompiledCode}\n\n{MCPUCompiler.Decompile(mcpuppres.Instructions)}\n");
+                WriteLine($"{mcpuppres.CompiledCode}\n{new string('=', 100)}\n{MCPUCompiler.Decompile(mcpuppres.Instructions)}\n{new string('=', 100)}");
 
                 proc.Process(instr);
 

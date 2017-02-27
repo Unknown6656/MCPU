@@ -208,7 +208,7 @@ let PredefinedFunctions : PredefinedFunction list = [
         ("exp", Float, [ { Type = Float; Cover = Scalar; } ])
         ("round", Float, [ { Type = Float; Cover = Scalar; } ])
         ("ceil", Float, [ { Type = Float; Cover = Scalar; } ])
-        ("float", Float, [ { Type = Float; Cover = Scalar; } ])
+        ("floor", Float, [ { Type = Float; Cover = Scalar; } ])
     ]
 
 type FunctionTable(program) as self =

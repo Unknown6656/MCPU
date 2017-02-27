@@ -197,9 +197,18 @@ end func
     syscall 3 [{F_CC}]
     pop [{F_CC}]
 ",
-            ["iscan"] = $@"", // TODO
-            ["fscan"] = $@"", // TODO
-
+            ["iscan"] = $@"
+    push [{F_CC}]
+    syscall 6 [{F_CC}]
+    call SY_PUSH {F_CC}
+    pop [{F_CC}]
+",
+            ["fscan"] = $@"
+    push [{F_CC}]
+    syscall 7 [{F_CC}]
+    call SY_PUSH {F_CC}
+    pop [{F_CC}]
+",
             ["sin"] = exec_sya1(OPCodes.FSIN),
             ["cos"] = exec_sya1(OPCodes.FCOS),
             ["tan"] = exec_sya1(OPCodes.FTAN),
@@ -248,14 +257,12 @@ end func
     pop [{F_CC}]
     pop [{F_CC - 1}]
 ",
-            /* todo:
-                log
-                ln
-                exp
-                round
-                ceil
-                float
-             */
+            ["log"] = exec_sya1(OPCodes.FLOG),
+            ["ln"] = exec_sya1(OPCodes.FLOGE),
+            ["exp"] = exec_sya1(OPCodes.FEXP),
+            ["round"] = exec_sya1(OPCodes.FROUND),
+            ["ceil"] = exec_sya1(OPCodes.FCEIL),
+            ["floor"] = exec_sya1(OPCodes.FFLOOR),
         });
 
         /// <summary>

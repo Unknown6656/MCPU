@@ -58,6 +58,20 @@ namespace MCPU
                                                             (char)((arg >> 8) & 'ÿ'),
                                                             (char)(arg & 'ÿ')
                                                         })).Replace("\0", "")),
+            [6] = (p, _) => {
+                string line = Console/* TODO : input stream */.ReadLine().Trim();
+                int value;
+
+                if (int.TryParse(line, out value))
+                    *p.TranslateAddress(_[0]) = value;
+            },
+            [7] = (p, _) => {
+                string line = Console/* TODO : input stream */.ReadLine().Trim();
+                float value;
+
+                if (float.TryParse(line, out value))
+                    *p.TranslateFloatAddress(_[0]) = value;
+            },
         };
         internal static readonly Dictionary<Type, byte> __interruptexceptiontable = new Dictionary<Type, byte>
         {

@@ -11,4 +11,5 @@ The following table is a listing of call system-internal function definitions, t
 | `3`    | `FPRINT`  | `SYSCALL 3 [args]` | Prints the given floating-point values to the standard console<br/>output. |
 | `4`    | `TICKS`   | `SYSCALL 4 <dst>`  | Copies the number of processor cycles (or ticks) to the given<br/>destination address `dst`. This is equivalent to `MOV <dst> k[3]` |
 | `5`  | `TEXT` | `SYSCALL 5 [args]` | Prints all bytes inside the given arguments as extended-ASCII characters. The string does not need to be zero-terminated. |
-
+| `6` | `SCAN` | `SYSCALL 6 <dst>` | Scans the next line from the standard console and parses it as signed 32Bit integer, which will be written into the address `dst`. If the input is invalid, the value of `dst` will not be overwritten. |
+| `7` | `FSCAN` | `SYSCALL 7 <dst>` | Scans the next line from the standard console and parses it as signed 32Bit floating-point single-precision number, which will be written into the address `dst`. If the input is invalid, the value of `dst` will not be overwritten. |
