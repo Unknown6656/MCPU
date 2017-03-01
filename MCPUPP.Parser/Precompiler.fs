@@ -30,7 +30,9 @@ type IMInstruction =
     | Malloc of VariableType
     | Delete
     | Ldlen
-    | Ldaddr
+    | Ldaddrfld of IMVariable
+    | Ldaddrarg of int
+    | Ldaddrloc of int
     | Ldptra
     | Stptra
     | Ldptrv
@@ -209,8 +211,11 @@ type IMMethodBuilder (analyzerres : AnalyzerResult, mapping : VariableMappingDic
                                 | IdentifierExpression i -> [ProcessIdentifierLoad i]
                                 | RawAddressOfExpression i ->
                                     [
-                                        ProcessIdentifierLoad i
-                                        [Ldaddr]
+                                        function
+                                        | FieldScope v -> [Ldaddrfld v]
+                                        | ArgumentScope i -> [Ldaddrarg i]
+                                        | LocalScope i -> [Ldaddrloc i]
+                                       <| LookupIMVariableScope i
                                     ]
                                 | PointerAddressIdentifierExpression i ->
                                     [
@@ -484,10 +489,16 @@ type IMBuilder (analyzerres) =
                                       | FunctionDeclaration x -> Some x
                                       | _ -> None)
                        |> List.map ProcessFuncDecl
-        {
-            Fields = vardecl
-            Methods = funcdecl
-        }
+
+        if (List.where (fun f -> (f.Name = EntryPointName)
+                              && (f.Parameters.Length = 0)
+                              && (f.ReturnType = Unit)) funcdecl).Length <= 0 then
+            raise <| Errors.InvalidMainSignature()
+        else
+            {
+                Fields = vardecl
+                Methods = funcdecl
+            }
 
 do
     ()

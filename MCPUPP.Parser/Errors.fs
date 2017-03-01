@@ -27,6 +27,7 @@ module Errors =
                                     "IVAL_MCPUASM", "Unable to parse the inline-MCPU assembly code."
                                     "IVAL_VARTYPE", "The type '{0}' cannot be used as variable type."
                                     "IVAL_PRE_BOP", "The binary operator '{0}' could not be pre-compiled."
+                                    "IVAL_MAIN_SIG", "The function 'main' does not match the signature 'void main(void)'"
                                 |], (fun (k, _) -> k), (fun (_, v) -> v))
     let mutable (* BUUH ! *) internal LanguageStrings : Dictionary<string, string> = DefaultStrings
 
@@ -58,3 +59,4 @@ module Errors =
     let UnableParseInlineAsm () = Piglet.Lexer.LexerException LanguageStrings.["IVAL_MCPUASM"]
     let InvalidVariableType t = "IVAL_VARTYPE" ==> [|box t|]
     let InvalidOperator o = "IVAL_PRE_BOP" ==> [|box o|]
+    let InvalidMainSignature() = "IVAL_MAIN_SIG" ==> [||]

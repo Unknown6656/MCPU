@@ -26,6 +26,8 @@ using static MCPU.MCPUPP.Parser.Precompiler.IMInstruction;
 using static MCPU.MCPUPP.Parser.Precompiler;
 using static MCPU.MCPUPP.Parser.Analyzer;
 
+//////////////////////////////////////////////////// IMPORTANT : POINTER ADDRESS ARE KERNEL ADRESSES !!! ////////////////////////////////////////////////////
+
 namespace MCPU.MCPUPP.Compiler
 {
     /// <summary>
@@ -55,9 +57,17 @@ namespace MCPU.MCPUPP.Compiler
         /// </summary>
         public const int F_SYP = 0xf9;
         /// <summary>
-        /// The address of the MCPU++ field 'SSZ'
+        /// The address of the MCPU++ field 'MSZ'
         /// </summary>
-        public const int F_SSZ = 0xfc;
+        public const int F_MSZ = 0xfa;
+        /// <summary>
+        /// The address of the MCPU++ field 'HSZ'
+        /// </summary>
+        public const int F_HSZ = 0xfb;
+        /// <summary>
+        /// The address of the MCPU++ field 'LAC'
+        /// </summary>
+        public const int F_LAC = 0xfc;
         /// <summary>
         /// The address of the MCPU++ field 'GSZ'
         /// </summary>
@@ -109,15 +119,15 @@ func MOVSO                  ; mov [dst] [[src]+offs] <==> call MOVDO dst src off
 end func
 
 func MOVO                   ; mov [[dst]+offs₁] [[src]+offs₂] <==> call MOVDO dst offs₁ src offs₂
-    push [{F_CC - 1}]
     push [{F_CC}]
+    push [{F_CC - 1}]
     mov [{F_CC - 1}] $0
     add [{F_CC - 1}] $1
     mov [{F_CC}] $2
     add [{F_CC}] $3
     mov [[{F_CC - 1}]] [[{F_CC}]]
-    pop [{F_CC}]
     pop [{F_CC - 1}]
+    pop [{F_CC}]
 end func
 
 func SY_PUSH                ; push $0 onto the SYA-stack
@@ -126,12 +136,20 @@ func SY_PUSH                ; push $0 onto the SYA-stack
 end func
 
 func SY_PUSHL               ; push local № $0 onto the SYA-stack
-    call MOVSO {F_CC} {F_LOF} $0
+    mov [{F_CC}] [{F_LAC}]
+    add [{F_CC}] [{F_LOF}]
+    call MOVSO {F_CC} {F_CC} $0
     call SY_PUSH [[{F_CC}]]
 end func
 
 func SY_PUSHG               ; push global № $0 onto the SYA-stack
     mov [{F_CC}] {TMP_SZ}
+    add [{F_CC}] $0
+    call SY_PUSH [[{F_CC}]]
+end func
+
+func SY_PUSHA               ; push argument № $0 onto the SYA-stack
+    mov [{F_CC}] {F_LOF}
     add [{F_CC}] $0
     call SY_PUSH [[{F_CC}]]
 end func
@@ -142,12 +160,20 @@ func SY_POP                 ; pop from SYA-stack into $0
 end func
 
 func SY_POPL                ; pop from SYA-stack into local № $0
-    call MOVSO {F_CC} {F_LOF} $0
+    mov [{F_CC}] [{F_LAC}]
+    add [{F_CC}] [{F_LOF}]
+    call MOVSO {F_CC} {F_CC} $0
     call SY_POP [{F_CC}]
 end func
 
 func SY_POPG                ; pop from SYA-stack into global № $0
     mov [{F_CC}] {TMP_SZ}
+    add [{F_CC}] $0
+    call SY_POP [{F_CC}]
+end func
+
+func SY_POPA                ; pop from SYA-stack into argument № $0
+    mov [{F_CC}] {F_LOF}
     add [{F_CC}] $0
     call SY_POP [{F_CC}]
 end func
@@ -159,22 +185,26 @@ func SY_PEEK                ; peek from SYA-stack into $0
 end func
 
 func SY_EXEC_1              ; takes the top-most element, executes <$0> and pushes the result back
-    push [{F_CC}]
     call SY_POP {F_CC}
     exec $0 [{F_CC}]
     call SY_PUSH [{F_CC}]
-    pop [{F_CC}]
 end func
 
 func SY_EXEC_2              ; takes the two top-most elements, executes <$0> and pushes the result back
     push [{F_CC - 1}]
-    push [{F_CC}]
     call SY_POP {F_CC}
     call SY_POP {F_CC - 1}
     exec $0 [{F_CC}] [{F_CC - 1}]
     call SY_PUSH [{F_CC}]
-    pop [{F_CC}]
     pop [{F_CC - 1}]
+end func
+
+func H_ALLOC
+    nop                     ; TODO
+end func
+
+func H_DELETE
+    nop                     ; TODO
 end func
 ";
         /// <summary>
@@ -186,28 +216,20 @@ end func
         static MCPUPPCompiler() => PredefinedFunctions = new ReadOnlyDictionary<string, string>(new Dictionary<string, string>
         {
             ["iprint"] = $@"
-    push [{F_CC}]
     call SY_POP {F_CC}
     syscall 2 [{F_CC}]
-    pop [{F_CC}]
 ",
             ["fprint"] = $@"
-    push [{F_CC}]
     call SY_POP {F_CC}
     syscall 3 [{F_CC}]
-    pop [{F_CC}]
 ",
             ["iscan"] = $@"
-    push [{F_CC}]
     syscall 6 [{F_CC}]
     call SY_PUSH {F_CC}
-    pop [{F_CC}]
 ",
             ["fscan"] = $@"
-    push [{F_CC}]
     syscall 7 [{F_CC}]
     call SY_PUSH {F_CC}
-    pop [{F_CC}]
 ",
             ["sin"] = exec_sya1(OPCodes.FSIN),
             ["cos"] = exec_sya1(OPCodes.FCOS),
@@ -221,40 +243,30 @@ end func
             ["tanh"] = exec_sya1(OPCodes.FTANH),
             ["halt"] = "halt",
             ["cpuid"] = $@"
-    push [{F_CC}]
     cpuid [{F_CC}]
     call SY_PUSH [{F_CC}]
-    pop [{F_CC}]
 ",
             ["wait"] = $@"
-    push [{F_CC}]
     call SY_POP {F_CC}
     wait {F_CC}
-    pop [{F_CC}]
 ",
             ["io"] = $@"
-    push [{F_CC}]
     push [{F_CC - 1}]
     call SY_POP {F_CC - 1}
     call SY_POP {F_CC}
     io [{F_CC}] [{F_CC - 1}]
-    pop [{F_CC}]
     pop [{F_CC - 1}]
 ",
             ["in"] = $@"
-    push [{F_CC}]
     call SY_POP {F_CC}
     in [{F_CC}] [{F_CC}]
     call SY_PUSH [{F_CC}]
-    pop [{F_CC}]
 ",
             ["out"] = $@"
-    push [{F_CC}]
     push [{F_CC - 1}]
     call SY_POP {F_CC - 1}
     call SY_POP {F_CC}
     out [{F_CC}] [{F_CC - 1}]
-    pop [{F_CC}]
     pop [{F_CC - 1}]
 ",
             ["log"] = exec_sya1(OPCodes.FLOG),
@@ -409,13 +421,11 @@ end func
 
             sb.Append(GenerateFunctionCall(new MainFunctionCallInformation
             {
-                GlobalSize = preproc.Fields.Sum(_ => _.Type.IsArray ? 2 : 1),
-                LocalSize = GetFunctionSize(entrypoint)
+                GlobalSize = preproc.Fields.Length,
+                LocalSize = entrypoint.Locals.Length,
             }));
 
             return sb.ToString();
-
-            int GetFunctionSize(IMMethod func) => func.Locals.Sum(_ => _.Type.IsArray ? 2 : 1);
         }
 
         internal string GenerateInstruction(IMInstruction instr, (IMMethod func, string endlbl) func, Dictionary<string, int> globals)
@@ -438,10 +448,8 @@ end func
                 case Tags.Halt: return "halt";
                 case Tags.Nop: return "nop";
                 case Tags.Dup: return $@"
-    push [{F_CC}]
     call SY_PEEK {F_CC}
     call SY_PUSH [{F_CC}]
-    pop [{F_CC}]
 ";
                 case Tags.Add: return exec_sya2(OPCodes.ADD);
                 case Tags.Sub: return exec_sya2(OPCodes.SUB);
@@ -469,9 +477,7 @@ end func
                     {
                         case Call call:
                             if (PredefinedFunctions.ContainsKey(call.Item1))
-                            {
                                 return PredefinedFunctions[call.Item1];
-                            }
                             else
                             {
                                 int argc = call.Item2;
@@ -480,6 +486,7 @@ end func
                                 {
                                     Name = $"{FUNCTION_PREFIX}{call.Item1}",
                                     LocalSize = 0, // TODO
+                                    ParameterSize = 0, // TODO
                                 });
                             }
                         case Inline inline:
@@ -489,9 +496,9 @@ end func
                         case Ldci ci:
                             return $"call SY_PUSH {ci.Item}";
                         case Ldarg arg:
-                            return $"call SY_PUSH ${arg.Item}";
+                            return $"call SY_PUSHA {arg.Item}";
                         case Starg arg:
-                            return $"; Todo: starg ${arg.Item}"; // TODO
+                            return $"call SY_POPA {arg.Item}";
                         case Ldloc loc:
                             return $"call SY_PUSHL {loc.Item}";
                         case Stloc loc:
@@ -508,25 +515,42 @@ end func
                             return $"jz {GetUniqueID(jz.Item)}";
                         case Jnz jnz:
                              return $"jnz {GetUniqueID(jnz.Item)}";
+                        case Ldaddrarg arg:
+                            return $@"
+    mov [{F_CC}] {arg.Item}
+    add [{F_CC}] [{F_LOF}]
+    call SY_PUSH [{F_CC}]
+";
+                        case Ldaddrfld fld:
+                            return $@"
+    mov [{F_CC}] {TMP_SZ}
+    add [{F_CC}] {globals[fld.Item.Name]}
+    call SY_PUSH [{F_CC}]
+";
+                        case Ldaddrloc loc:
+                            return $@"
+    mov [{F_CC}] {F_LOF}
+    add [{F_CC}] {F_LAC}
+    call MOVSO {F_CC} {F_CC} {loc.Item}
+    call SY_PUSH [{F_CC}]
+";
                         default:
                             return $"; TODO: {instr}";
                     }
             }
 
             /* TODO:
-            
-            | Malloc of VariableType
-            | Delete
-            | Ldlen
-            | Ldaddr
-            | Ldptra
-            | Stptra
-            | Ldptrv
-            | Stptrv
-            | Ldelem of VariableType
-            | Stelem of VariableType
-            | Ldptr of VariableType
-            | Stptr of VariableType
+             | Malloc of VariableType
+             | Delete
+             | Ldlen
+             | Ldptra
+             | Stptra
+             | Ldptrv
+             | Stptrv
+             | Ldelem of VariableType
+             | Stelem of VariableType
+             | Ldptr of VariableType
+             | Stptr of VariableType
              */
         }
 
@@ -541,7 +565,9 @@ end func
         /// <returns>Function header</returns>
         public string InnerFunctionHeader(string funcname) => $@"
 func {funcname}
-    clear [[{F_LOF}]] [{F_LSZ}]
+    mov [{F_CC}] [{F_LOF}]
+    add [{F_CC}] [{F_LAC}]
+    clear [[{F_CC}]] [{F_LSZ}]
 ";
 
         /// <summary>
@@ -580,14 +606,18 @@ end func
     cmp [{F_CC}] [{F_SYP}]
     jle {lab_bef}
     push [{F_SYP}]
+    push [{F_LAC}]
     push [{F_LOF}]
     push [{F_LSZ}]
+    add [{F_LOF}] [{F_LAC}]
     add [{F_LOF}] [{F_LSZ}]
     mov [{F_LSZ}] {nfo.AsA.LocalSize}
+    mov [{F_LAC}] {nfo.AsA.ParameterSize}
     clear [0] {F_SYP + 1}
     call {nfo.AsA.Name} {args}
     pop [{F_LSZ}]
     pop [{F_LOF}]
+    pop [{F_LAC}]
     pop [{F_SYP}]
     mov [{F_CC}] [{F_SYP}]
 {lab_aft}:
@@ -595,6 +625,7 @@ end func
     decr [{F_SYP}]
     cmp [{F_SYP}]
     jpos {lab_aft}
+    popf
 ";
             }
             else
@@ -821,6 +852,10 @@ end func
         /// The called function's local size
         /// </summary>
         public int LocalSize { set; get; }
+        /// <summary>
+        /// The called function's parameter size
+        /// </summary>
+        public int ParameterSize { set; get; }
     }
 
     /// <summary>
@@ -841,6 +876,7 @@ end func
 
         public static implicit operator FunctionCallInformation(MainFunctionCallInformation main) => new FunctionCallInformation
         {
+            ParameterSize = 0,
             LocalSize = main.LocalSize,
             Name = MCPUPPCompiler.MAIN_FUNCTION_NAME
         };

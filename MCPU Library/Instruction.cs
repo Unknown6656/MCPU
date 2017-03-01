@@ -769,12 +769,6 @@ namespace MCPU
         /// Represents a jump label
         /// </summary>
         Label = 0b0000_0100,
-#if false
-        /// <summary>
-        /// Represents a floating-point number instead of an integer number
-        /// </summary>
-        FloatingPoint = 0b0100_0000,
-#endif
         /// <summary>
         /// Uses the kernel-space addresses instead of user-space addresses
         /// </summary>
