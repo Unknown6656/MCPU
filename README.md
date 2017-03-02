@@ -35,7 +35,6 @@ The name **MCPU** stands for **M**inimalistic **C**entral **P**rocessing **U**ni
 - [ ] Function inlining
 - [ ] Asynchronous processor execution
 - [ ] Virtual Device support
-- [ ] String processing and support
 - [ ] IDE/Editor **(currently in progress)**
     - [x] compiler
     - [x] syntax highlighting

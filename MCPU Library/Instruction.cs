@@ -6,6 +6,9 @@ using System.Linq;
 using System.Text;
 using System;
 
+#pragma warning disable 660
+#pragma warning disable 661
+
 namespace MCPU
 {
     /// <summary>
@@ -40,6 +43,10 @@ namespace MCPU
         /// </summary>
         public bool IsKeyword { get; }
         /// <summary>
+        /// Returns whether the OP code shall be not be shown inside an IDE
+        /// </summary>
+        public bool IsHidden { get; }
+        /// <summary>
         /// Returns the argument count
         /// </summary>
         public int RequiredArguments { get; }
@@ -60,7 +67,7 @@ namespace MCPU
             else if (!p.IsElevated && RequiresEleveation)
                 throw new MissingPrivilegeException();
             else
-                Process(p ?? throw new ArgumentNullException("The processor must not be null."), RequiredArguments < 1 ? new InstructionArgument[0] : arguments);
+                Process(p ?? throw new ArgumentNullException("The processor must not be null."), arguments ?? new InstructionArgument[0]);
         }
 
         /// <summary>
@@ -90,15 +97,16 @@ namespace MCPU
 
             if (t != typeof(OPCode))
             {
-                OPCodeNumberAttribute attr = (from v in t.GetCustomAttributes(true)
-                                              where v is OPCodeNumberAttribute
-                                              select v as OPCodeNumberAttribute).FirstOrDefault();
-
-                Number = attr?.Number ?? throw new InvalidProgramException($"The OP-code {Token} must define an number using the {typeof(OPCodeNumberAttribute).FullName}");
-                RequiresEleveation = (from v in t.GetCustomAttributes(true) where v is RequiresPrivilegeAttribute select true).FirstOrDefault();
-                SpecialIPHandling = (from v in t.GetCustomAttributes(true) where v is SpecialIPHandlingAttribute select true).FirstOrDefault();
-                IsKeyword = (from v in t.GetCustomAttributes(true) where v is KeywordAttribute select true).FirstOrDefault();
+                Number = GetFirstAttr<OPCodeNumberAttribute>()?.Number ?? throw new InvalidProgramException($"The OP-code {Token} must define an number using the {typeof(OPCodeNumberAttribute).FullName}");
+                RequiresEleveation = GetFirstAttr<RequiresPrivilegeAttribute>() != null;
+                SpecialIPHandling = GetFirstAttr<SpecialIPHandlingAttribute>() != null;
+                IsKeyword = GetFirstAttr<KeywordAttribute>() != null;
+                IsHidden = GetFirstAttr<HiddenAttribute>() != null;
             }
+
+            T GetFirstAttr<T>() where T : Attribute => (from v in t.GetCustomAttributes(true)
+                                                        where v is T
+                                                        select v as T).FirstOrDefault();
         }
 
         public static bool operator ==(OPCode o1, OPCode o2)
@@ -299,18 +307,6 @@ namespace MCPU
         public InstructionArgument this[int index] => Arguments[index];
 
         /// <summary>
-        /// Processes the current instruction on the given processor
-        /// </summary>
-        /// <param name="p">Processor</param>
-        public void Process(Processor p) => OPCode.__process(p, Arguments);
-
-        /// <summary>
-        /// Returns the string representation of the current instruction
-        /// </summary>
-        /// <returns>String representation</returns>
-        public override string ToString() => $"\"{OPCode}\" [{string.Join(", ", Arguments)}]";
-
-        /// <summary>
         /// Creates a new instance
         /// </summary>
         /// <param name="opcode">OP code</param>
@@ -332,6 +328,24 @@ namespace MCPU
             if (Arguments.Length > 0xff)
                 throw new InvalidProgramException("A single instruction cannot accept more than 255 arguments.");
         }
+
+        /// <summary>
+        /// Processes the current instruction on the given processor
+        /// </summary>
+        /// <param name="p">Processor</param>
+        public void Process(Processor p) => OPCode.__process(p, Arguments);
+
+        /// <summary>
+        /// Returns the short string representation of the current instruction
+        /// </summary>
+        /// <returns>Short string representation</returns>
+        public string ToShortString() => $"{OPCode.Token} {string.Join(" ", from a in Arguments select a.ToShortString())}";
+
+        /// <summary>
+        /// Returns the string representation of the current instruction
+        /// </summary>
+        /// <returns>String representation</returns>
+        public override string ToString() => $"\"{OPCode}\" [{string.Join(", ", Arguments)}]";
 
         /// <summary>
         /// Serializes the current instruction into a byte array
@@ -514,10 +528,19 @@ namespace MCPU
     }
 
     /// <summary>
+    /// Indicates that the targeting OP code should not be shown in an IDE's autocompletition menu
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true), Serializable]
+    public sealed class HiddenAttribute
+        : Attribute
+    {
+    }
+
+    /// <summary>
     /// Indicates the IDE's autocompletetion menu, that the targeted OP code shall be used and highlighted as a keyword
     /// </summary>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true), Serializable]
-    public class KeywordAttribute
+    public sealed class KeywordAttribute
         : Attribute
     {
     }
@@ -526,7 +549,7 @@ namespace MCPU
     /// Defines the OP code's internal number
     /// </summary>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true), Serializable]
-    public class OPCodeNumberAttribute
+    public sealed class OPCodeNumberAttribute
         : Attribute
     {
         /// <summary>
@@ -544,8 +567,8 @@ namespace MCPU
     /// <summary>
     /// Indicates that the targeting OP code requires kernel privileges to be executed
     /// </summary>
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
-    public class RequiresPrivilegeAttribute
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true), Serializable]
+    public sealed class RequiresPrivilegeAttribute
         : Attribute
     {
     }
@@ -553,8 +576,8 @@ namespace MCPU
     /// <summary>
     /// Indicates that the targeting OP code handles the instruction pointer (IP) specially
     /// </summary>
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
-    public class SpecialIPHandlingAttribute
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true), Serializable]
+    public sealed class SpecialIPHandlingAttribute
         : Attribute
     {
     }
@@ -647,7 +670,7 @@ namespace MCPU
         /// <summary>
         /// Returns, whether the argument is a constant
         /// </summary>
-        public bool IsConstant => (KernelInvariantType & KernelInvariantType & ~ArgumentType.Parameter) == ArgumentType.Constant;
+        public bool IsConstant => (KernelInvariantType & ParameterInvariantType) == ArgumentType.Constant;
         /// <summary>
         /// Returns, whether the argument resides inside the instruction segment (meaning it is a label or function)
         /// </summary>
@@ -681,7 +704,7 @@ namespace MCPU
                 else if (arg.IsParameter)
                     ret += '$';
 
-                return ret + (wasaddr ? $"{arg.Value:x8}h" : arg.Value.ToString());
+                return ret + (wasaddr & !arg.IsParameter ? $"{arg.Value:x2}h" : arg.Value.ToString());
             }
 
             return tostr(this);
@@ -752,12 +775,6 @@ namespace MCPU
         /// Represents a jump label
         /// </summary>
         Label = 0b0000_0100,
-#if false
-        /// <summary>
-        /// Represents a floating-point number instead of an integer number
-        /// </summary>
-        FloatingPoint = 0b0100_0000,
-#endif
         /// <summary>
         /// Uses the kernel-space addresses instead of user-space addresses
         /// </summary>
@@ -780,3 +797,5 @@ namespace MCPU
         Function = Indirect | Label,
     }
 }
+
+#pragma warning restore

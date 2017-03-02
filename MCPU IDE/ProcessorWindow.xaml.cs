@@ -92,7 +92,7 @@ namespace MCPU.IDE
                 string memsz = $"0x{p.Size:x8}";
                 string tick = $"0x{p.Ticks:x8}";
                 string instrs = string.Join(" ", from b in Instruction.SerializeMultiple(instr) select b.ToString("x2"));
-                
+
                 for (int i = 0; i < p.StackSize * 4; i++)
                     sbstack.Append($"{((byte*)p.StackPointer)[i]:x2} ");
 
@@ -132,10 +132,12 @@ namespace MCPU.IDE
                         Token = i.OPCode.Token.ToUpper(),
                         FG = Resources[num == p.IP ? "fg_cinstr" : "fg_instr"] as SolidColorBrush,
                         Arguments = string.Join(", ", from arg in i.Arguments
-                                                      select arg.ToShortString()),
+                                                      let icode = (arg >> 24) & 0xff
+                                                      let ln = arg & 0x00ffffff
+                                                      select i.OPCode != OPCodes.INTERRUPTTABLE ? arg.ToShortString() : $"int::{icode:x2} => func::{ln:x8}"),
                         // Keyword = instr.OPCode.IsKeyword ? new BitmapImage(new Uri("Resources/")) : null,
                     });
-                
+
                 // some kind of semaphore goes here, which kills 'old' tasks and prevents UI blocking
 
                 DoUIStuff(delegate

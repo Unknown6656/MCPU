@@ -58,6 +58,7 @@
     <Compile Include="AnalyzerTests.cs" />
     <Compile Include="Commons.cs" />
     <Compile Include="CompilerTests.cs" />
+    <Compile Include="PrecompilerTests.cs" />
     <Compile Include="ProcessorTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="LexerTests.cs" />

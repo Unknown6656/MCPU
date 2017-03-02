@@ -20,8 +20,8 @@ namespace MCPU.IDE
         : UserControl
         , IDisposable
     {
-        internal const string REGEX_STOKEN = @"\.(user|inline|kernel|main)\b";
-        internal const string REGEX_FUNC = @"^(?:\s*\.inline)?\s*func\s+(?:\w+)";
+        internal const string REGEX_STOKEN = @"\.(user|inline|kernel|main|enable|disable|data)\b";
+        internal const string REGEX_FUNC = @"^(?:\s*(\.inline|interrupt))?\s*func\s+(?:\w+)";
         internal const string REGEX_END_FUNC = @"^\s*end\s+func\b";
         internal const string REGEX_LABEL_DECL = @"^\s*\w+\:";
         internal const string REGEX_ADDR = @"(\bk)?\[{1,2}(?:.+)\]{1,2}";
@@ -31,7 +31,7 @@ namespace MCPU.IDE
         internal static readonly string REGEX_TODO = $@"\b{MCPUCompiler.TODO_TOKEN}\b";
         internal static readonly string REGEX_INT = $@"\b({MCPUCompiler.INTEGER_CORE})\b";
         internal static readonly string REGEX_FLOAT = $@"\b({MCPUCompiler.FLOAT_CORE})\b";
-        internal static readonly string REGEX_KWORD = $@"({REGEX_FUNC}|{REGEX_END_FUNC}|\b({string.Join("|", MCPUCompiler.ReservedKeywords.Union(MCPUCompiler.Constants.Keys))}|{MCPUCompiler.MAIN_FUNCTION_NAME})\b)";
+        internal static readonly string REGEX_KWORD = $@"({REGEX_FUNC}|{REGEX_END_FUNC}|\=|\b({string.Join("|", MCPUCompiler.ReservedKeywords.Union(MCPUCompiler.Constants.Keys))}|{MCPUCompiler.MAIN_FUNCTION_NAME})\b)";
         internal static readonly string REGEX_INSTR = $@"\b({string.Join("|", from o in OPCodes.CodesByToken select o.Key)})\b";
         internal static readonly string REGEX_OPREF = $@"\<\s*({REGEX_INSTR})\s*\>";
 
@@ -197,7 +197,7 @@ namespace MCPU.IDE
                 autocomp.ImageList.Images.Add(kvp.Key, kvp.Value);
 
             std_autocompitems = (from kvp in OPCodes.CodesByToken
-                                 where kvp.Value != OPCodes.KERNEL
+                                 where kvp.Value.IsHidden
                                  let nv = kvp.Key.Replace("@", "")
                                  let kv = kvp.Value.IsKeyword
                                  select new AutocompleteItem
@@ -210,26 +210,40 @@ namespace MCPU.IDE
                                 .Concat(new AutocompleteItem[]
                                 {
                                     new AutocompleteItem
-                                     {
-                                         Text = ".main",
-                                         MenuText = ".main",
-                                         ToolTipText = "autocomp_main".GetStr(),
-                                         ImageIndex = GetImageIndex("directive"),
-                                     },
+                                    {
+                                        Text = ".main",
+                                        MenuText = ".main",
+                                        ToolTipText = "autocomp_main".GetStr(),
+                                        ImageIndex = GetImageIndex("directive"),
+                                    },
                                     new AutocompleteItem
-                                     {
-                                         Text = ".kernel",
-                                         MenuText = ".kernel",
-                                         ToolTipText = "autocomp_kernel".GetStr(),
-                                         ImageIndex = GetImageIndex("directive"),
-                                     },
+                                    {
+                                        Text = ".kernel",
+                                        MenuText = ".kernel",
+                                        ToolTipText = "autocomp_kernel".GetStr(),
+                                        ImageIndex = GetImageIndex("directive"),
+                                    },
                                     new AutocompleteItem
-                                     {
-                                         Text = ".user",
-                                         MenuText = ".user",
-                                         ToolTipText = "autocomp_user".GetStr(),
-                                         ImageIndex = GetImageIndex("directive"),
-                                     },
+                                    {
+                                        Text = ".user",
+                                        MenuText = ".user",
+                                        ToolTipText = "autocomp_user".GetStr(),
+                                        ImageIndex = GetImageIndex("directive"),
+                                    },
+                                    new AutocompleteItem
+                                    {
+                                        Text = ".enable",
+                                        MenuText = ".enable",
+                                        ToolTipText = "autocomp_enable".GetStr(),
+                                        ImageIndex = GetImageIndex("directive"),
+                                    },
+                                    new AutocompleteItem
+                                    {
+                                        Text = ".disable",
+                                        MenuText = ".disable",
+                                        ToolTipText = "autocomp_disable".GetStr(),
+                                        ImageIndex = GetImageIndex("directive"),
+                                    },
                                 }).ToArray();
 
             UpdateAutocomplete();
@@ -301,8 +315,7 @@ namespace MCPU.IDE
                     return;
                 else
                 {
-                    bool reg(string pat, bool lln = false) => (m = Regex.Match(lln ? line : e.HoveredWord, pat, RegexOptions.IgnoreCase)).Success
-                                                           || (m = Regex.Match(lln ? line : e.HoveredWord, TrimStart(TrimEnd(pat, @"\b"), @"\b"), RegexOptions.IgnoreCase)).Success;
+                    bool reg(string pat, bool lln = false) => (m = Regex.Match(lln ? line : e.HoveredWord, pat, RegexOptions.IgnoreCase)).Success;
                     string token = e.HoveredWord.ToLower();
 
                     if (reg(REGEX_TODO))
@@ -320,6 +333,11 @@ namespace MCPU.IDE
                         // tooltip.Icon =;
                         e.ToolTipText = "tooltip_param".GetStr(e.HoveredWord);
                     }
+                    else if (reg(REGEX_STOKEN))
+                    {
+                        tooltip.Icon = autocomp_images["directive"];
+                        e.ToolTipText = $"{e.HoveredWord}-token\n << TODO >>";
+                    }
                     else if (reg(REGEX_CONSTANT))
                     {
                         string str = MCPUCompiler.Constants[e.HoveredWord.Trim().ToLower()];
@@ -332,11 +350,6 @@ namespace MCPU.IDE
 
                         tooltip.Icon = autocomp_images["constant"];
                         e.ToolTipText = "tooltip_constant".GetStr(e.HoveredWord, fiu.I, fiu.F);
-                    }
-                    else if (reg(REGEX_STOKEN))
-                    {
-                        tooltip.Icon = autocomp_images["directive"];
-                        e.ToolTipText = $"{e.HoveredWord}-token\n << TODO >>";
                     }
                     else if (reg(REGEX_FLOAT))
                     {
@@ -418,7 +431,8 @@ namespace MCPU.IDE
                      MenuText = s.ToLower(),
                      ToolTipText = "autocomp_snippet".GetStr(s),
                      ImageIndex = GetImageIndex("snippet"),
-                 }).Concat((from f in functions ?? new MCPUFunctionMetadata[0]
+                 })
+                    .Concat((from f in functions ?? new MCPUFunctionMetadata[0]
                             select new AutocompleteItem
                             {
                                 Text = f.Name,

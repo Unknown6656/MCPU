@@ -9,11 +9,9 @@ using System.Text;
 using System.IO;
 using System;
 
-using MCPU.MCPUPP.Parser.SyntaxTree;
-using MCPU.MCPUPP.Compiler;
 using MCPU.MCPUPP.Parser;
-using MCPU.MCPUPP.Tests;
-using MCPU.Compiler;
+
+using Piglet.Parser;
 
 using Program = Microsoft.FSharp.Collections.FSharpList<MCPU.MCPUPP.Parser.SyntaxTree.Declaration>;
 
@@ -350,7 +348,7 @@ void not_a_main_function(void)
 }
 ", "MISSING_MAIN");
 
-        [TestMethod]
+        [TestMethod, Skip] // skip, as this will be handled by the precompiler - not the analyzer
         public void Test_28() => ExpectAnalyzerFailure(@"
 void main(void)
 {
@@ -358,7 +356,7 @@ void main(void)
 }
 ", "IVAL_MCPUASM");
 
-        [TestMethod]
+        [TestMethod, Skip] // skip, as this will be handled by the precompiler - not the analyzer
         public void Test_29() => ExpectAnalyzerFailure(@"
 void main(void)
 {
@@ -486,6 +484,112 @@ void main(void)
     res = arr <= y;
 }
 ", "IVAL_BOP");
+
+        [TestMethod]
+        public void Test_41() => ExpectNoFailure(@"
+void main(void)
+{
+    {
+        int i;
+        {
+            float f;
+        }
+    }
+    {
+        int* i;
+        float[] f;
+    }
+}
+");
+
+        [TestMethod]
+        public void Test_42() => Throws<ParseException>(() => ExpectNoFailure(@"
+___RANDOM_STRING__
+θτ€φ¶σθ
+"));
+
+        [TestMethod]
+        public void Test_43() => ExpectAnalyzerFailure(@"
+void main(void)
+{
+    int i;
+
+    delete i;
+}
+", "ARRAY_EXPECTED");
+
+        [TestMethod]
+        public void Test_44() => ExpectAnalyzerFailure(@"
+void main(void)
+{
+    float* f;
+    int sz;
+
+    sz = f.length;
+}
+", "ARRAY_EXPECTED");
+
+        [TestMethod]
+        public void Test_45() => ExpectAnalyzerFailure(@"
+void main(void)
+{
+    float i;
+    int sz;
+
+    sz = i.length;
+}
+", "ARRAY_EXPECTED");
+
+        [TestMethod, Skip]
+        public void Test_46() => ExpectAnalyzerFailure(@"
+float i;
+
+void main(void)
+{
+    int i;
+}
+", "VARIABLE_EXISTS");
+
+        [TestMethod, Skip]
+        public void Test_47() => ExpectAnalyzerFailure(@"
+int[] i;
+
+void main(void)
+{
+    int[] i;
+}
+", "VARIABLE_EXISTS");
+
+        [TestMethod]
+        public void Test_48() => ExpectAnalyzerFailure(@"
+void main(void)
+{
+    void[] arr;
+}
+", "IVAL_VARTYPE");
+
+        [TestMethod]
+        public void Test_49() => ExpectAnalyzerFailure(@"
+void main(void)
+{
+    void v;
+}
+", "IVAL_VARTYPE");
+
+        [TestMethod]
+        public void Test_50() => ExpectAnalyzerFailure(@"
+void main(void)
+{
+    void* ptr;
+}
+", "IVAL_VARTYPE");
+
+        [TestMethod]
+        public void Test_51() => ExpectAnalyzerFailure(@"
+void main(void kek)
+{
+}
+", "IVAL_VARTYPE");
 
         /*
          * TO TEST:

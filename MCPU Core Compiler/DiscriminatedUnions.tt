@@ -45,15 +45,15 @@ for (int i = 2; i <= 26; i++)
 	string act_str = string.Join(", ", from j in Enumerable.Range(0, i) select $"Action<{BigC(j)}> {SmallC(j)}");
 #>
 
-	/// <summary>
-    /// A generic
 #if UNSAFE
-    /// type-unsafe
-#else
-    /// type-safe
-#endif
-    /// discriminated union with <#=i#> different type cases
+	/// <summary>
+    /// A generic type-unsafe discriminated union with <#=i#> different type cases
     /// </summary>
+#else
+	/// <summary>
+    /// A generic type-safe discriminated union with <#=i#> different type cases
+    /// </summary>
+#endif
 	public abstract class Union<<#=type_str#>>
 #if UNSAFE
         : IUnsafeUnion
