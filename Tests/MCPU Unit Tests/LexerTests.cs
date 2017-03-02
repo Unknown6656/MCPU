@@ -263,5 +263,13 @@ void main(void)
     __asm "";
 }
 ");
+
+        [TestMethod]
+        public void Test_25() => ExpectParserFailure(@"
+void main(void)
+{
+    top[] kek;
+}
+");
     }
 }

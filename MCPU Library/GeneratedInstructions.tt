@@ -42,7 +42,7 @@ if (USE_APPDOMAIN)
 	asm = domain.Load(coff, pdb);
 }
 else
-	asm = Assembly.LoadFrom(base_path + ".dll");
+	asm = Assembly.LoadFile(base_path + ".dll");
 
 Type ot = asm.GetType("MCPU.OPCode");
 StringBuilder sb1 = new StringBuilder();
@@ -58,19 +58,20 @@ foreach (Type t in asm.GetTypes())
 		
 		name = name == "in" ? "@in"
 			 : name == "out" ? "@out"
+			 : name == "int" ? "@int"
 			 : name == "bool" ? "@bool"
 	         : name;
 
 	    if (num <= 0xffff)
-			sb1.AppendLine($"            {{ (ushort){num}, {tok} }},");   // [{asm.GetName().Name}] {t.FullName}
+			sb1.AppendLine($"            [{num}]".PadRight(19, ' ') + $" = {tok},");   // [{asm.GetName().Name}] {t.FullName}
 			
-		sb2.AppendLine($"            {{ \"{tok.ToLower()}\", {tok} }},");
+		sb2.AppendLine($"            [\"{tok.ToLower()}\"]".PadRight(30, ' ') + $" = {tok},");
 #>
         /// <summary>
         /// Represents the OP code "<#= tok #>" (0x<#= num.ToString("x8") #>)
         /// </summary>
 <#
-		WriteLine(($"        public static {name} {tok} {{ get; }}".PadRight(48, ' ') + $" = new {name}();").PadRight(70, ' '));
+		WriteLine($"        public static {name} {tok} {{ get; }}".PadRight(60, ' ') + $" = new {name}();");
 	}
 #>
 

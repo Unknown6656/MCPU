@@ -5,16 +5,26 @@
 The MCPU assembly language is a case-insensitive Intel-syntax-based language to control the MCPU processor.
 You might want considering a look at the [MCPU syntax reference](./mcpu-syntax.md) if you only want to see, "how it is written".
 A MCPU program (unless empty) must declare its main entry-point by using the following token:
-```
+```asm
     .main
 ```
 Any functions used inside the program must be used _before_ the `.MAIN`-token, and any instruction (unless belonging to a defined function) must be placed _after_ the `.MAIN`-token.
 
 Comments are indicated by a leading semicolon:
-```
+```asm
     instruction  ; comment
     ; comment
 ```
+
+Any data values, which whom the processor shall be initialized, can be described using the `.data`-section token:
+```asm
+	.data
+	[0] = 42
+	[2] = -7
+	[3] = 0x99
+	[66] = 315h
+```
+The `.data`-section token should be used before the `.main`-token and outside a function scope.
 
 ### Instructions
 
@@ -28,7 +38,7 @@ A MCPU instruction consists of an OP code, followed by zero or more arguments, w
 Most instructions which take two or more arguments use the first one as operation target and the following arguments as operation sources. This syntax derives from Intel-based x86-assembly, in which the target is denoted before the source.
 
 One example could be:
-```
+```asm
     MOV [10] 315
 ```
 Which moves (or rather copies) the constant value `315` to the address `10`.  
@@ -41,7 +51,7 @@ A function call can only accept up to 254 arguments, as the first argument must 
 The MCPU assembly language generally differentiates between multiple types of parameters (or arguments) which can be passed to a function or OP code.
 
 The first type are constant parameters, which can have the following form:
-```
+```asm
     315             ; decimal integer
     0b100111011     ; binary integer with a leading '0b'
     0o473           ; octal integer with a leading '0o'
@@ -62,7 +72,7 @@ The first type are constant parameters, which can have the following form:
 ```
 
 The second type are user-space zero-indexed memory addresses (or kernel-space with appropriate privileges), which each represent a 32-bit storage address:  
-```
+```asm
     [7]             ; Address No.7 (Bytes: 7*4...7*4+3, meaning the bytes 28...31)
     [0x0080]        ; Address No.128 (bytes 512...515)
     [0b10]          ; Address No.2 (bytes 4...7)
@@ -74,13 +84,13 @@ The second type are user-space zero-indexed memory addresses (or kernel-space wi
 ```
 
 The third type are memory pointers, meaning memory addresses which in turn point to other memory addresses:
-```
+```asm
     MOV [1] 7       ; Copies the constant value '7' into address '1'
     
     [[1]]           ; Pointer at address '1' which points to the memory address '7'
 ```
 Imagine the following code:
-```
+```asm
     .MAIN           ; Program start
     MOV [0] 1       ; Copy the value '1' into address '0'
     MOV [[0]] 42    ; Copy the value '42' into the address, to which '0' points
@@ -103,7 +113,7 @@ Kernel addresses (and indirect kernel address) can be accessed using a leading '
 
 
 The fourth type are functions and labels, which can be addressed using their name:
-```
+```asm
 FUNC myfunc         ; Declaration of function 'myfunc'
     ...             ; function logic
 END FUNC            ; End of function 'myfunc'
@@ -116,7 +126,7 @@ mylabel:            ; Label definition
 See the section [`Control flow`](#control-flow) for more details about the usage and functionality of functions and labels.
 
 The fifth type are function parameters: When a function is called, the caller can pass parameters to the functions, which can be addressed using the dollar-sign '$' followed by the zero-indexed number of the function parameter. e.g:
-```
+```asm
 FUNC func
     ADD [$0] [$1]   ; Add the value at the address, to which the second parameter points
                     ;   to the value of the address, to which the first parameter points
@@ -135,12 +145,12 @@ END func
 ```
 
 The sixth parameter type are OP code references, which are compiled into the constant number, which the OP code in question is associated with, e.g:
-```
+```asm
     .MAIN
     MOV [4] <NOP>
 ```
 compiles to
-```
+```asm
     .MAIN
     MOV [4] 0
 ```
@@ -153,7 +163,7 @@ This can be achieved using function calls (`CALL`-instruction) or conditional an
 _Note, that when executing with kernel privilege, a program can also change the control flow by writing to the 4-byte memory address `0x0002` -- or the byte addressses `0x0004` to `0x0007`. See [the introduction](./introduction.md) for more information._
 
 A function can be defined using the `FUNC`-token, and called using the `CALL`-OP code. The closing `END FUNC`-token is also an implicit `RET`-instruction, however, one can prematurely exit a function using `RET`:
-```
+```asm
 FUNC myfunction
     instruction
     instruction
@@ -173,7 +183,7 @@ label:
     instruction
 ```
 It can be used in unconditional jump expressions, like `JMP`:
-```
+```asm
     ; The order of instruction execution will be 0, 1, 4
     
     instr.0
@@ -188,7 +198,7 @@ The instruction `JMPREL` moves the instruction pointer relatively from the curre
 
 Conditional jump instructions like `JLE`, `JL`, `JGE`, `JG`, `JE`, `JNE`, `JZ`, `JNZ`, `JPOS` and `JNEG` are jumping to the given label, if the FLAGS-register (see [the introduction](./introduction.md)) meets the required criteria after a comparison (see [the instruction set](./instruction-set.md)).
 The following example jumps to the label `label`, if the value inside the address `0x0042` is smaller than zero
-```
+```asm
     .MAIN           ; Program start
     .....
     CMP [42]        ; Compare the value stored inside address 42 (to zero)
@@ -206,7 +216,7 @@ The instruction `IN <port> <dst>` reads the port's value into the address `dst` 
 Only the lowest four bits of the value provided by the `OUT`-instruction will be passed to the port, as I/O-ports work with 4-bit integer values (all values between inclusive `0` and inclusive `15`).
 
 Example code:
-```
+```asm
     .MAIN           ; Program start
     IO 10 1         ; Set the port 10 to 'in'
     IO 12 0         ; Set the port 12 to 'out'
@@ -221,7 +231,7 @@ _For more information about the I/O-ports see [the introduction](./introduction.
 
 Floating-point operations (float-operations) are operations, which partly use IEEE-754 single-precision floating-point 32Bit-decimal numbers instead of plain 32Bit integer numbers. This allows the user and processor to perform calculations with real and rational numbers as well as integer numbers.
 Float arguments can be denoted as follows:
-```
+```asm
     42.0            ; Floating-point number with a decimal point
     +42.0f          ; Floating-point number with a 'f'-suffix and a sign
     42.             ; Floating-point number without trailing decimal places
@@ -231,7 +241,7 @@ Float arguments can be denoted as follows:
     -4.2            ; Floating-point number with a sign
 ```
 During compile time, a floating-point argument will be converted to the integer, whoms bytes matches the IEEE byte representation of the floating-point number in question, e.g.:
-```
+```asm
     MOV [1] 42.0
     ; will be translated to:
     MOV [1] 0x00002842
@@ -240,14 +250,14 @@ During compile time, a floating-point argument will be converted to the integer,
 ```
 It is therefore _possible_ to pass a floating-point argument to any instruction, though it is not advisable as it can result in unexpected behaviour.
 Floating-point operations, however, assume that their given argument(s) are floating-point numbers. It can therefore be also unpredictable to pass a regular integer argument to a floating-point operation:
-```
+```asm
     MOV [7] 42.0    ; Value inside address 7 : 0x00002842
     FADD [7] 315    ; The value '315' will be interpreted as the floating-point number
                     ;   '4.414090162623174E-43'. As this number is much to small, the
                     ;   operation's result will be still '42.0' and not 42 + 315 = 357
 ```
 In order to convert a floating-point number to a integer number, one must use the instructions `FICAST` and `IFCAST`. The instruction `FICAST` stands for _'**F**loat to **I**nteger **Cast**'_, which converts a floating point number to an integer one. The reverse instruction is `IFCAST` which stands for _'**I**nteger to **F**loat **Cast**'_.
-```
+```asm
     MOV [5] 13      ; Moves '13' to address 5
     IFCAST [4] [5]  ; Converts '13' to '13.0' and stores the result into address 4
     FSUB [4] 1.0    ; Subtracts '1.0' from '13.0' (in address 4)
@@ -261,7 +271,7 @@ _**Do not use privileged instructions if you do not know what you are doing!**_
 Privileged instructions, operations and addresses are objects/functions, which are not usually accessible for a 'regular' user. Using the kernel privilege one can use them like any other instruction/address/....
 
 To claim kernel privilege use the tokens `.kernel` or `.user`:
-```
+```asm
     .MAIN           ; Program start
     ....            ; Everything executed here is being executed with user privileges (default)
     .KERNEL         ; Claim kernel privilege
@@ -277,14 +287,14 @@ The following items require kernel privileges to be executed or used:
 Kernel addresses are 4-byte addresses, which map to the 'real' byte-addresses used internally by the emulator. They could be compared to physical memory-addresses in real computers.
 As user-space addresses start at the byte offset `0x0040`, any user-space address `a` can be translated to the kernel address `a + 16`.
 Kernel addresses are prefixed with the letter `k` when used inside a program:
-```
+```asm
     MOV k[20] 42     ; Moves the value '42' to the kernel address 20, which represent the
                      ;  user-space address 20 - 16 == 4
     MOV k[2] k[[20]] ; Copies the instruction pointer to the address, to which the kernel
                      ;  address 20 is pointing (in this case address 42)
 ```
 User-space addresses are limited by the memory's size - kernel addresses, however, are not. This means, that one can address I/O-ports, the instruction space, call stack or even the parent host system memory by passing addresses outside the user-space memory range:
-```
+```asm
     MOV [0] k[8]    ; Copies the byte-representation of the first 4 I/O-ports to the user-
                     ;   space address 0
     MOV [1] k[-1]   ; Copies the 4-byte block BEFORE the processor's memory to the user-space
@@ -298,7 +308,7 @@ See [the introduction](./introduction.md) for more information about the user-sp
 
 The instructions `LEA`, `SYSCALL`, `ABK`, `RESET` and all push-operations are privileged instructions. The `ABK`-instruction is a shortcut for the expression `SYSCALL -1`, more information on which can be found [here](./instruction-set.md) or in the [section about IP and stack management](#ip-and-stack-management).
 The `LEA`-instruction loads the effective source memory address into the target address:
-```
+```asm
     LEA [7] [42]    ; Loads the value '0x006A' into the user-space address 7, as the user-
                     ;   address 0x002A (= 42) translates into the kernel address 0x006A
 ```
@@ -312,7 +322,7 @@ A list of all  defined syscalls can be found [here](./syscalls.md).
 #### IP and Stack management
 
 Using kernel privileges, the processor's instruction pointer can be modified using kernel addresses as follows:
-```
+```asm
     ...
     CMP k[2] 30     ; Compares the the instruction pointer with the constant 30
     JG mylabel      ; If more than 30 instructions have been executed, jump to 'mylabel'
@@ -328,3 +338,44 @@ The instruction 'SSWAP' swaps the two top-most values on the stack.
 The instruction `PUSH <src>` pushes the 4-byte value `src` onto the call stack, while `PEEK <dst>` and `POP <dst>` peek and pop the top-most stack value into the given destination address.
 The instructions `PUSHI`, `POPI` and `PEEKI` push/pop/peek the instruction pointer instead of user-defined values or addresses. Therefore, the instructions `POPI` and `PEEKI` can also be used to modify the instruction pointer's value.
 The instructions `PUSHF`, `POPF` and `PEEKF` push/pop/peek the FLAGS-register instead of user values or addresses.
+
+#### Interrupts
+
+Interrupt handler functions are functions, which will be executed if the processor is either instructed to do so (via a software- or hardware-interrupt) or due to an internal error or exception.
+Each interrupt has a so-called interrupt number, which will indicate to the processor, which associated handler method shall be executed.
+An interrupt handler function can be defined as follows:
+```asm
+interrupt func int_xx
+	...
+end func
+```
+where `xx` is the hexadecimal representation of the interrupt number ranging from `0x00` to `0xff`.
+
+A software interrupt can be invoked using the `int`-instruction:
+```asm
+	int 42h
+```
+
+The following interrupt numbers are defined in the default MCPU processor:
+
+| number | description |
+|--------|-------------|
+| `0x00` | general error |
+| `0x01` | arithmetic error |
+| `0x02` | stack-underflow error |
+| `0x03` | stack-overflow error |
+| `0x04` | Instruction out of range |
+| `0x05` | Not enough privileges |
+| `0x06` | Not enough arguments |
+| `0x07` | &lt;unassigned&gt; |
+| `0x08` | &lt;unassigned&gt; |
+| `0x09` | &lt;unassigned&gt; |
+| `0x0a` | &lt;unassigned&gt; |
+| `0x0b` | &lt;unassigned&gt; |
+| `0x0c` | &lt;unassigned&gt; |
+| `0x0d` | &lt;unassigned&gt; |
+| `0x0e` | &lt;unassigned&gt; |
+| `0x0f` | &lt;unassigned&gt; |
+| `0x10` | device connected [not yet implemented] |
+| `0x11` | device disconnected [not yet implemented] |
+| `0x--` | &lt;unassigned&gt; |

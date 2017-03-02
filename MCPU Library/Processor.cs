@@ -51,6 +51,41 @@ namespace MCPU
 
                 *p.TranslateAddress(_[0]) = p.Ticks;
             },
+            [5] = (p, _) => p.WriteLine(string.Join("", from arg in _
+                                                        select new string(new char[] {
+                                                            (char)((arg >> 24) & 'ÿ'),
+                                                            (char)((arg >> 16) & 'ÿ'),
+                                                            (char)((arg >> 8) & 'ÿ'),
+                                                            (char)(arg & 'ÿ')
+                                                        })).Replace("\0", "")),
+            [6] = (p, _) => {
+                string line = Console/* TODO : input stream */.ReadLine().Trim();
+                int value;
+
+                if (int.TryParse(line, out value))
+                    *p.TranslateAddress(_[0]) = value;
+            },
+            [7] = (p, _) => {
+                string line = Console/* TODO : input stream */.ReadLine().Trim();
+                float value;
+
+                if (float.TryParse(line, out value))
+                    *p.TranslateFloatAddress(_[0]) = value;
+            },
+        };
+        internal static readonly Dictionary<Type, byte> __interruptexceptiontable = new Dictionary<Type, byte>
+        {
+            [typeof(Exception)] = 0,
+            [typeof(OverflowException)] = 1,
+            [typeof(ArithmeticException)] = 1,
+            [typeof(DivideByZeroException)] = 1,
+            // [typeof(StackOverflowException)] = 2,
+            [typeof(InsufficientExecutionStackException)] = 2,
+            [typeof(StackException)] = 3,
+            [typeof(IndexOutOfRangeException)] = 4,
+            [typeof(MissingPrivilegeException)] = 5,
+            [typeof(ArgumentException)] = 6,
+            // more ?
         };
 #if !WINDOWS
         private const string IVPEX_MSG = "The memory watcher unit requires a Win32-Environment with the corresponding API.";
@@ -73,6 +108,7 @@ namespace MCPU
         public const int MAX_MEMSZ = 0x10000000; // 1GB of memory
         public const int MAX_STACKSZ = 0x400000; // 16MB of stack space
 #endif
+        internal Dictionary<byte, int> interrupt_table = new Dictionary<byte, int>();
         internal TextWriter stdout = Console.Out;
         internal bool disposed = false;
         internal byte* raw;
@@ -92,6 +128,10 @@ namespace MCPU
         /// Raised after an instruction has been executed
         /// </summary>
         public event ProcessorEventHandler<Instruction> InstructionExecuted;
+        /// <summary>
+        /// Raised before an instruction has been executed
+        /// </summary>
+        public event ProcessorEventHandler<Instruction> InstructionExecuting;
         /// <summary>
         /// Rasied when a user-space memory access occures. The event is NOT raised, if the processor is running in elevated (kernel) mode
         /// </summary>
@@ -239,6 +279,11 @@ namespace MCPU
                 InformationFlagsChanged?.Invoke(this, value);
             }
         }
+
+        /// <summary>
+        /// Sets or gets the processor's error handling policy
+        /// </summary>
+        public ErrorHandlingMode ErrorHandlingMode { set; get; } = ErrorHandlingMode.InterruptOrThrow;
 
         /// <summary>
         /// Sets or gets the 4-byte integer value stored inside the given userspace memory address 
@@ -448,6 +493,8 @@ namespace MCPU
             {
                 if ((ins != null) && (ins.GetType() != typeof(Instructions.halt)))
                 {
+                    InstructionExecuting?.Invoke(this, ins);
+
                     ++Ticks;
 
                     ins.Process(this);
@@ -464,14 +511,28 @@ namespace MCPU
                             Halt();
                 }
                 else
-                    Halt(); // TODO : ?
+                    Halt();
             }
             catch (Exception ex)
             {
-                if (ex is MCPUProcessingException mcpupex)
-                    throw mcpupex;
-                else
-                    throw new MCPUProcessingException(ex, ins);
+                Type t = ex.GetType();
+                bool handled = false;
+
+                do
+                    if (__interruptexceptiontable.ContainsKey(t))
+                    {
+                        handled = Interrupt(__interruptexceptiontable[t]);
+
+                        break;
+                    }
+                while ((t = t.BaseType) != null);
+
+                if (!(ErrorHandlingMode == ErrorHandlingMode.AlwaysThrow ? false :
+                      ErrorHandlingMode == ErrorHandlingMode.AlwaysInterrupt ? true : handled))
+                    if (ex is MCPUProcessingException mcpupex)
+                        throw mcpupex;
+                    else
+                        throw new MCPUProcessingException(ex, ins);
             }
         }
 
@@ -517,7 +578,8 @@ namespace MCPU
             IsRunning = true;
 
             MCPUProcessingException res;
-            Task<MCPUProcessingException> t = new Task<MCPUProcessingException>(delegate {
+            Task<MCPUProcessingException> t = new Task<MCPUProcessingException>(delegate
+            {
                 try
                 {
                     while (IsRunning)
@@ -541,6 +603,28 @@ namespace MCPU
                 OnError?.Invoke(this, res);
 
             Halt();
+        }
+
+        /// <summary>
+        /// Invokes the interrupt handler with the given interrupt code
+        /// </summary>
+        /// <param name="code">Interrupt code</param>
+        public bool Interrupt(byte code)
+        {
+            if (InformationFlags.HasFlag(InformationFlags.InterruptEnable) &&
+                !InformationFlags.HasFlag(InformationFlags.InterruptCurrent) &&
+                (interrupt_table?.ContainsKey(code) ?? false))
+            {
+                SetInformationFlag(InformationFlags.InterruptCurrent, true);
+
+                ProcessNext((OPCodes.CALL, new InstructionArgument[] { (interrupt_table[code], ArgumentType.Function) }), false);
+
+                SetInformationFlag(InformationFlags.InterruptCurrent, false);
+
+                return true;
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -798,7 +882,7 @@ namespace MCPU
         internal T VerifyUserspaceAddr<T>(int addr, T value) => VerifyUserspaceAddr(addr, () => value);
 
         internal T VerifyUserspaceAddr<T>(int addr, Func<T> action) =>
-            (addr >= 0) && (addr < Size) ? action() : throw new IndexOutOfRangeException($"The given memory address is invalid. It must be a positive integer value between 0 and {Size}");
+            (addr >= 0) && (addr < Size) ? action() : throw new IndexOutOfRangeException($"The given memory address {addr} (0x{addr:x8}) is invalid. It must be a positive integer value between 0 and {Size} (0x{Size:x8})");
 
         internal bool GetInformationFlag(InformationFlags flag) => InformationFlags.HasFlag(flag);
 
@@ -1215,8 +1299,37 @@ namespace MCPU
         /// </summary>
         Running = 0b0100_0000_0000_0000,
         /// <summary>
+        /// Indicates, that the interrupt handling is currently enabled
+        /// </summary>
+        InterruptEnable = 0b0010_0000_0000_0000,
+        /// <summary>
+        /// Indicates, that the processor is currently handling an interrupt
+        /// </summary>
+        InterruptCurrent = 0b0001_0000_0000_0000,
+        /// <summary>
         /// Represents no flag
         /// </summary>
         Empty = 0b0000_0000_0000_0000,
+    }
+
+    /// <summary>
+    /// Represents the possible MCPU processor error handling modes
+    /// </summary>
+    [Serializable]
+    public enum ErrorHandlingMode
+        : byte
+    {
+        /// <summary>
+        /// An exception will only be thrown if no interrupt handler was found
+        /// </summary>
+        InterruptOrThrow = 0,
+        /// <summary>
+        /// An exception will always be thrown
+        /// </summary>
+        AlwaysThrow = 1,
+        /// <summary>
+        /// An exception will never be thrown
+        /// </summary>
+        AlwaysInterrupt = 2,
     }
 }

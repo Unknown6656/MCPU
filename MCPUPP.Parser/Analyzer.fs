@@ -2,10 +2,12 @@
 
 open MCPU.MCPUPP.Parser.SyntaxTree
 open MCPU.Compiler
-
 open System.Collections.Generic
 open System.Linq
 open System
+
+
+let EntryPointName = "main"
 
 type SymbolScope(parent : SymbolScope option) =
     let mutable list = List.empty<VariableDeclaration>
@@ -33,7 +35,7 @@ type SymbolScopeStack() =
     
     member x.CurrentScope = stack.Peek()
     member x.Pop() = stack.Pop() |> ignore
-    member x.Push() = stack.Push((SymbolScope << Some) x.CurrentScope)
+    member x.Push() = (stack.Push << SymbolScope << Some) x.CurrentScope
     member x.AddDeclaration decl = x.CurrentScope.AddDeclaration decl
     
 type VariableCoverType =
@@ -52,6 +54,18 @@ type SymbolVariableType =
     member x.IsArray = x.Cover = Array
     member x.IsScalar = x.Cover = Scalar
     member x.IsPointer = x.Cover = Pointer
+    member x.CLRType =
+        if x.IsPointer then
+            match x.Type with
+            | Int -> typeof<nativeptr<int>>
+            | Float -> typeof<nativeptr<float32>>
+            | Unit -> typeof<IntPtr>
+        else
+            let res = match x.Type with
+                      | Int -> typeof<int>
+                      | Float -> typeof<float32>
+                      | Unit -> typeof<Void>
+            if x.IsArray then res.MakeArrayType() else res
     override x.ToString() =
         x.Type.ToString() + (match x.Cover with
                              | Pointer -> "*"
@@ -164,7 +178,7 @@ type FunctionTableEntry =
         ReturnType     : VariableType;
         ParameterTypes : SymbolVariableType list;
     }
-     
+
 type PredefinedFunction = string * VariableType * SymbolVariableType list
 
 // BUILD IN METHODS
@@ -174,9 +188,27 @@ let PredefinedFunctions : PredefinedFunction list = [
         ("iscan", Int, [])
         ("fscan", Float, [])
         ("halt", Unit, [])
+        ("cpuid", Int, [])
         ("wait", Unit, [ { Type = Int; Cover = Scalar; } ])
-
-        // TODO: add sine, cosine, log etc.
+        ("io", Unit, [ { Type = Int; Cover = Scalar; }; { Type = Int; Cover = Scalar; } ])
+        ("in", Int, [ { Type = Int; Cover = Scalar; } ])
+        ("out", Unit, [ { Type = Int; Cover = Scalar; }; { Type = Int; Cover = Scalar; } ])
+        ("sin", Float, [ { Type = Float; Cover = Scalar; } ])
+        ("cos", Float, [ { Type = Float; Cover = Scalar; } ])
+        ("tan", Float, [ { Type = Float; Cover = Scalar; } ])
+        ("sinh", Float, [ { Type = Float; Cover = Scalar; } ])
+        ("cosh", Float, [ { Type = Float; Cover = Scalar; } ])
+        ("tanh", Float, [ { Type = Float; Cover = Scalar; } ])
+        ("asin", Float, [ { Type = Float; Cover = Scalar; } ])
+        ("acos", Float, [ { Type = Float; Cover = Scalar; } ])
+        ("atan", Float, [ { Type = Float; Cover = Scalar; } ])
+        ("atan2", Float, [ { Type = Float; Cover = Scalar; }; { Type = Float; Cover = Scalar; } ])
+        ("log", Float, [ { Type = Float; Cover = Scalar; }; { Type = Float; Cover = Scalar; } ])
+        ("ln", Float, [ { Type = Float; Cover = Scalar; } ])
+        ("exp", Float, [ { Type = Float; Cover = Scalar; } ])
+        ("round", Float, [ { Type = Float; Cover = Scalar; } ])
+        ("ceil", Float, [ { Type = Float; Cover = Scalar; } ])
+        ("floor", Float, [ { Type = Float; Cover = Scalar; } ])
     ]
 
 type FunctionTable(program) as self =
@@ -200,11 +232,22 @@ type FunctionTable(program) as self =
 type ExpressionTypeDictionary(program, ftable : FunctionTable, stable : SymbolTable) as self =
     inherit Dictionary<Expression, SymbolVariableType>(HashIdentity.Reference)
     
+    let checkvartype = function
+                       | ArrayDeclaration (t, _)
+                       | ScalarDeclaration (t, _)
+                       | PointerDeclaration (t, _) -> 
+                            match t with
+                            | Unit -> raise <| Errors.InvalidVariableType Unit
+                            | _ -> ()
     let rec ScanDeclaration = function
-                              | FunctionDeclaration x -> ScanFunctionDeclaration x
+                              | FunctionDeclaration x ->
+                                  let _, _, p, _ = x
+                                  Array.iter checkvartype p
+                                  ScanFunctionDeclaration x
                               | _ -> ()
     and ScanFunctionDeclaration (rettype, _, _, blockstat) =
-        let rec ScanBlockStatement (_, stats) =
+        let rec ScanBlockStatement (vars, stats) =
+            List.iter checkvartype vars
             List.iter ScanStatement stats
         and ScanStatement = function
                             | ExpressionStatement es -> match es with
@@ -226,7 +269,7 @@ type ExpressionTypeDictionary(program, ftable : FunctionTable, stable : SymbolTa
                                     raise <| Errors.InvalidConversion type' rettype
                             | InlineAsmStatement asm ->
                                 let fail = Errors.UnableParseInlineAsm >> raise
-                                let lines = (".main\n.kernel\n" + asm.Code).Split '\n'
+                                let lines = asm.Code.Split '\n'
                                             |> Array.map (fun (l : string) -> (if l.Contains ';' then
                                                                                    l.Remove(l.IndexOf ';')
                                                                                else
@@ -234,12 +277,12 @@ type ExpressionTypeDictionary(program, ftable : FunctionTable, stable : SymbolTa
                                             |> Array.filter (fun l -> l.Length > 0)
                                 Array.iter (fun (l : string) ->
                                                 if l.StartsWith "." then fail()
-                                                if ismatch l @"\b(ret|call)\b" then fail()
+                                                elif ismatch l @"\b(ret|call)\b" then fail()
                                                 // TODO : other checks
                                                 ) lines
-                                let comp = MCPUCompiler.Compile lines
-                                if comp.IsB then fail()
-                                else Console.WriteLine(String.Join("\n", comp.AsA.Instructions));
+                                //let comp = MCPUCompiler.Compile lines
+                                //if comp.IsB then fail()
+                                //else Console.WriteLine(String.Join("\n", comp.AsA.Instructions));
                             |_ -> ()
         and ScanExpression expr =
             let CheckTypes s t = if s <> t then raise <| Errors.InvalidConversion s t
@@ -375,20 +418,101 @@ type ExpressionTypeDictionary(program, ftable : FunctionTable, stable : SymbolTa
                 self.Add (expr, ExpressionType)
             ExpressionType
         ScanBlockStatement blockstat
+
     do
         program
         |> List.iter ScanDeclaration
+
+    member x.Functions = ftable
+    member x.Program = program
+    member x.Symbols = stable
+
+type FunctionSignature =
+    {
+        Name : string
+        ReturnType : VariableType
+        Parameters : SymbolVariableType list
+    }
+    
+let Convert p =
+    let (i, r, v) = p
+    {
+        Name = i
+        ReturnType = r
+        Parameters = v
+    }
 
 type AnalyzerResult =
     {
         SymbolTable : SymbolTable
         ExpressionTypes : ExpressionTypeDictionary
     }
+    member x.UserFunctions = [
+                                for func in x.ExpressionTypes.Program do
+                                    match func with
+                                    | FunctionDeclaration (r, i, p, _) as func ->
+                                        yield (i, r, [ for p in p ->
+                                                            match p with
+                                                            | ArrayDeclaration (t, _) -> {
+                                                                                            Cover = Array
+                                                                                            Type = t
+                                                                                         }
+                                                            | ScalarDeclaration (t, _) -> {
+                                                                                              Cover = Scalar
+                                                                                              Type = t
+                                                                                          }
+                                                            | PointerDeclaration (t, _) -> {
+                                                                                               Cover = Pointer
+                                                                                               Type = t
+                                                                                           }
+                                                     ])
+                                               |> Convert
+                                    | _ -> ()
+                             ]
+    member x.Function = Seq.map <| fun k ->
+                                        let v = x.ExpressionTypes.Functions.[k]
+                                        {
+                                            Name = k
+                                            ReturnType = v.ReturnType
+                                            Parameters = v.ParameterTypes
+                                        }
+                                <| x.ExpressionTypes.Functions.Keys
+
+//let MaxArraySize (block : Statement, id : IdentifierRef) =
+//    let exstat = Expression >> ExpressionStatement
+//    let rec scanstatement = function
+//                            | BlockStatement (_, s) -> maxmap s
+//                            | ExpressionStatement e ->
+//                                match e with
+//                                | Expression e ->
+//                                    match e with
+//                                    | ArrayAllocationExpression (_, e) ->
+//                                        ()
+//                                    | UnaryExpression (_, e)
+//                                    | ArrayIdentifierExpression (_, e)
+//                                    | ScalarAssignmentExpression (_, e)
+//                                    | PointerAssignmentExpression (_, e)
+//                                    | PointerValueAssignmentExpression (_, e) ->
+//                                        (exstat >> scanstatement) e
+//                                    |
+//                                | Nop -> 0
+//                            | IfStatement (e, s1, s2) -> maxmap [ 
+//                                                                    exstat e
+//                                                                    s1
+//                                                                    (match s2 with
+//                                                                     | Some x -> x
+//                                                                     | None -> ExpressionStatement Nop)
+//                                                                ]
+//                            | WhileStatement (e, s) -> List.max [ scanstatement s; (scanstatement << exstat) e ]
+//                            | ReturnStatement (Some e) -> (scanstatement << exstat) e
+//                            | _ -> 0
+//    and maxmap = (List.map scanstatement) >> List.max
+//    ()
 
 let Analyze program =
     let stable = SymbolTable program
     let ftable = FunctionTable program
-    if not (ftable.ContainsKey "main") then
+    if not (ftable.ContainsKey EntryPointName) then
         raise <| Errors.MissingEntryPoint()
     let exprt = ExpressionTypeDictionary(program, ftable, stable)
     {

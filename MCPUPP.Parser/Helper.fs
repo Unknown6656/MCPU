@@ -14,6 +14,7 @@ module Helper =
     let inline (!~<) (x, y) = ValueTuple<'a, 'b>(x, y)
     let inline (!~>) (t : ValueTuple<'a, 'b>) = (t.Item1, t.Item2)
     let ismatch str pattern = Regex.IsMatch(str, pattern)
+    let thrd (_, _, c) = c
     (* TODO:
     
     let rec uncurry (func : _curry<'a>) (arr : 'a list) : _curry<'a> =

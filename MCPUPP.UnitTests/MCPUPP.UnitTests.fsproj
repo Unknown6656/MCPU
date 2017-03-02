@@ -68,10 +68,8 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
     <Reference Include="System.ValueTuple">
-      <HintPath>..\..\packages\System.ValueTuple.4.3.0\lib\netstandard1.0\System.ValueTuple.dll</HintPath>
+      <HintPath>..\packages\System.ValueTuple.4.3.0\lib\netstandard1.0\System.ValueTuple.dll</HintPath>
     </Reference>
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\MCPU Core Compiler\MCPU Core Compiler.csproj">
       <Name>MCPU Core Compiler</Name>
       <Project>{7e31c14a-a3b4-4d0c-b67a-3b842dca55b1}</Project>
