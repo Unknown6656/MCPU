@@ -63,6 +63,10 @@
       <Project>{2df6d431-a417-4d2d-abd9-e852671e947e}</Project>
       <Name>MCPU Library</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Piglet\Piglet\Piglet.csproj">
+      <Project>{1e23f251-94e1-4504-81e8-2618f5c9fea3}</Project>
+      <Name>Piglet</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
