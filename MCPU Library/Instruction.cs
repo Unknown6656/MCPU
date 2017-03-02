@@ -336,6 +336,12 @@ namespace MCPU
         public void Process(Processor p) => OPCode.__process(p, Arguments);
 
         /// <summary>
+        /// Returns the short string representation of the current instruction
+        /// </summary>
+        /// <returns>Short string representation</returns>
+        public string ToShortString() => $"{OPCode.Token} {string.Join(" ", from a in Arguments select a.ToShortString())}";
+
+        /// <summary>
         /// Returns the string representation of the current instruction
         /// </summary>
         /// <returns>String representation</returns>
@@ -698,7 +704,7 @@ namespace MCPU
                 else if (arg.IsParameter)
                     ret += '$';
 
-                return ret + (wasaddr ? $"{arg.Value:x8}h" : arg.Value.ToString());
+                return ret + (wasaddr & !arg.IsParameter ? $"{arg.Value:x2}h" : arg.Value.ToString());
             }
 
             return tostr(this);

@@ -129,6 +129,10 @@ namespace MCPU
         /// </summary>
         public event ProcessorEventHandler<Instruction> InstructionExecuted;
         /// <summary>
+        /// Raised before an instruction has been executed
+        /// </summary>
+        public event ProcessorEventHandler<Instruction> InstructionExecuting;
+        /// <summary>
         /// Rasied when a user-space memory access occures. The event is NOT raised, if the processor is running in elevated (kernel) mode
         /// </summary>
         public event ProcessorEventHandler<int> UserspaceWriteAccess;
@@ -489,6 +493,8 @@ namespace MCPU
             {
                 if ((ins != null) && (ins.GetType() != typeof(Instructions.halt)))
                 {
+                    InstructionExecuting?.Invoke(this, ins);
+
                     ++Ticks;
 
                     ins.Process(this);
@@ -876,7 +882,7 @@ namespace MCPU
         internal T VerifyUserspaceAddr<T>(int addr, T value) => VerifyUserspaceAddr(addr, () => value);
 
         internal T VerifyUserspaceAddr<T>(int addr, Func<T> action) =>
-            (addr >= 0) && (addr < Size) ? action() : throw new IndexOutOfRangeException($"The given memory address is invalid. It must be a positive integer value between 0 and {Size}");
+            (addr >= 0) && (addr < Size) ? action() : throw new IndexOutOfRangeException($"The given memory address {addr} (0x{addr:x8}) is invalid. It must be a positive integer value between 0 and {Size} (0x{Size:x8})");
 
         internal bool GetInformationFlag(InformationFlags flag) => InformationFlags.HasFlag(flag);
 

@@ -922,7 +922,7 @@ namespace MCPU.Compiler
                                                                       return arg;
                                                               })()).ToArray())).ToArray();
 
-            int lblen = (int)Math.Ceiling(Math.Log(labels.Count + 1, 26));
+            int lblen = (int)Math.Ceiling(Math.Log(labels.Count + 1, 27));
             int lbcnt = 1;
 
             string nextlabel()
@@ -931,15 +931,15 @@ namespace MCPU.Compiler
 
                 for (int i = lblen - 1; i >= 0; i--)
                 {
-                    int div = lbcnt / (int)Math.Pow(26, i);
-                    int mod = div % (int)Math.Pow(26, i + 1);
+                    int div = lbcnt / (int)Math.Pow(27, i);
+                    int mod = div % (int)Math.Pow(27, i + 1);
 
-                    str[i] = (char)('a' + mod);
+                    str[i] = (char)(mod == 0 ? '\0' : '`' + mod);
                 }
 
                 ++lbcnt;
 
-                return $"label_{new string(str)}";
+                return $"label_{new string(str).Replace("\0", "")}";
             }
 
             Dictionary<int, string> jump_table = labels.Distinct().ToDictionary(_ => _, _ => nextlabel());

@@ -72,36 +72,74 @@ namespace MCPU
         private static void err(Exception ex)
         {
             ForegroundColor = ConsoleColor.Red;
-            WriteLine($"WELL FUGG :D\n{ex.Message}\n{ex.StackTrace}");
+            WriteLine("WELL FUGG :D");
+
+            while (ex != null)
+            {
+                WriteLine($"{ex.Message}\n{ex.StackTrace}");
+
+                ex = ex.InnerException;
+            }
+
             ForegroundColor = ConsoleColor.White;
         }
 
         private static void InnerMain1(string[] args)
         {
-            Processor proc = new Processor(4096, 4096, -559038737);
+            void onhalt(Processor _)
+            {
+                ForegroundColor = ConsoleColor.Yellow;
+                WriteLine("Processor is kill :/");
+                ForegroundColor = ConsoleColor.White;
+            }
 
+            Processor proc = new Processor(4096, 4096, -559038737);
+            int ind = 0;
+
+            proc.ProcessorReset += onhalt;
+            proc.ProcessorHalted += onhalt;
             proc.OnError += (p, ex) => err(ex);
+            proc.InstructionExecuting += (p, ins) =>
+            {
+                WriteLine($"{p.IP:x8}:  {string.Join("", from i in Enumerable.Range(0, ind) select "¦   ")}{ins.ToShortString()}");
+
+                if (ins == CALL)
+                    ++ind;
+                else if (ins == RET)
+                    --ind;
+            };
 
             const string code = @"
-int f1(int i)
-{
-    return 9 * i;
-}
-
 void main(void)
 {
-    int lelz;
-    float test;
+    int i;
 
-    lelz = f1((5 - 3) / 2);
-    test = sin(0.0);
-    
-    iprint(lelz);
-    fprint(test);
+    // i = iscan();
+    i = 33;
+    i *= 2;
 
-    __asm ""syscall 5 74657374h"";
-    __asm ""syscall 1"";
+    iprint(i);
 }
+
+//int f1(int i)
+//{
+//    return 9 * i;
+//}
+//
+//void main(void)
+//{
+//    int lelz;
+//    float test;
+//
+//    lelz = f1((5 - 3) / 2);
+//    test = sin(0.0);
+//
+//    iprint(lelz);
+//    fprint(test);
+//
+//    __asm ""syscall 5 74657374h"";
+//    __asm ""syscall 1"";
+//}
 ";
             MCPUPPCompiler comp = new MCPUPPCompiler(proc);
             Union<MCPUPPCompilerResult, MCPUPPCompilerException> res = comp.Compile(code);

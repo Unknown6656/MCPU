@@ -17,9 +17,6 @@ using MCPU.MCPUPP.Parser;
 using MCPU.Compiler;
 using MCPU;
 
-// bunch o' alias ---- I'm never doing F#/C# interop again -_-
-using FunctionDeclaration = System.Tuple<MCPU.MCPUPP.Parser.SyntaxTree.VariableType, string, MCPU.MCPUPP.Parser.SyntaxTree.VariableDeclaration[], System.Tuple<Microsoft.FSharp.Collections.FSharpList<MCPU.MCPUPP.Parser.SyntaxTree.VariableDeclaration>, Microsoft.FSharp.Collections.FSharpList<MCPU.MCPUPP.Parser.SyntaxTree.Statement>>>;
-using BlockStatement = System.Tuple<Microsoft.FSharp.Collections.FSharpList<MCPU.MCPUPP.Parser.SyntaxTree.VariableDeclaration>, Microsoft.FSharp.Collections.FSharpList<MCPU.MCPUPP.Parser.SyntaxTree.Statement>>;
 using Program = Microsoft.FSharp.Collections.FSharpList<MCPU.MCPUPP.Parser.SyntaxTree.Declaration>;
 
 using static MCPU.MCPUPP.Parser.Precompiler.IMInstruction;
@@ -44,6 +41,10 @@ namespace MCPU.MCPUPP.Compiler
         /// The name of the main (entry-point) MCPU++ function
         /// </summary>
         public const string MAIN_FUNCTION_NAME = FUNCTION_PREFIX + "mcpuppmain";
+        /// <summary>
+        /// The address of the MCPU++ field 'AUX'
+        /// </summary>
+        public const int F_AUX = 0xf6;
         /// <summary>
         /// The address of the MCPU++ field 'CC'
         /// </summary>
@@ -89,8 +90,8 @@ namespace MCPU.MCPUPP.Compiler
         /// </summary>
         public const int MIN_PROC_SZ = 0x200; // 2 KB
 
-        private readonly Random rand = new Random((int)(DateTime.Now.Ticks & 0xffffffff));
-        private int idc = 0;
+        private static readonly Random rand = new Random((int)(DateTime.Now.Ticks & 0xffffffff));
+        private static int idc = 0;
 
         /// <summary>
         /// The MCPU Processor, on which the current compiler instance relies
@@ -99,17 +100,24 @@ namespace MCPU.MCPUPP.Compiler
         /// <summary>
         /// Returns the global precompiled MCPU++ code file heaeder
         /// </summary>
-        public static string GlobalHeader { get; } = $@"
+        public static string GlobalHeader
+        {
+            get
+            {
+                string[] lbl = new string[10];
+
+                for (int i = 0; i < lbl.Length; i++)
+                    lbl[i] = GetUniqueID();
+
+                return $@"
 interrupt func int_00       ; general interrupt method
     syscall 5 67656e65h 72616c20h 6572726fh 72000000h
 end func
 
 func MOVDO                  ; mov [[dst]+offs] [src] <==> call MOVDO dst offs src
-    push [{F_CC}]
     mov [{F_CC}] [$0]
     add [{F_CC}] $1
     mov [[{F_CC}]] $2
-    pop [{F_CC}]
 end func
 
 func MOVSO                  ; mov [dst] [[src]+offs] <==> call MOVDO dst src offs
@@ -119,15 +127,13 @@ func MOVSO                  ; mov [dst] [[src]+offs] <==> call MOVDO dst src off
 end func
 
 func MOVO                   ; mov [[dst]+offs₁] [[src]+offs₂] <==> call MOVDO dst offs₁ src offs₂
-    push [{F_CC}]
-    push [{F_CC - 1}]
-    mov [{F_CC - 1}] $0
-    add [{F_CC - 1}] $1
+    call SY_PUSH [{F_AUX}]
+    mov [{F_AUX}] $0
+    add [{F_AUX}] $1
     mov [{F_CC}] $2
     add [{F_CC}] $3
-    mov [[{F_CC - 1}]] [[{F_CC}]]
-    pop [{F_CC - 1}]
-    pop [{F_CC}]
+    mov [[{F_AUX}]] [[{F_CC}]]
+    call SY_POP {F_AUX}
 end func
 
 func SY_PUSH                ; push $0 onto the SYA-stack
@@ -154,7 +160,7 @@ func SY_PUSHA               ; push argument № $0 onto the SYA-stack
     call SY_PUSH [[{F_CC}]]
 end func
 
-func SY_POP                 ; pop from SYA-stack into $0
+func SY_POP                 ; pop from SYA-stack into [$0]
     decr [{F_SYP}]
     mov [$0] [[{F_SYP}]]
 end func
@@ -190,23 +196,88 @@ func SY_EXEC_1              ; takes the top-most element, executes <$0> and push
     call SY_PUSH [{F_CC}]
 end func
 
-func SY_EXEC_2              ; takes the two top-most elements, executes <$0> and pushes the result back
-    push [{F_CC - 1}]
+func SY_EXEC_2              ; takes the two top-most elements, executes <$0> and pushes the result back  «WARING: THE VALUE [AUX] WILL BE LOST»
     call SY_POP {F_CC}
-    call SY_POP {F_CC - 1}
-    exec $0 [{F_CC}] [{F_CC - 1}]
+    call SY_POP {F_AUX}
+    exec $0 [{F_CC}] [{F_AUX}]
     call SY_PUSH [{F_CC}]
-    pop [{F_CC - 1}]
 end func
 
-func H_ALLOC
-    nop                     ; TODO
+func H_GETADDR              ; moves the address of object №$0 to the address [$1]
+    call SY_PUSH [{F_AUX}]
+    call SY_PUSH [{F_AUX - 1}]
+    mov [{F_AUX - 1}] 0
+    mov [{F_CC}] [{F_MSZ}]
+    decr [{F_CC}]
+    mov [{F_AUX}] $0
+{lbl[0]}:
+    cmp [{F_AUX}]
+    jz {lbl[1]}
+    add [{F_AUX - 1}] [[{F_CC}]]
+    sub [{F_CC}] [[{F_CC}]]
+    decr [{F_CC}]
+    jmp {lbl[0]}
+{lbl[1]}:
+    add [{F_CC}] [[{F_CC}]]
+    mov [$1] [{F_CC}]
+    call SY_POP {F_AUX - 1}
+    call SY_POP {F_AUX}
 end func
 
-func H_DELETE
-    nop                     ; TODO
+func H_GETSIZE              ; moves the size of object №$0 to the address [$1]
+    call SY_PUSH [{F_AUX}]
+    call SY_PUSH [{F_AUX - 1}]
+    mov [{F_AUX - 1}] 0
+    mov [{F_CC}] [{F_MSZ}]
+    decr [{F_CC}]
+    mov [{F_AUX}] $0
+{lbl[2]}:
+    cmp [{F_AUX}]
+    jz {lbl[3]}
+    add [{F_AUX - 1}] [[{F_CC}]]
+    sub [{F_CC}] [[{F_CC}]]
+    decr [{F_CC}]
+    jmp {lbl[2]}
+{lbl[3]}:
+    mov [$1] [[{F_CC}]]
+    call SY_POP {F_AUX - 1}
+    call SY_POP {F_AUX}
+end func
+
+func H_ALLOC                ; allocates an object with the size $0 and writes its ID to [$1] and its address to [$2]
+    call SY_PUSH [{F_AUX}]
+    call SY_PUSH [{F_AUX - 1}]
+    mov [{F_AUX - 1}] 0
+    mov [{F_CC}] [{F_MSZ}]
+    decr [{F_CC}]
+    mov [{F_AUX}] [{F_HSZ}]
+{lbl[4]}:
+    cmp [{F_AUX}]
+    jz {lbl[5]}
+    add [{F_AUX - 1}] [[{F_CC}]]
+    sub [{F_CC}] [[{F_CC}]]
+    decr [{F_CC}]
+    jmp {lbl[4]}
+{lbl[5]}:
+    ; [AUX] <- 0
+    ; [CC.] <- &object
+    ; [AUX-1] <- heap size (in 4-byte-blocks)
+    mov [[{F_CC}]] $0
+    decr [{F_CC}] $0
+    clear [{F_CC}] $0
+    mov [$2] [{F_CC}]
+    mov [$1] [{F_HSZ}]
+    incr [{F_HSZ}]
+    call SY_POP {F_AUX - 1}
+    call SY_POP {F_AUX}
+end func
+
+func H_DELETE               ; deletes the object with the ID №$0
+    
 end func
 ";
+            }
+        }
         /// <summary>
         /// Returns a dictionary of predefined functions and their associated MCPU code
         /// </summary>
@@ -304,7 +375,7 @@ end func
         /// Returns a unique ID, which can be used for labels etc.
         /// </summary>
         /// <returns>Unique ID</returns>
-        public string GetUniqueID()
+        public static string GetUniqueID()
         {
             byte[] bytes = new byte[8];
 
@@ -318,7 +389,7 @@ end func
         /// </summary>
         /// <param name="label">Intermediate label</param>
         /// <returns>Unique label ID</returns>
-        public string GetUniqueID(int label) => $"label_{label:x8}";
+        public static string GetUniqueID(int label) => $"label_{label:x8}";
 
         /// <summary>
         /// Formats the given code snippet's indentation
@@ -599,6 +670,7 @@ end func
 
                 return $@"
     pushf
+    push [{F_AUX}]
     mov [{F_CC}] 0
 {lab_bef}:
     push [[{F_CC}]]
@@ -625,6 +697,7 @@ end func
     decr [{F_SYP}]
     cmp [{F_SYP}]
     jpos {lab_aft}
+    pop [{F_AUX}]
     popf
 ";
             }
