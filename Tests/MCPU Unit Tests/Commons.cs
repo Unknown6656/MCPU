@@ -86,7 +86,7 @@ namespace MCPU.Testing
                 throw MCPUCompiler.Compile(code).AsB;
             });
 
-            IsTrue(ln == ex.LineNr);
+            AreEqual(ln, ex.LineNr);
 
             return ex;
         }
@@ -122,8 +122,13 @@ namespace MCPU.Testing
     {
     }
 
-    public sealed class AppVeyorSkipAttribute
+    public class SkipAttribute
         : Attribute
+    {
+    }
+
+    public sealed class AppVeyorSkipAttribute
+        : SkipAttribute
     {
     }
 }

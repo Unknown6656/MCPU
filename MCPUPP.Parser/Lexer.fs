@@ -59,7 +59,7 @@ module Lexer =
     let kw_unit = Terminal Builder.UnitString
     let kw_int = ParseTerminal "int" !<Int
     let kw_float = ParseTerminal "float" !<Float
-    
+
     // OPERATORS
     let op_assign_add = Terminal "\+="
     let op_assign_subtract = Terminal "-="

@@ -6,6 +6,7 @@ using MCPU.Compiler;
 
 namespace MCPU.Testing
 {
+    using System.Collections.Generic;
     using static Microsoft.VisualStudio.TestTools.UnitTesting.Assert;
 
     [TestClass]
@@ -18,7 +19,7 @@ namespace MCPU.Testing
         [TestMethod]
         public void Test_01() => CompileExpectError(@"
     mov [0] [0]   §### ERROR
-", MCPUCompiler.GetString("INSTR_OUTSIDE_MAIN"));
+", MCPUCompiler.GetString("INSTR_OUTSIDE_FUNC"));
 
         [TestMethod]
         public void Test_02() => CompileExpectError(@"
@@ -225,8 +226,8 @@ pool:
     JMP loop
 ");
             int ln = 0;
-            (Instruction[], int[]) optimized = MCPUCompiler.Optimize((from i in res.Instructions
-                                                                      select (i, ln++)).ToArray());
+            (Instruction[], int[], Dictionary<int, (int, bool)>) optimized = MCPUCompiler.Optimize((from i in res.Instructions
+                                                                                                    select (i, ln++)).ToArray());
 
             // TODO : Assertions ?
         }
@@ -243,5 +244,198 @@ pool:
 test:
     mov [test] 315   §### ERROR
 ", MCPUCompiler.GetString("INVALID_ARG"));
+
+        [TestMethod]
+        public void Test_26() => CompileExpectError(@"
+func int_88   §### ERROR
+    nop
+end func
+
+    .main
+    nop
+", MCPUCompiler.GetString("FUNC_RESV_NAME_INT"));
+
+        [TestMethod]
+        public void Test_27() => CompileExpectError(@"
+interrupt func int_420   §### ERROR
+    nop
+end func
+
+    .main
+    nop
+", MCPUCompiler.GetString("INVALID_INT_HANDLER_NAME"));
+
+        [TestMethod]
+        public void Test_28() => CompileExpectError(@"
+interrupt func int_g   §### ERROR
+    nop
+end func
+
+    .main
+    nop
+", MCPUCompiler.GetString("INVALID_INT_HANDLER_NAME"));
+
+        [TestMethod]
+        public void Test_29() => CompileExpectError(@"
+interrupt func hello   §### ERROR
+    nop
+end func
+
+    .main
+    nop
+", MCPUCompiler.GetString("INVALID_INT_HANDLER_NAME"));
+
+        [TestMethod]
+        public void Test_30() => Compile(@"
+interrupt func int_88
+    halt
+end func
+
+    .main
+    int 88
+");
+
+        [TestMethod]
+        public void Test_31() => Compile(@"
+    .main
+    .enable interrupt
+    .disable interrupt
+");
+
+        [TestMethod]
+        public void Test_32() => CompileExpectError(@"
+    .main
+    .enable topkek   §### ERROR
+", MCPUCompiler.GetString("TOKEN_UNKNOWN_SWITCH"));
+
+        [TestMethod]
+        public void Test_33() => CompileExpectError(@"
+    .main
+    .disable topkek   §### ERROR
+", MCPUCompiler.GetString("TOKEN_UNKNOWN_SWITCH"));
+
+        [TestMethod]
+        public void Test_34() => CompileExpectError(@"
+    .main
+    .enable   §### ERROR
+", MCPUCompiler.GetString("TOKEN_NOT_ENOUGH_ARGS"));
+
+        [TestMethod]
+        public void Test_35() => CompileExpectError(@"
+    .main
+    .disable   §### ERROR
+", MCPUCompiler.GetString("TOKEN_NOT_ENOUGH_ARGS"));
+
+        [TestMethod]
+        public void Test_36() => CompileExpectError(@"
+interrupt func int_0   §### ERROR
+    nop
+end func
+
+    .main
+    nop
+", MCPUCompiler.GetString("INVALID_INT_HANDLER_NAME"));
+
+        [TestMethod]
+        public void Test_37()
+        {
+            Dictionary<byte, int> interrupt_table = Compile(@"
+interrupt func int_00
+end func
+
+interrupt func int_ff
+end func
+
+interrupt func int_88
+end func
+
+    .main
+    nop
+").InterruptTable;
+
+            IsTrue(interrupt_table.ContainsKey(0x00));
+            IsTrue(interrupt_table.ContainsKey(0xff));
+            IsTrue(interrupt_table.ContainsKey(0x88));
+        }
+
+        [TestMethod]
+        public void Test_38() => CompileExpectError(@"
+func kek
+    nop
+end func
+
+    .data
+    mov [0] [0]   §### ERROR
+
+    .main
+    nop
+", MCPUCompiler.GetString("INSTR_OUTSIDE_FUNC"));
+
+        [TestMethod]
+        public void Test_39() => CompileExpectError(@"
+    .main
+    nop
+    .data   §### ERROR
+", MCPUCompiler.GetString("DATA_INSIDE_FUNC"));
+
+        [TestMethod]
+        public void Test_40() => CompileExpectError(@"
+    .main
+    [88] = 420h   §### ERROR
+", MCPUCompiler.GetString("DATA_OUTSIDE_SECTION"));
+
+        [TestMethod]
+        public void Test_41() => CompileExpectError(@"
+    .data
+
+func kek
+    [88] = 420h   §### ERROR
+end func
+
+    .main
+    nop
+", MCPUCompiler.GetString("DATA_OUTSIDE_SECTION"));
+
+        [TestMethod]
+        public void Test_42() => CompileExpectError(@"
+    [88] = 420h   §### ERROR
+    .data
+
+    .main
+    nop
+", MCPUCompiler.GetString("DATA_OUTSIDE_SECTION"));
+
+        [TestMethod]
+        public void Test_43() => CompileExpectError(@"
+    [88] = 420h   §### ERROR
+", MCPUCompiler.GetString("DATA_OUTSIDE_SECTION"));
+
+        [TestMethod]
+        public void Test_44() => Compile(@"
+    .data
+    [88] = 420h
+    [2] = -1
+
+func test
+    nop
+end func
+
+    .data
+    [77] = 315
+
+    .main
+    nop
+");
+
+        [TestMethod]
+        public void Test_45() => CompileExpectError(@"
+func kek
+    .data   §### ERROR
+    [88] = 420h
+end func
+
+    .main
+    nop
+", MCPUCompiler.GetString("DATA_INSIDE_FUNC"));
     }
 }

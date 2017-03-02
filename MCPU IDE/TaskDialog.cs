@@ -113,6 +113,8 @@ namespace MCPU.IDE
     [Serializable, Flags]
     public enum TaskDialogIcon
     {
+#pragma warning disable RCS1157
+
         Information = ushort.MaxValue - 2,
         Warning = ushort.MaxValue,
         Stop = ushort.MaxValue - 1,
@@ -123,5 +125,7 @@ namespace MCPU.IDE
         SecurityShield = ushort.MaxValue - 3,
         SecurityShieldBlue = ushort.MaxValue - 4,
         SecurityShieldGray = ushort.MaxValue - 8
+
+#pragma warning restore
     }
 }

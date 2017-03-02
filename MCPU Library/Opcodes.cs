@@ -752,8 +752,22 @@ namespace MCPU.Instructions
     }
 
     #endregion
-    #region 0034...003b <<unassigned>>
+    #region 0034...003a <<unassigned>>
     #endregion
+
+    [OPCodeNumber(0x003b), RequiresPrivilege, Keyword]
+    public sealed unsafe class @int
+        : OPCode
+    {
+        public @int()
+            : base(1, (p, _) => {
+                AssertNotInstructionSpace(0, _);
+
+                p.Interrupt((byte)p.TranslateConstant(_[0]));
+            })
+        {
+        }
+    }
 
     [OPCodeNumber(0x003c)]
     public sealed unsafe class swap
@@ -1412,6 +1426,44 @@ namespace MCPU.Instructions
 
     #endregion
 
+    [OPCodeNumber(0xfffc), Hidden, Keyword]
+    public sealed unsafe class interrupt
+        : OPCode
+    {
+        public interrupt()
+            : base(1, (p, _) => {
+                AssertConstant(0, _);
+
+                p.SetInformationFlag(InformationFlags.InterruptEnable, _[0] != 0);
+            })
+        {
+        }
+    }
+
+    [OPCodeNumber(0xfffd), Hidden, RequiresPrivilege, Keyword]
+    public sealed unsafe class interrupttable
+        : OPCode
+    {
+        public interrupttable()
+            : base(0, (p, _) => {
+                int count = _.Length;
+                Dictionary<byte, int> inttable = new Dictionary<byte, int>();
+
+                for (int i = 0; i < count; i++)
+                {
+                    AssertConstant(i, _);
+
+                    int vec = p.TranslateConstant(_[i]);
+
+                    inttable[(byte)((vec >> 24) & 0xff)] = vec & 0x00ffffff;
+                }
+
+                p.interrupt_table = inttable;
+            })
+        {
+        }
+    }
+
     [OPCodeNumber(0xfffe), RequiresPrivilege, Keyword]
     public sealed unsafe class exec
         : OPCode
@@ -1426,7 +1478,7 @@ namespace MCPU.Instructions
         }
     }
 
-    [OPCodeNumber(0xffff)]
+    [OPCodeNumber(0xffff), Hidden]
     public sealed unsafe class kernel
         : OPCode
     {
