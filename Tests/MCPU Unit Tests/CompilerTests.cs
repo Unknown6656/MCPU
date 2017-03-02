@@ -426,5 +426,16 @@ end func
     .main
     nop
 ");
+
+        [TestMethod]
+        public void Test_45() => CompileExpectError(@"
+func kek
+    .data   §### ERROR
+    [88] = 420h
+end func
+
+    .main
+    nop
+", MCPUCompiler.GetString("DATA_INSIDE_FUNC"));
     }
 }

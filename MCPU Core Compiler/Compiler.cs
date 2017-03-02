@@ -558,6 +558,9 @@ namespace MCPU.Compiler
                             else if ((opc == RET) && (curr_func.Name == MAIN_FUNCTION_NAME))
                                 return Error(GetString("INVALID_RET"));
 
+                            if (curr_func == null)
+                                return Error(GetString("INSTR_OUTSIDE_FUNC"));
+
                             curr_func.Instructions.Add((new Instruction(opc, args.ToArray()), linenr));
                         }
                     else
