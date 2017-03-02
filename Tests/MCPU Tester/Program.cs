@@ -149,7 +149,7 @@ void main(void)
                 MCPUPPCompilerResult mcpuppres = res.AsA;
                 Instruction[] instr = mcpuppres.Instructions;
 
-                WriteLine($"{mcpuppres.CompiledCode}\n{new string('=', 100)}\n{MCPUCompiler.Decompile(mcpuppres.Instructions)}\n{new string('=', 100)}");
+                WriteLine($"{mcpuppres.CompiledCode}\n{new string('=', 100)}");
 
                 proc.Process(instr);
 

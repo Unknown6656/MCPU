@@ -86,7 +86,7 @@ namespace MCPU.Testing
                 throw MCPUCompiler.Compile(code).AsB;
             });
 
-            IsTrue(ln == ex.LineNr);
+            AreEqual(ln, ex.LineNr);
 
             return ex;
         }

@@ -9,11 +9,7 @@ using System.Text;
 using System.IO;
 using System;
 
-using MCPU.MCPUPP.Parser.SyntaxTree;
-using MCPU.MCPUPP.Compiler;
 using MCPU.MCPUPP.Parser;
-using MCPU.MCPUPP.Tests;
-using MCPU.Compiler;
 
 using Piglet.Parser;
 

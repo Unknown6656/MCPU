@@ -19,7 +19,7 @@ namespace MCPU.Testing
         [TestMethod]
         public void Test_01() => CompileExpectError(@"
     mov [0] [0]   §### ERROR
-", MCPUCompiler.GetString("INSTR_OUTSIDE_MAIN"));
+", MCPUCompiler.GetString("INSTR_OUTSIDE_FUNC"));
 
         [TestMethod]
         public void Test_02() => CompileExpectError(@"
@@ -357,5 +357,74 @@ end func
             IsTrue(interrupt_table.ContainsKey(0xff));
             IsTrue(interrupt_table.ContainsKey(0x88));
         }
+
+        [TestMethod]
+        public void Test_38() => CompileExpectError(@"
+func kek
+    nop
+end func
+
+    .data
+    mov [0] [0]   §### ERROR
+
+    .main
+    nop
+", MCPUCompiler.GetString("INSTR_OUTSIDE_FUNC"));
+
+        [TestMethod]
+        public void Test_39() => CompileExpectError(@"
+    .main
+    nop
+    .data   §### ERROR
+", MCPUCompiler.GetString("DATA_INSIDE_FUNC"));
+
+        [TestMethod]
+        public void Test_40() => CompileExpectError(@"
+    .main
+    [88] = 420h   §### ERROR
+", MCPUCompiler.GetString("DATA_OUTSIDE_SECTION"));
+
+        [TestMethod]
+        public void Test_41() => CompileExpectError(@"
+    .data
+
+func kek
+    [88] = 420h   §### ERROR
+end func
+
+    .main
+    nop
+", MCPUCompiler.GetString("DATA_OUTSIDE_SECTION"));
+
+        [TestMethod]
+        public void Test_42() => CompileExpectError(@"
+    [88] = 420h   §### ERROR
+    .data
+
+    .main
+    nop
+", MCPUCompiler.GetString("DATA_OUTSIDE_SECTION"));
+
+        [TestMethod]
+        public void Test_43() => CompileExpectError(@"
+    [88] = 420h   §### ERROR
+", MCPUCompiler.GetString("DATA_OUTSIDE_SECTION"));
+
+        [TestMethod]
+        public void Test_44() => Compile(@"
+    .data
+    [88] = 420h
+    [2] = -1
+
+func test
+    nop
+end func
+
+    .data
+    [77] = 315
+
+    .main
+    nop
+");
     }
 }
