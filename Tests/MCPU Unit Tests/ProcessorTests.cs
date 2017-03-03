@@ -43,7 +43,7 @@ namespace MCPU.Testing
                 return rd.ReadToEnd();
         }
 
-        public void IsValue(int addr, dynamic val) => IsTrue(proc[addr] == (int)val);
+        public void IsValue(int addr, dynamic val) => AreEqual((int)val, proc[addr]);
 
         public void AreValues(params (int, dynamic)[] conditions)
         {
@@ -569,6 +569,25 @@ loop:
                       (ai, i ^ j));
         }
 
+        [TestMethod]
+        public void Test_27()
+        {
+            Execute(@"
+interrupt func int_88
+    MOV [7] 42
+end func
+
+interrupt func int_99
+    MOV [7] 315
+end func
+
+    .main
+    .kernel
+    .enable interrupt
+    int 99h
+");
+            IsValue(7, 315);
+        }
 
         // TODO : interrupt tests
     }

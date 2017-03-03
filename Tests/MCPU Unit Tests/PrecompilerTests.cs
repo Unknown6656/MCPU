@@ -9,13 +9,16 @@ using System.Text;
 using System.IO;
 using System;
 
+using MCPU.MCPUPP.Compiler;
 using MCPU.MCPUPP.Parser;
+using MCPU.Compiler;
 
 using Program = Microsoft.FSharp.Collections.FSharpList<MCPU.MCPUPP.Parser.SyntaxTree.Declaration>;
 
 namespace MCPU.Testing
 {
     using static Microsoft.VisualStudio.TestTools.UnitTesting.Assert;
+    using static MCPU.MCPUPP.Compiler.MCPUPPCompiler;
     using static MCPU.MCPUPP.Parser.Precompiler;
     using static MCPU.MCPUPP.Parser.Analyzer;
 
@@ -23,6 +26,11 @@ namespace MCPU.Testing
     public class PrecompilerTests
         : Commons
     {
+        private Processor proc;
+        private StreamWriter wr;
+        private StringBuilder sb;
+
+
         public static (IMBuilder, IMProgram) Precompile(string source)
         {
             Program prog = Lexer.parse(source);
@@ -39,8 +47,41 @@ namespace MCPU.Testing
             return (res.Fields.ToArray(), res.Methods.ToArray());
         }
 
+        public string WrapMCPUCode(string inner, int locals = 0, int globals = 0) =>
+            new StringBuilder().AppendLine(MCPUPPCompiler.GlobalHeader)
+                               .AppendLine($"func {MCPUPPCompiler.MAIN_FUNCTION_NAME}")
+                               .AppendLine(inner)
+                               .AppendLine("end func")
+                               .AppendLine(new MCPUPPCompiler(proc).GenerateFunctionCall(new MainFunctionCallInformation
+                               {
+                                   GlobalSize = globals,
+                                   LocalSize = locals,
+                               }))
+                               .ToString();
+
+        public void Execute(string inner, int locals = 0, int globals = 0) => proc.Process(MCPUCompiler.Compile(WrapMCPUCode(inner, locals, globals)).AsA.Instructions);
+
         [TestInitialize]
-        public override void Test_Init() => Errors.UpdateLanguage<Dictionary<string, string>>(null); // RESET LANGUAGE TO DEFAULT
+        public override void Test_Init()
+        {
+            Errors.UpdateLanguage<Dictionary<string, string>>(null); // RESET LANGUAGE TO DEFAULT
+
+            sb = sb ?? new StringBuilder();
+            sb.Clear();
+
+            wr?.BaseStream?.Dispose();
+            wr?.Dispose();
+            wr = new StreamWriter(new MemoryStream());
+
+            proc?.Halt();
+            proc?.Dispose();
+            proc = new Processor(4096, 4096, -559038737);
+            proc.StandardOutput = wr;
+            proc.OnError += (_, ex) => {
+                throw ex;
+            };
+            proc.OnTextOutput += (_, text) => sb.Append(text);
+        }
 
         [TestMethod]
         public void Test_01()
@@ -110,6 +151,27 @@ void main(void)
             AreEqual(args[1].Name, "arr");
             IsTrue(args[1].Type.Type.IsInt && args[1].Type.Cover.IsArray);
             IsTrue(f1.ReturnType.IsInt);
+        }
+
+        [TestMethod]
+        public void Test_04() => Execute(@"
+    nop ; JUST TESTING, THAT NOTHING FAILS
+");
+
+        [TestMethod]
+        public void Test_05()
+        {
+            Execute($@"
+    call SY_PUSH 315h
+    call SY_POPL 0
+    call SY_PUSH 99
+    call SY_PUSHL 
+    decr [{F_SYP}]
+    syscall 2 [[{F_SYP}]]
+", 1);
+            string @out = sb.ToString().Trim();
+
+            AreEqual("0x00000315", @out);
         }
     }
 }
