@@ -1445,20 +1445,44 @@ namespace MCPU.Instructions
         : OPCode
     {
         public interrupttable()
-            : base(0, (p, _) => {
-                int count = _.Length;
-                Dictionary<byte, int> inttable = new Dictionary<byte, int>();
+            : base(1, (p, _) => {
+                int count = _.Length - 1;
+                int tconstant(int i) => p.TranslateConstant(_[i]);
 
-                for (int i = 0; i < count; i++)
+                p.interrupt_table = p.interrupt_table ?? new Dictionary<byte, int>();
+                p.function_table = p.function_table ?? new Dictionary<int, (int, int)>();
+
+                switch (tconstant(0))
                 {
-                    AssertConstant(i, _);
+                    case 0:
+                        for (int i = 0; i < count; i++)
+                        {
+                            AssertNotInstructionSpace(i + 1, _);
 
-                    int vec = p.TranslateConstant(_[i]);
+                            int vec = tconstant(i + 1);
 
-                    inttable[(byte)((vec >> 24) & 0xff)] = vec & 0x00ffffff;
+                            p.interrupt_table[(byte)((vec >> 24) & 0xff)] = vec & 0x00ffffff;
+                        }
+
+                        return;
+                    case 1:
+                        for (int i = 0; i < count; i += 3)
+                        {
+                            for (int j = 1; j <= 3; j++)
+                                AssertNotInstructionSpace(i + j, _);
+
+                            p.function_table[tconstant(i + 1)] = (tconstant(i + 2), tconstant(i + 3));
+                        }
+
+                        return;
+                    case -1:
+                        p.function_table.Clear();
+                        p.interrupt_table.Clear();
+
+                        return;
+                    default:
+                        throw new MCPUProcessingException($"Unknown interrupt table mode {tconstant(0):x8}h.");
                 }
-
-                p.interrupt_table = inttable;
             })
         {
         }

@@ -517,7 +517,7 @@ namespace MCPU
         public static bool operator !=(OPCode opc, Instruction ins) => !(opc == ins);
 
         public static implicit operator Instruction(OPCode opc) => new Instruction(opc);
-
+        
         public static implicit operator Instruction((int, IEnumerable<InstructionArgument>) ins) => new Instruction(OPCodes.CodesByID[(ushort)ins.Item1], ins.Item2?.ToArray());
 
         public static implicit operator Instruction((OPCode, IEnumerable<InstructionArgument>) ins) => new Instruction(ins.Item1, ins.Item2?.ToArray());

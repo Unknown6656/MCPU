@@ -417,6 +417,7 @@ namespace MCPU.Compiler
                             ignore.Add(linenr);
 
                             curr_func.Instructions.Add((is_func == -1 ? HALT : RET as OPCode, linenr));
+                            curr_func.Length = linenr - curr_func.DefinedLine;
                             curr_func = (from f in functions where f.Name == MAIN_FUNCTION_NAME select f).FirstOrDefault();
                             is_func = 0;
                         }
@@ -568,6 +569,8 @@ namespace MCPU.Compiler
                 }
             }
 
+            curr_func.Length = linenr - curr_func.DefinedLine;
+
             functions.Add(curr_func);
 
             if (unmapped.Count > 0)
@@ -651,13 +654,13 @@ namespace MCPU.Compiler
 
                 MCPUFunctionMetadata[] metadata = new MCPUFunctionMetadata[func.Length];
                 Dictionary<byte, int> interrupttable = new Dictionary<byte, int>();
-                List<(Instruction, int)> instr = new List<(Instruction, int)>();
+                List<(Instruction, int, int)> instr = new List<(Instruction, int, int)>();
                 Dictionary<int, int> unused_isl = new Dictionary<int, int>();
                 Dictionary<int, int> jumptable = new Dictionary<int, int>();
                 List<int> rm = new List<int>();
                 int linenr = 1, fnr = 0;
 
-                instr.Add(((JMP, new InstructionArgument[] { (0, ArgumentType.Label) }), -1));
+                instr.Add(((JMP, new InstructionArgument[] { (0, ArgumentType.Label) }), -1, -1));
 
                 foreach (MCPULabelMetadata l in labels)
                     if (__reserved.Contains(l.Name.ToLower()))
@@ -680,12 +683,13 @@ namespace MCPU.Compiler
                             bool caninline = (f.Instructions.Count <= 30) && f.Instructions.All(_ => (_.Item1.OPCode == RET) || !_.Item1.OPCode.SpecialIPHandling);
 
                             if (caninline && OptimizationEnabled)
-                            {
-                                // MAGIC GOES HERE
+                                if (f.Instructions.All(_ => _.Item1.Arguments.All(a => !a.IsKernel))) // function must not have kernel instruction parameters in order to prevent side-effects
+                                {
+                                    // BLACK MAGIC GOES HERE
 
-                                throw new NotImplementedException(GetString("INLINE_NYET_SUPP"));
-                                continue;
-                            }
+                                    throw new NotImplementedException(GetString("INLINE_NYET_SUPP"));
+                                    continue;
+                                }
                         }
 
                         bool canoptimize = false;
@@ -712,8 +716,7 @@ namespace MCPU.Compiler
                                     rm.Add(ol);
                                 else
                                 {
-                                    instr.Add((ins, ol));
-
+                                    instr.Add((ins, ol, f.ID));
                                     linenr++;
                                 }
 
@@ -724,7 +727,7 @@ namespace MCPU.Compiler
                             }
                     }
 
-                (Instruction, int)[] cmp_instr = instr.ToArray();
+                (Instruction, int, int)[] cmp_instr = instr.ToArray();
 
                 for (int i = 0, l = cmp_instr.Length; i < l; i++)
                     for (int j = 0, k = cmp_instr[i].Item1.Arguments.Length; j < k; j++)
@@ -737,48 +740,77 @@ namespace MCPU.Compiler
                             unused_isl.Remove(val);
                         }
 
-                (Instruction[] inst, int[] opt_lines, Dictionary<int, (int, bool)> offset_table) = Optimize(cmp_instr);
+                ((Instruction, int)[] inst, int[] opt_lines, Dictionary<int, (int, bool)> offset_table) = Optimize(cmp_instr);
 
                 foreach (byte b in interrupttable.Keys.ToArray())
                     if (offset_table.ContainsKey(interrupttable[b]))
                         interrupttable[b] -= offset_table[interrupttable[b]].Item1;
 
-                List<Instruction> header = new List<Instruction>();
+                List<(int ID, int Line, int Length)> ftable = new List<(int, int, int)>();
 
-                header.Add((KERNEL, new InstructionArgument[] { 1 }));
-                header.Add((INTERRUPTTABLE, (from kvp in interrupttable
-                                             let fline = jumptable[kvp.Value]
-                                             let nline = fline - (offset_table.ContainsKey(fline) ? offset_table[fline].Item1 : 0)
-                                             where nline != 0 // prevent endless loops
-                                             select (InstructionArgument)((kvp.Key << 24) | (nline & 0x00ffffff))).ToArray()));
+                for (int i = 0, l = metadata.Length; i < l; i++)
+                {
+                    int cmpignored(int line) => line - ignored.Sum(_ => _ < line ? 1 : 0);
+                    int startndx = metadata[i].DefinedLine;
+                    int endndx = metadata[i].Length + startndx;
+
+                    startndx = cmpignored(startndx);
+                    endndx = cmpignored(endndx);
+
+                    int si = startndx - offset_table[startndx].Item1;
+                    int ei = metadata[i].ID != 0 ? endndx - offset_table[endndx].Item1 : inst.Length - si;
+
+                    ftable.Add((metadata[i].ID, si, ei));
+                }
+
+                List<(Instruction, int)> header = new List<(Instruction, int)>
+                {
+                    ((KERNEL, new InstructionArgument[] { 1 }), -1),
+                    ((INTERRUPTTABLE, new InstructionArgument[] { 0 }.Concat(from kvp in interrupttable
+                                                                             let fline = jumptable[kvp.Value]
+                                                                             let nline = fline - (offset_table.ContainsKey(fline) ? offset_table[fline].Item1 : 0)
+                                                                             where nline != 0 // prevent endless loops
+                                                                             select (InstructionArgument)((kvp.Key << 24) | (nline & 0x00ffffff))).ToArray()), -1)
+                };
+
+                header.AddRange(from f in ftable select ((Instruction)(INTERRUPTTABLE, new InstructionArgument[] { 1, f.ID, f.Line, f.Length }), -1));
                 header.AddRange(from (int addr, int value) _ in init_data
-                                select (Instruction)(MOV, new InstructionArgument[] { (_.addr, ArgumentType.KernelMode | ArgumentType.Address), (_.value, ArgumentType.Constant) }));
-                header.Add((KERNEL, new InstructionArgument[] { 0 }));
-                header[1] = (header[1].OPCode, (from a in header[1].Arguments
-                                                let b = (uint)(a & 0xff000000)
-                                                let c = a & 0x00ffffff
-                                                select (InstructionArgument)(int)(b | (uint)(a + header.Count))).ToArray());
+                                select ((Instruction)(MOV, new InstructionArgument[] { (_.addr, ArgumentType.KernelMode | ArgumentType.Address), (_.value, ArgumentType.Constant) }), -1));
+                header.Add(((KERNEL, new InstructionArgument[] { 0 }), -1));
+
+                header[1] = ((INTERRUPTTABLE, new InstructionArgument[] { header[1].Item1.Arguments[0] }.Concat(from a in header[1].Item1.Arguments.Skip(1)
+                                                                                                                let b = (uint)(a & 0xff000000)
+                                                                                                                let c = a & 0x00ffffff
+                                                                                                                select (InstructionArgument)(int)(b | (uint)(a + header.Count))).ToArray()), header[1].Item2);
+
+                for (int i = 0; i < ftable.Count; i++)
+                {
+                    InstructionArgument[] args = header[2 + i].Item1.Arguments;
+
+                    args[2] += header.Count;
+                    header[2 + i] = ((INTERRUPTTABLE, args), -1);
+                }
 
                 foreach (byte b in interrupttable.Keys.ToArray())
                     interrupttable[b] += header.Count;
 
-                inst = header.Concat(from i in inst
-                                     select new Func<Instruction>(() =>
-                                     {
-                                         InstructionArgument[] args = i.Arguments;
+                return (header.Concat(from i in inst
+                                      select new Func<(Instruction, int)>(() =>
+                                      {
+                                          InstructionArgument[] args = i.Item1.Arguments;
 
-                                         for (int j = 0; j < args.Length; j++)
-                                             if (args[j].IsInstructionSpace)
-                                                 args[j].Value += header.Count;
+                                          for (int j = 0; j < args.Length; j++)
+                                              if (args[j].IsInstructionSpace)
+                                                  args[j].Value += header.Count;
 
-                                         return (i.OPCode, args);
-                                     })()).ToArray();
-
-                return (inst, (from o in opt_lines.Union(rm)
+                                          return ((i.Item1.OPCode, args), i.Item2);
+                                      })()).ToArray()
+                              .Select(_ => _.Item1)
+                              .ToArray(), (from o in opt_lines.Union(rm)
                                                   .Union(unused_isl.Values)
                                                   .Except(ignored)
-                               where func.All(f => f.DefinedLine != o)
-                               select o).ToArray(), metadata, labels, interrupttable);
+                                           where func.All(f => f.DefinedLine != o)
+                                           select o).ToArray(), metadata, labels, interrupttable);
             }
             catch (Exception ex)
             when (!(ex is MCPUCompilerException))
@@ -816,7 +848,7 @@ namespace MCPU.Compiler
         /// </summary>
         /// <param name="instr">Instructions</param>
         /// <returns>Optimized instructions</returns>
-        public static (Instruction[], int[], Dictionary<int, (int, bool)>) Optimize(params (Instruction, int)[] instr)
+        public static ((Instruction, int)[], int[], Dictionary<int, (int, bool)>) Optimize(params (Instruction, int, int)[] instr)
         {
             bool CanBeRemoved(Instruction i)
             {
@@ -844,14 +876,14 @@ namespace MCPU.Compiler
             }
 
             if (!OptimizationEnabled)
-                return ((from i in instr select i.Item1).ToArray(), new int[0], new Dictionary<int, (int, bool)>());
+                return ((from i in instr select (i.Item1, i.Item3)).ToArray(), new int[0], new Dictionary<int, (int, bool)>());
 
             Dictionary<int, (int, bool)> offset_table = Enumerable.Range(0, instr.Length).ToDictionary(_ => _, _ => (0, false));
-            List<Instruction> outp = new List<Instruction>();
+            List<(Instruction, int)> outp = new List<(Instruction, int)>();
             List<int> rm = new List<int>();
             int cnt = 0, line = 0;
 
-            foreach ((Instruction i, int l) in instr)
+            foreach ((Instruction i, int l, int _) in instr)
             {
                 bool rem = CanBeRemoved(i);
 
@@ -867,9 +899,9 @@ namespace MCPU.Compiler
             // two separate loops, or the look-ahead won't work
             for (int i = 0, l = instr.Length; i < l; i++)
                 if (!offset_table[i].Item2)
-                    outp.Add((instr[i].Item1.OPCode, (from arg in instr[i].Item1.Arguments
-                                                      let na = arg.IsInstructionSpace ? (InstructionArgument)(arg.Value - offset_table[arg.Value].Item1, arg.Type) : arg
-                                                      select na).ToArray()));
+                    outp.Add(((instr[i].Item1.OPCode, (from arg in instr[i].Item1.Arguments
+                                                       let na = arg.IsInstructionSpace ? (InstructionArgument)(arg.Value - offset_table[arg.Value].Item1, arg.Type) : arg
+                                                       select na).ToArray()), instr[i].Item3));
 
             return (outp.ToArray(), (from l in rm
                                      where l >= 0
@@ -972,7 +1004,7 @@ namespace MCPU.Compiler
 
                 return ret + (wasaddr ? "0x" + arg.Value.ToString("x8") : arg.Value.ToString());
             }
-            string lineind() => $"line_{line:x4}:";
+            string lineind() => $"line_{index:x4}:";
 
             sb.AppendLine($"main:{new string(' ', tab_wdh + 5)}.main");
 
@@ -1059,7 +1091,7 @@ namespace MCPU.Compiler
         /// </summary>
         public MCPUFunctionMetadata ParentFunction { set; get; }
         /// <summary>
-        /// The (0-based) line, in which the label has been defined (The line number is one-based -- NOT zero-based)
+        /// The (0-based) line, in which the label has been defined
         /// </summary>
         public int DefinedLine { set; get; }
     }
@@ -1069,6 +1101,10 @@ namespace MCPU.Compiler
     /// </summary>
     public struct MCPUFunctionMetadata
     {
+        /// <summary>
+        /// The internal ID assigned to each function
+        /// </summary>
+        internal int ID { set; get; }
         /// <summary>
         /// The function's name
         /// </summary>
@@ -1082,9 +1118,13 @@ namespace MCPU.Compiler
         /// </summary>
         public byte? InterruptHandler { set; get; }
         /// <summary>
-        /// The (0-based) line, in which the function has been defined (The line number is one-based -- NOT zero-based)
+        /// The (0-based) line, in which the function has been defined
         /// </summary>
         public int DefinedLine { set; get; }
+        /// <summary>
+        /// The function length, which is defined as the number of instructions inside a function
+        /// </summary>
+        public int Length { set; get; }
     }
 
     /// <summary>
@@ -1130,6 +1170,10 @@ namespace MCPU.Compiler
         /// The (0-based) line, in which the function has been defined
         /// </summary>
         public int DefinedLine { set; get; }
+        /// <summary>
+        /// The function length, which is defined as the number of instructions inside a function
+        /// </summary>
+        public int Length { set; get; }
         /// <summary>
         /// The function's name
         /// </summary>
@@ -1181,7 +1225,9 @@ namespace MCPU.Compiler
 
         public static implicit operator MCPUFunctionMetadata(MCPUFunction func) => new MCPUFunctionMetadata
         {
+            ID = func.ID,
             Name = func.Name,
+            Length = func.Length,
             Inlined = func.IsInlined,
             DefinedLine = func.DefinedLine,
             InterruptHandler = func.InterruptNumber

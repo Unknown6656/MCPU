@@ -586,6 +586,8 @@ end func
     .enable interrupt
     int 99h
 ");
+            
+
             IsValue(7, 315);
         }
 

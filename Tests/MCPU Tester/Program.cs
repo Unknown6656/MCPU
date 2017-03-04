@@ -84,6 +84,21 @@ namespace MCPU
             ForegroundColor = ConsoleColor.White;
         }
 
+        private static void EnableDebug(Processor proc)
+        {
+            int ind = 0;
+
+            proc.InstructionExecuting += (p, ins) =>
+            {
+                WriteLine($"{p.IP:x8}:  {string.Join("", from i in Enumerable.Range(0, ind) select "¦   ")}{ins.ToShortString()}");
+
+                if (ins == CALL)
+                    ++ind;
+                else if (ins == RET)
+                    --ind;
+            };
+        }
+
         private static void InnerMain1(string[] args)
         {
             void onhalt(Processor _)
@@ -94,20 +109,12 @@ namespace MCPU
             }
 
             Processor proc = new Processor(4096, 4096, -559038737);
-            int ind = 0;
 
             proc.ProcessorReset += onhalt;
             proc.ProcessorHalted += onhalt;
             proc.OnError += (p, ex) => err(ex);
-            proc.InstructionExecuting += (p, ins) =>
-            {
-                WriteLine($"{p.IP:x8}:  {string.Join("", from i in Enumerable.Range(0, ind) select "¦   ")}{ins.ToShortString()}");
 
-                if (ins == CALL)
-                    ++ind;
-                else if (ins == RET)
-                    --ind;
-            };
+            EnableDebug(proc);
 
             const string code = @"
 void main(void)
@@ -163,25 +170,27 @@ void main(void)
         private static void InnerMain2(string[] args)
         {
             const string code = @"
+interrupt func int_01
+    syscall 5 2a657870h 6c6f6465h 732ah
+end func
+
 interrupt func int_88
     syscall 5 68656c6ch 6f207465h 7374h
 end func
 
-interrupt func int_01
-    syscall 5 2a657870h 6c6f6465h 732ah
-end func
-    
     .data
     [0] = 420h
     k[0] = 88h
     [1] = 0
-    
+
     .main
     .kernel
     .enable interrupt
     int k[0]
     div [0] [1]
 ";
+            MCPUCompiler.OptimizationEnabled = true;
+
             Union<MCPUCompilerResult, MCPUCompilerException> res = MCPUCompiler.Compile(code);
 
             if (res.IsA)
@@ -191,8 +200,14 @@ end func
 
                 WriteLine(MCPUCompiler.Decompile(instr));
 
+                EnableDebug(proc);
+
                 proc.OnError += (p, ex) => err(ex);
                 proc.Process(instr);
+
+                ConsoleExtensions.HexDump(proc.ToBytes());
+
+                var inttab = proc.InterruptTable;
             }
             else
                 err(res.AsB);

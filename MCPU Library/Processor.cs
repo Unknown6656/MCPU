@@ -3,6 +3,7 @@
 
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Collections.ObjectModel;
 using System.Diagnostics.Contracts;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -109,6 +110,7 @@ namespace MCPU
         public const int MAX_STACKSZ = 0x400000; // 16MB of stack space
 #endif
         internal Dictionary<byte, int> interrupt_table = new Dictionary<byte, int>();
+        internal Dictionary<int, (int Line, int Length)> function_table = new Dictionary<int, (int, int)>();
         internal TextWriter stdout = Console.Out;
         internal bool disposed = false;
         internal byte* raw;
@@ -405,6 +407,30 @@ namespace MCPU
             }
         }
 
+        /// <summary>
+        /// Returns the generated interrupt table
+        /// </summary>
+        public ReadOnlyDictionary<byte, Instruction[]> InterruptTable
+        {
+            get
+            {
+                Dictionary<byte, Instruction[]> dic = new Dictionary<byte, Instruction[]>();
+                Instruction[] instructions = Instructions;
+
+                foreach (byte b in interrupt_table.Keys)
+                {
+                    List<Instruction> instr = new List<Instruction>();
+
+                    for (int i = 0, func = interrupt_table[b], len = function_table.First(_ => _.Value.Line == func).Value.Length; i < len; i++)
+                        instr.Add(instructions[func + i]);
+
+                    dic[b] = instr.ToArray();
+                }
+
+                return new ReadOnlyDictionary<byte, Instruction[]>(dic);
+            }
+        }
+
         #endregion
         #region METHODS
 #if WINDOWS
@@ -458,6 +484,8 @@ namespace MCPU
             Flags = StatusFlags.Empty;
             InformationFlags = InformationFlags.Empty;
             Instructions = new Instruction[0];
+            interrupt_table = new Dictionary<byte, int>();
+            function_table = new Dictionary<int, (int, int)>();
 
             for (int i = IO_OFFS, s = RawSize; i < s; i++)
                 raw[i] = 0;
@@ -965,6 +993,13 @@ namespace MCPU
         }
 
         #endregion
+
+        /// <summary>
+        /// Returns the byte-representation of the given processor's memory
+        /// </summary>
+        /// <param name="proc">Processor</param>
+        /// <returns>Memory byte representation</returns>
+        public static implicit operator byte[](Processor proc) => proc.ToBytes();
     }
 
     /// <summary>
@@ -1180,7 +1215,24 @@ namespace MCPU
             set => raw = (byte)((raw & 0x0f) | ((int)value << 7));
         }
 
+        /// <summary>
+        /// Indicates whether this instance and a specified object are equal.
+        /// </summary>
+        /// <param name="obj">The object to compare with the current instance. </param>
+        /// <returns>true if <paramref name="obj" /> and this instance are the same type and represent the same value; otherwise, false. </returns>
+        public override bool Equals(object obj) => obj is IOPort other ? other == this : false;
+
+        /// <summary>
+        /// Returns the fully qualified type name of this instance.
+        /// </summary>
+        /// <returns>The fully qualified type name.</returns>
         public override string ToString() => $"{raw:x2}: ({Value}, {Direction})";
+
+        /// <summary>
+        /// Returns the hash code for this instance.
+        /// </summary>
+        /// <returns>A 32-bit signed integer that is the hash code for this instance.</returns>
+        public override int GetHashCode() => raw;
 
         public static bool operator ==(IOPort p1, IOPort p2) => p1.raw == p2.raw;
 

@@ -226,8 +226,8 @@ pool:
     JMP loop
 ");
             int ln = 0;
-            (Instruction[], int[], Dictionary<int, (int, bool)>) optimized = MCPUCompiler.Optimize((from i in res.Instructions
-                                                                                                    select (i, ln++)).ToArray());
+            ((Instruction, int)[], int[], Dictionary<int, (int, bool)>) optimized = MCPUCompiler.Optimize((from i in res.Instructions
+                                                                                                           select (i, ln++, -1)).ToArray());
 
             // TODO : Assertions ?
         }
