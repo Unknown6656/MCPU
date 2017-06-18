@@ -8,6 +8,7 @@ The name **MCPU** stands for **M**inimalistic **C**entral **P**rocessing **U**ni
 [<img src="https://ci.appveyor.com/api/projects/status/k9t9jqap2iemau3c/branch/dev?svg=true&pendingText=dev%20-%20pending&failingText=dev%20-%20failed&passingText=dev%20-%20passed" height="30"/>](https://ci.appveyor.com/project/Unknown6656/mcpu/branch/dev)<br/>
 [<img src="https://ci.appveyor.com/api/projects/status/k9t9jqap2iemau3c/branch/mcpu%2B%2B?svg=true&pendingText=mcpu%2B%2B%20-%20pending&failingText=mcpu%2B%2B%20-%20failed&passingText=mcpu%2B%2B%20-%20passed" height="30"/>](https://ci.appveyor.com/project/Unknown6656/mcpu/branch/mcpu%2B%2B)<br/>
 [<img src="https://img.shields.io/github/release/Unknown6656/MCPU.svg" height="30"/>](https://github.com/Unknown6656/MCPU/releases)
+[<img alt="Coverity Scan Build Status" src="https://scan.coverity.com/projects/12968/badge.svg" height="30"/>](https://scan.coverity.com/projects/unknown6656-mcpu)
 
 #### Testing status (Windows 64Bit)
 [<img src="https://ci.appveyor.com/api/projects/status/fyvayfc9e82xh6eg/branch/master?svg=true&pendingText=master%20-%20pending&failingText=master%20-%20failed&passingText=master%20-%20passed" height="30"/>](https://ci.appveyor.com/project/Unknown6656/mcpu-he9wv/branch/master)<br/>
